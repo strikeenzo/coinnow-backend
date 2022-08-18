@@ -92,7 +92,7 @@
                                 <tr>
                                     <td class="budget">
                                       @if($value->image)
-                                        <img src="{{asset('/uploads/product').'/'.$value->image}}"  alt="{{$value->name}}"  class="img-thumbnail img-fluid" style=" width: 60px;height: 60px;">
+                                        <img src="{{asset('/public/uploads/product').'/'.$value->image}}"  alt="{{$value->name}}"  class="img-thumbnail img-fluid" style=" width: 60px;height: 60px;">
                                       @else
                                         <img src="{{asset('/assets/img/default.png')}}"  alt="{{$value->name}}"  class="img-thumbnail img-fluid" style=" width: 60px;height: 60px;">
                                       @endif

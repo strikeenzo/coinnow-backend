@@ -25,6 +25,7 @@ use App\Models\Manufacturer;
 use App\Models\Review;
 use App\Models\DOD;
 use App\Models\Page;
+use App\Models\Trade;
 use Validator;
 use File;
 use DB;
@@ -124,6 +125,7 @@ class GeneralApiController extends Controller
         return ['status'=> 1,'data'=>$data];
 
     } catch (\Exception $e) {
+      
       return ['status'=> 0,'message'=>'Error'];
     }
   }
@@ -322,6 +324,11 @@ class GeneralApiController extends Controller
       return ['status'=> 0,'message'=>'Error'];
     }
 
+  }
+
+  public function getTrades(Request $request) {
+    $trade = Trade::select('quantity', 'min_reward', 'max_reward', 'quantity_trade', 'image', 'product_id', 'product_image')->get();
+    return ['status' => 1, 'data' => $trade];
   }
 
     public function searchOtherSellersProducts(Request $request) {

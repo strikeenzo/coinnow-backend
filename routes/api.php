@@ -22,117 +22,116 @@ use App\Http\Controllers\Api\SellerCartApiController;
 */
 
 Route::middleware('auth:api')->get('/users', function (Request $request) {
-    return $request->user();
+  return $request->user();
 });
 
 Route::get('/something', [GeneralApiController::class, 'something']);
 Route::get('/something2', [GeneralApiController::class, 'something2']);
+// Route::get('/getTrades', [GeneralApiController::class, 'getTrades']);
+// Route::middleware(['checkKey'])->group(function () { 
 
-Route::middleware(['checkKey'])->group(function () {
+  Route::get('testAPI', function () {
+    return response()->json(['status' => 1, 'message' => 'Test Done!']);
+  });
 
-Route::get('testAPI',function () {
-  return response()->json(['status' => 1,'message' => 'Test Done!']);
-});
+  Route::controller(GeneralApiController::class)->group(function () {
+    Route::get('/getHomePage', 'getHomePage');
+    Route::get('/getNewProducts', 'getNewProducts');
+    Route::get('/getNewProductsV1', 'getNewProductsV1');
+    Route::get('/getTrendingProducts', 'getTrendingProducts');
+    Route::get('/getTrendingProductsV1', 'getTrendingProductsV1');
+    Route::get('/getDODProducts', 'getDODProducts');
+    Route::get('/getCategories', 'getCategories');
+    Route::get('/getManufacturers', 'getManufacturers');
+    Route::get('/searchProducts', 'searchProducts');
+    Route::get('/getTrades', 'getTrades');
+    Route::get('searchOtherSellersProducts', 'searchOtherSellersProducts');
+    Route::get('getMarketplaceProducts', 'getMarketplaceProducts');
+    Route::get('/productDetail/{id?}', 'productDetails');
+    Route::post('/incrementProductView/{id?}', 'incrementProductView');
+    Route::get('/getProductByCategory/{id?}', 'getProductByCategory');
+    Route::get('/getProductByManufacturer/{id?}', 'getProductByManufacturer');
+    Route::get('/getPages/{id?}', 'getPages');
+    Route::put('/productRandomPrice', 'productRandomPrice');
+  });
 
-Route::controller(GeneralApiController::class)->group(function () {
-  Route::get('/getHomePage','getHomePage');
-  Route::get('/getNewProducts','getNewProducts');
-  Route::get('/getNewProductsV1','getNewProductsV1');
-  Route::get('/getTrendingProducts','getTrendingProducts');
-  Route::get('/getTrendingProductsV1','getTrendingProductsV1');
-  Route::get('/getDODProducts','getDODProducts');
-
-  Route::get('/getCategories','getCategories');
-  Route::get('/getManufacturers','getManufacturers');
-  Route::get('/searchProducts','searchProducts');
-  Route::get('searchOtherSellersProducts','searchOtherSellersProducts');
-  Route::get('getMarketplaceProducts','getMarketplaceProducts');
-  Route::get('/productDetail/{id?}','productDetails');
-  Route::post('/incrementProductView/{id?}','incrementProductView');
-  Route::get('/getProductByCategory/{id?}','getProductByCategory');
-  Route::get('/getProductByManufacturer/{id?}','getProductByManufacturer');
-  Route::get('/getPages/{id?}','getPages');
-  Route::put('/productRandomPrice', 'productRandomPrice');
-});
-
-Route::group(['prefix' => 'seller'], function() {
+  Route::group(['prefix' => 'seller'], function () {
     Route::controller(ApiSellerAuthController::class)->group(function () {
-        Route::post('/register','register');
-        Route::post('/login','login');
-        Route::get('/logout','logout');
+      Route::post('/register', 'register');
+      Route::post('/login', 'login');
+      Route::get('/logout', 'logout');
     });
 
     Route::middleware(['sellerAuth'])->group(function () {
-        Route::controller(SellerApiController::class)->group(function () {
-            Route::get('getSeller','getSellerDetails');
-            Route::get('getSellers','getSellers');
-            Route::post('sendCoins','sendCoins');
-            Route::get('balanceHistory','balanceHistory');
-            Route::get('searchProducts','searchProducts');
-            Route::post('updateProfile','updateProfile');
-            Route::post('changePassword','changePassword');
-            Route::post('updateProduct/{id?}','updateProduct');
-            Route::post('listProductSale/{id?}','listProductSale');
-            Route::get('/getHistory','getHistory');
-            Route::get('/getExpenses','getExpenses');
-            Route::get('/getEarnings','getEarnings');
-        });
+      Route::controller(SellerApiController::class)->group(function () {
+        Route::get('getSeller', 'getSellerDetails');
+        Route::get('getSellers', 'getSellers');
+        Route::post('sendCoins', 'sendCoins');
+        Route::get('balanceHistory', 'balanceHistory');
+        Route::get('searchProducts', 'searchProducts');
+        Route::get('/getTrades', 'getTrades');
+        Route::post('/trade', 'trade');
+        Route::post('updateProfile', 'updateProfile');
+        Route::post('changePassword', 'changePassword');
+        Route::post('updateProduct/{id?}', 'updateProduct');
+        Route::post('listProductSale/{id?}', 'listProductSale');
+        Route::get('/getHistory', 'getHistory');
+        Route::get('/getExpenses', 'getExpenses');
+        Route::get('/getEarnings', 'getEarnings');
+      });
 
-        //cart functionality
-        Route::controller(SellerCartApiController::class)->group(function () {
-            Route::post('/addToCart','addToCart');
-            Route::get('/getCart','getCart');
-            Route::post('/updateCart','updateCart');
-            Route::post('/deleteCart','deleteCart');
-            Route::post('/applyCoupon','applyCoupon');
-            Route::post('/selectShipping/{id?}','selectShipping');
-            Route::post('/placeOrder','placeOrder');
-            Route::post('/buyProduct','buyProduct');
-            Route::post('/fightProduct','fightProduct');
-            Route::get('/getOrdersList','getOrdersList');
-
-        });
+      //cart functionality
+      Route::controller(SellerCartApiController::class)->group(function () {
+        Route::post('/addToCart', 'addToCart');
+        Route::get('/getCart', 'getCart');
+        Route::post('/updateCart', 'updateCart');
+        Route::post('/deleteCart', 'deleteCart');
+        Route::post('/applyCoupon', 'applyCoupon');
+        Route::post('/selectShipping/{id?}', 'selectShipping');
+        Route::post('/placeOrder', 'placeOrder');
+        Route::post('/buyProduct', 'buyProduct');
+        Route::post('/fightProduct', 'fightProduct');
+        Route::get('/getOrdersList', 'getOrdersList');
+      });
     });
-});
-
-Route::group(['prefix' => 'user'], function () {
-  Route::controller(ApiAuthController::class)->group(function () {
-    Route::post('/register','register');
-    Route::post('/login','login');
-    Route::post('/socialLogin','socialLogin');
-    Route::post('/socialRegister','socialRegister');
-    Route::get('/logout','logout');
   });
 
-  Route::middleware(['customerAuth'])->group(function () {
-    Route::controller(CustomerApiController::class)->group(function () {
-      Route::get('getCustomer','getCustomerDetails');
-      Route::post('updateProfile','updateProfile');
-      Route::post('addUpdateWishlist','addUpdateWishlist');
-      Route::get('getWishlist','getWishlist');
-      Route::post('changePassword','changePassword');
-      Route::post('changeProfilePicture','changeProfilePicture');
-      Route::post('/addAddress','addAddress');
-      Route::post('/editAddress/{id?}','editAddress');
-      Route::post('/deleteAddress/{id?}','deleteAddress');
-      Route::post('/addReview','addReview');
-      Route::get('/getAdress','getAdress');
+  Route::group(['prefix' => 'user'], function () {
+    Route::controller(ApiAuthController::class)->group(function () {
+      Route::post('/register', 'register');
+      Route::post('/login', 'login');
+      Route::post('/socialLogin', 'socialLogin');
+      Route::post('/socialRegister', 'socialRegister');
+      Route::get('/logout', 'logout');
     });
 
-    //cart functionality
-    Route::controller(CartApiController::class)->group(function () {
-      Route::post('/addToCart','addToCart');
-      Route::get('/getCart','getCart');
-      Route::post('/updateCart','updateCart');
-      Route::post('/deleteCart','deleteCart');
-      Route::post('/applyCoupon','applyCoupon');
-      Route::get('/getCheckoutData','getCheckoutData');
-      Route::post('/selectShipping/{id?}','selectShipping');
-      Route::post('/placeOrder','placeOrder');
-      Route::get('/getOrdersList','getOrdersList');
-    });
+    Route::middleware(['customerAuth'])->group(function () {
+      Route::controller(CustomerApiController::class)->group(function () {
+        Route::get('getCustomer', 'getCustomerDetails');
+        Route::post('updateProfile', 'updateProfile');
+        Route::post('addUpdateWishlist', 'addUpdateWishlist');
+        Route::get('getWishlist', 'getWishlist');
+        Route::post('changePassword', 'changePassword');
+        Route::post('changeProfilePicture', 'changeProfilePicture');
+        Route::post('/addAddress', 'addAddress');
+        Route::post('/editAddress/{id?}', 'editAddress');
+        Route::post('/deleteAddress/{id?}', 'deleteAddress');
+        Route::post('/addReview', 'addReview');
+        Route::get('/getAdress', 'getAdress');
+      });
 
+      //cart functionality
+      Route::controller(CartApiController::class)->group(function () {
+        Route::post('/addToCart', 'addToCart');
+        Route::get('/getCart', 'getCart');
+        Route::post('/updateCart', 'updateCart');
+        Route::post('/deleteCart', 'deleteCart');
+        Route::post('/applyCoupon', 'applyCoupon');
+        Route::get('/getCheckoutData', 'getCheckoutData');
+        Route::post('/selectShipping/{id?}', 'selectShipping');
+        Route::post('/placeOrder', 'placeOrder');
+        Route::get('/getOrdersList', 'getOrdersList');
+      });
+    });
   });
-});
-
-});
+// });

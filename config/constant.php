@@ -19,6 +19,7 @@ return [
         'banner' => 'uploads/banner',
         'manufacturer' => 'uploads/manufacturer',
         'product' => 'uploads/product',
+        'trade' => 'uploads/trade',
         'product_option' => 'uploads/product_option',
         'store' => 'uploads/store',
         'user' => 'uploads/user',

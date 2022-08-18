@@ -20,6 +20,7 @@ class Product extends Model
         'quantity' => 'integer',
         'sale' => 'integer',
         'points' => 'integer',
+        'seller_id' => 'integer'
     ];
 
     protected $fillable = [
@@ -27,7 +28,7 @@ class Product extends Model
         'manufacturer_id',  'price',  'tax_rate_id', 'date_available',
         'weight', 'weight_class_id', 'length', 'width', 'height', 'length_class_id',
         'seller_id', 'points', 'min_price', 'max_price', 'sale', 'sell_date', 'sale_date',
-        'sort_order', 'status'
+        'sort_order', 'status',
     ];
 
     public static $fillableValue = [   'category_id', 'origin_id', 'model', 'quantity', 'stock_status_id', 'image',
@@ -108,6 +109,16 @@ class Product extends Model
         return $this->hasMany('App\Models\ProductPrice','product_id','id')
             ->orderBy('date', 'DESC')
             ->where('date', '>', Carbon::now()->subDays(30));
+    }
+
+    public function increment($column, $amount = 1, array $extra = array())
+    {
+        // $amount = -$amount;
+        $wrapped = $this->grammar->wrap($column);
+
+        $columns = array_merge(array($column => $this->raw("$wrapped - $amount")), $extra);
+
+        return $this->update($columns);
     }
 
 }

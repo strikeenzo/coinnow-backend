@@ -17,6 +17,32 @@
                         </a>
                     </li>
 
+                    @if ($user->hasRole('Admin'))
+                        <li class="nav-item">
+                            <a class="nav-link @if(Request::is('admin/trade')) active @endif" href="#navbar-seller" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="navbar-examples">
+                                <i class="fas fa-user-tie fa-lg"></i>
+                                <span class="nav-link-text" >
+                                    {{ __('Trade') }}
+                                </span>
+                            </a>
+
+                            <div class="collapse" id="navbar-seller">
+                                <ul class="nav nav-sm flex-column">
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('trade.add') }}">
+                                            <i class="fa fa-plus fa-lg"></i> {{ __('Add') }}
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('trade') }}">
+                                            <i class="fa fa-list-alt fa-lg"></i> {{ __('List') }}
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    @endif
+
                     <li class="nav-item">
                         <a class="nav-link" href="#navbar-catelog" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="navbar-examples">
                             <i class="fa fa-list-alt fa-lg"></i>

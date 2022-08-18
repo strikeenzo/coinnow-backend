@@ -76,7 +76,7 @@
                               <tr>
                                 <td>
                                   @if($value->productDetails && $value->productDetails->image)
-                                    <img src="{{asset('/uploads/product').'/'.$value->productDetails->image}}"  alt="{{$value->productDescription->name}}"  class="img-thumbnail img-fluid" style=" width: 60px;height: 60px;">
+                                    <img src="{{asset('/public/uploads/product').'/'.$value->productDetails->image}}"  alt="{{$value->productDescription->name}}"  class="img-thumbnail img-fluid" style=" width: 60px;height: 60px;">
                                   @else
                                     <img src="{{asset('/assets/img/default.png')}}"  alt="{{$value->productDescription->name}}"  class="img-thumbnail img-fluid" style=" width: 60px;height: 60px;">
                                   @endif
