@@ -37,7 +37,7 @@ class SellerApiController extends Controller
 
     public function getSellerDetails()
     {
-        $specials = Special::select('quantity', 'product_id')->where('seller_id', $this->getUser->id)->where('quantity', '>', 0)->with('product:id,image,points')->get();
+        $specials = Special::select('quantity', 'product_id')->where('seller_id', $this->getUser->id)->where('quantity', '>', 0)->with('product:id,image,points', 'productDescription:id,name,product_id')->get();
         //$specials = Special::join('product', 'product.id', '=', 'special.product_id')->get();
         return  ['status' => 1, 'data' => $this->getUser, 'specials' => $specials];
     }
@@ -197,18 +197,16 @@ class SellerApiController extends Controller
     public function getTrades(Request $request)
     {
         // $product_id = Product::where('seller_id', $this->getUser->id)->first();
-        $trade = Trade::select('id', 'quantity', 'min_reward', 'max_reward', 'quantity_trade', 'image', 'product_id', 'product_image', 'coin_quantity')->where('quantity', '!=', 0)->get();
+        $trade = Trade::select('id', 'quantity', 'min_reward', 'origin_id','max_reward', 'quantity_trade', 'image', 'product_id', 'product_image', 'coin_quantity')->where('quantity', '>', 0)->get();
         return ['status' => 1, 'data' => $trade];
     }
 
     public function trade(Request $request) {
 
         // error_log($request->get('product_id'));
-        $product = Product::where('id', $request->get('product_id'))->get();
-        error_log($this->getUser->id);
-        error_log($product[0]['price']);
-        error_log($request->get('product_id'));
-        if ($product[0]['seller_id'] != $this->getUser->id) {
+        $product = Product::where('seller_id', $this->getUser->id)->where('origin_id', $request->get('product_id'))->get();
+        // return $product;
+        if (count($product) == 0) {
             return ['status' => 3];
         }
         if ($product[0]['quantity'] < $request->get('quantity_trade'))
@@ -218,19 +216,22 @@ class SellerApiController extends Controller
 
         //error_log($request->get('coin_quantity'));
         try {
-            $product = Product::find($request->get('product_id'))->decrement('quantity', $request->get('quantity_trade'));
+            $product = Product::where('seller_id', $this->getUser->id)->where('origin_id', $request->get('product_id'))->decrement('quantity', $request->get('quantity_trade'));
             //error_log(count($product));
             Seller::find($this->getUser->id)->increment('balance', $request->get('coin_quantity'));
             Trade::find($request->get('id'))->decrement('quantity', 1);
-            $trade_count = Trade::find($request->get('id'))->select('quantity')->get();
-            $trade_count = $trade_count[0]['quantity'];
-            if ($trade_count == 0) {
-                return ['status' => 4];
-            }
+
             $amount = Seller::where('id', $this->getUser->id)->select('balance')->get();
             $amount = $amount[0]['balance'];
             $notification = new Notification(['product_id' => $request->get('product_id'), 'quantity' => $request->get('quantity_trade'), 'type' => 'trade', 'amount' => $request->get('coin_quantity'), 'seller_id' => $this->getUser->id, 'balance' => $amount]);
             $notification->save();
+
+            $trade_count = Trade::find($request->get('id'))->select('quantity')->get();
+            $trade_count = $trade_count[0]['quantity'];
+            // return ['status' => $trade_count];
+            if ($trade_count <= 0) {
+                return ['status' => 4];
+            }
             return ['status' => 1];
         } catch(\Exception $e) {
             error_log($e->getMessage());

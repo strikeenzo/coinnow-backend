@@ -49,7 +49,7 @@
                                         style="transform: translateX(20px); height: 200px; overflow: auto;">
                                         @forelse ($records as $key => $value)
                                             <li class="text-center p-2" product-image="{{ $value->image }}"
-                                                product-id="{{ $value->id }}">
+                                                product-id="{{ $value->id }}" origin-id={{ $value->origin_id }}>
                                                 <a href="#">{{ $value->productDescription->name }}</a>
                                             </li>
                                         @empty
@@ -129,6 +129,8 @@
                                 </div>
                                 <input type="hidden" value="" name="product_image"
                                     id="product_image" />
+                                    <input type="hidden" value="" name="origin_id"
+                                    id="origin_id" />
                                 <input type="hidden" value="" name="product_id" id="product_id" />
                                 <div class="text-center">
                                     <button type="submit" class="btn btn-success mt-4">{{ __('Save') }}</button>
@@ -164,6 +166,7 @@
                     $("#product_name").val($(this).find("a").text());
                     $("input#product_id").val($(this).attr("product-id"));
                     $("input#product_image").val($(this).attr("product-image"));
+                    $("input#origin_id").val($(this).attr("origin-id"));
                     $("form ul").hide();
                 });
             });

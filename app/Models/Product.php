@@ -20,7 +20,8 @@ class Product extends Model
         'quantity' => 'integer',
         'sale' => 'integer',
         'points' => 'integer',
-        'seller_id' => 'integer'
+        'seller_id' => 'integer',
+        'origin_id' => 'integer'
     ];
 
     protected $fillable = [

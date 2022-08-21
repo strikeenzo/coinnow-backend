@@ -46,7 +46,7 @@ class TradeController extends Controller
         $user = Auth::user();
         $seller = $user->seller->first();
 
-        $records = Product::select('id','image','category_id', 'model','price', 'min_price', 'max_price', 'location', 'quantity','sort_order','status');
+        $records = Product::select('id','image','category_id', 'model','price', 'min_price', 'max_price', 'location', 'quantity','sort_order','status', 'origin_id');
         //$records = $user->hasRole('Admin') || empty($seller) ? $records->where('seller_id', 0)->orWhereNull('seller_id') : $records->where('seller_id', 1);
         $records = $records->WhereNot('seller_id', null);
 
@@ -60,7 +60,7 @@ class TradeController extends Controller
 
         //Product::find($request->get('product_id'))->decrement('quantity', $quantity);
 
-        $trade = new Trade($request->only('quantity', 'min_reward', 'max_reward', 'quantity_trade', 'image', 'product_id', 'product_image' ,'coin_quantity'));
+        $trade = new Trade($request->only('quantity', 'min_reward', 'max_reward', 'quantity_trade', 'image', 'product_id', 'product_image' ,'coin_quantity', 'origin_id'));
 
         //if has main image
         if($request->hasFile('image')) {
