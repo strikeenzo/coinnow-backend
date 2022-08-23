@@ -25,8 +25,8 @@ class Trade extends Model
     ];
 
     protected $fillable = [
-        'quantity', 'min_reward', 'max_reward', 'quantity_trade', 'image', 'product_id', 'product_image', 'coin_quantity'
+        'quantity', 'min_reward', 'max_reward', 'quantity_trade', 'image', 'product_id', 'product_image', 'coin_quantity', 'origin_id',
     ];
 
-    public static $fillableValue = ['quantity', 'min_reward', 'max_reward', 'quantity_trade', 'image', 'product_id', 'product_image', 'coin_quantity'];
+    public static $fillableValue = ['quantity', 'min_reward', 'max_reward', 'quantity_trade', 'image', 'product_id', 'origin_id', 'product_image', 'coin_quantity'];
 }

@@ -22,4 +22,8 @@ class Special extends Model
     public function product () {
         return $this->belongsTo('App\Models\Product','product_id','id');
     }
+
+    public function productDescription() {
+        return $this->hasOne('App\Models\ProductDescription','product_id','product_id');
+    }
 }
