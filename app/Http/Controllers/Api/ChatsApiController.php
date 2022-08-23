@@ -40,7 +40,7 @@ class ChatsApiController extends Controller
         $params = $request->query();
         if ($params['user']) {
             $users = Seller::where('email', 'like', '%' . $params['user'] . '%')
-                ->select('id', 'email')
+                ->select('id', 'email', 'firstname', 'lastname')
                 ->limit(5)
                 ->get();
             return $users;
@@ -61,10 +61,10 @@ class ChatsApiController extends Controller
             ->orWhere([['sender_id', $user2], ['receiver_id', $user1]])
             ->with([
                 'sender' => function ($query) {
-                    $query->select(['id', 'email']);
+                    $query->select(['id', 'email', 'firstname', 'lastname']);
                 },
                 'receiver' => function ($query) {
-                    $query->select(['id', 'email']);
+                    $query->select(['id', 'email', 'firstname', 'lastname']);
                 },
             ])
             ->orderBy('created_at')
@@ -114,10 +114,10 @@ class ChatsApiController extends Controller
                 ])
                 ->with([
                     'sender' => function ($query) {
-                        $query->select(['id', 'email']);
+                        $query->select(['id', 'email', 'firstname', 'lastname']);
                     },
                     'receiver' => function ($query) {
-                        $query->select(['id', 'email']);
+                        $query->select(['id', 'email', 'firstname', 'lastname']);
                     },
                 ])
                 ->orderBy('created_at', 'desc')
