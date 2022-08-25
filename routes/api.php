@@ -115,6 +115,7 @@ Route::middleware(['checkKey'])->group(function () {
                             '/getMessagesByReceiver',
                             'getMessagesByReceiver'
                         );
+                        Route::get('/getReceivedMessagesCounts', 'getReceivedMessagesCounts');
                     }
                 );
             });
