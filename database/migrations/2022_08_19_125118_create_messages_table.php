@@ -17,6 +17,7 @@ return new class extends Migration {
             $table->integer('sender_id')->unsigned();
             $table->integer('receiver_id')->unsigned();
             $table->text('message');
+            $table->dateTime('received_at')->nullable();
             $table->timestamps();
         });
     }

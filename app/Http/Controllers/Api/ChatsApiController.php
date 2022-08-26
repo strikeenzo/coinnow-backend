@@ -9,6 +9,7 @@ use App\Models\Message;
 use App\Events\MessageSent;
 use Validator;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class ChatsApiController extends Controller
 {
@@ -57,6 +58,10 @@ class ChatsApiController extends Controller
         $messages = Message::where([
             ['sender_id', $user1],
             ['receiver_id', $user2],
+        ])->update(['received_at' => Carbon::now()]);
+        $messages = Message::where([
+            ['sender_id', $user1],
+            ['receiver_id', $user2],
         ])
             ->orWhere([['sender_id', $user2], ['receiver_id', $user1]])
             ->with([
@@ -74,6 +79,14 @@ class ChatsApiController extends Controller
         } else {
             return [];
         }
+    }
+
+    public function getReceivedMessagesCounts(Request $request)
+    {
+        $params = $request->query();
+        $receiver = $params['receiver'];
+        $count = Message::where('receiver_id', $receiver)->where('received_at', null)->count();
+        return $count;
     }
 
     public function getMessagesByReceiver(Request $request)
@@ -122,14 +135,18 @@ class ChatsApiController extends Controller
                 ])
                 ->orderBy('created_at', 'desc')
                 ->first();
+            $unread_messages_count = Message::where('receiver_id', $receiver)->where('sender_id', $userIds[$i])->where('received_at', null)->count();
             if ($message) {
-                array_push($messages, $message);
+                array_push($messages, [
+                    'message' => $message,
+                    'unread_message_count' => $unread_messages_count
+                ]);
             }
         }
 
         if ($messages) {
             usort($messages, function ($a, $b) {
-                return $a->created_at < $b->created_at;
+                return $a['message']->created_at < $b['message']->created_at;
             });
             return $messages;
         } else {

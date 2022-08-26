@@ -26,6 +26,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use App\Events\ProductUpdate;
+use App\Events\MessageSent;
 
 class ProductController extends Controller
 {
@@ -175,7 +177,6 @@ class ProductController extends Controller
         $today = Carbon::today();
         $new_price = new ProductPrice(array('product_id' => $product->id, 'price' => $product->price, 'date' => $today));
         $new_price->save();
-
         return redirect(route('product'))->with('success','Product Created Successfully');
     }
 
@@ -331,6 +332,9 @@ class ProductController extends Controller
         $new_price->save();
         // update product price for child products
         Product::where('origin_id', $product->id)->update(['price'=> $product->price]);
+        broadcast(
+          new MessageSent('price update', 'price update')
+        )->toOthers();
         return redirect(route('product'))->with('success','Product Updated Successfully');
     }
 
