@@ -135,7 +135,7 @@ class ChatsApiController extends Controller
                 ])
                 ->orderBy('created_at', 'desc')
                 ->first();
-            $unread_messages_count = Message::where('receiver_id', $receiver)->where('received_at', null)->count();
+            $unread_messages_count = Message::where('receiver_id', $receiver)->where('sender_id', $userIds[$i])->where('received_at', null)->count();
             if ($message) {
                 array_push($messages, [
                     'message' => $message,
