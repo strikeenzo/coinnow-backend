@@ -176,7 +176,7 @@ class SellerApiController extends Controller
         try {
             $keyword = $request->get('q', '');
             // error_log($this->getUser->id);
-            $records = Product::select('id', 'image', 'price', 'quantity', 'sort_order', 'status', 'sale', 'created_at', 'deleted_at')
+            $records = Product::select('id', 'image', 'price', 'quantity', 'sort_order', 'status', 'sale', 'created_at', 'deleted_at', 'updated_at')
                 ->where('quantity', '>', 0)
                 ->where('seller_id', $this->getUser->id)
                 ->with('productDescription:name,id,product_id', 'special:product_id,price,start_date,end_date')
