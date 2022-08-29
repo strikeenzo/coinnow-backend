@@ -62,6 +62,11 @@ class ProductController extends Controller
                     $q->where('name','like',"%$name%");
                 });
             })->orderBy('created_at','DESC')->paginate($this->defaultPaginate);
+        for ($i = 0; $i < count($records); $i ++)
+        {
+          $sum = Product::where([['model', $records[$i]->model]])->sum('quantity');
+          $records[$i]['total_quantity'] = $sum;
+        }
 
         return view('admin.product.index',['records' => $records,'status' => $status]);
     }
