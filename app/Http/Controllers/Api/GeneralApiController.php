@@ -48,7 +48,7 @@ class GeneralApiController extends Controller
 
         //homepage categories
         $categories = Category::select('category_id','image','parent_id','sort_order','status')
-            ->with('categoryDescription:name,category_id')
+            ->with('categoryDescription:name,category_id,description')
             ->where('status','1')->orderBy('sort_order','DESC')->get()->toArray();
 
          $data['categories'] =  buildTree($categories,0,9);
@@ -133,11 +133,12 @@ class GeneralApiController extends Controller
   //new products
   public function getNewProducts() {
     try {
-      $data = Product::select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available')
+      $data = Product::select('id','image','category_id', 'model','price', 'manufacturer_id', 'quantity','sort_order','status','date_available')
           ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date')
           ->withCount(['productReview as review_avg' => function($query) {
               $query->select(DB::raw('avg(rating)'));
             }])
+          ->with('productManufacturer')
           ->orderBy('created_at','DESC')
           ->where('date_available','<=',date('Y-m-d'))
           ->where('status','1')
@@ -160,11 +161,12 @@ class GeneralApiController extends Controller
     //new products v1
     public function getNewProductsV1() {
         try {
-            $data = Product::select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available')
-                ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date')
+            $data = Product::select('id','image','category_id', 'manufacturer_id', 'model','price', 'quantity','sort_order','status','date_available')
+                ->with('productDescription:name,id,product_id,description','special:product_id,price,start_date,end_date')
                 ->withCount(['productReview as review_avg' => function($query) {
                     $query->select(DB::raw('avg(rating)'));
                 }])
+                ->with('productManufacturer')
                 ->orderBy('created_at','DESC')
                 ->where('date_available','<=',date('Y-m-d'))
                 ->where('status','1')
@@ -172,7 +174,7 @@ class GeneralApiController extends Controller
                     $query->where('seller_id', 0)
                         ->orWhereNull('seller_id');
                 })
-                ->paginate(15);
+                ->paginate(4);
 
             $data->getCollection()->transform(function ($product) {
                 $product->setRelation('productPrice', $product->productPrice->take(6));
@@ -214,8 +216,9 @@ class GeneralApiController extends Controller
   public function getTrendingProducts() {
     try {
       $data = [];
-      $data =Product::select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available')
+      $data =Product::select('id','image','category_id', 'model','price', 'manufacturer_id', 'quantity','sort_order','status','date_available')
           ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date')
+          ->with('productManufacturer')
           ->withCount(['productReview as review_avg' => function($query) {
               $query->select(DB::raw('avg(rating)'));
             }])
@@ -242,8 +245,9 @@ class GeneralApiController extends Controller
     //trending products v1
     public function getTrendingProductsV1() {
         try {
-            $data =Product::select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available')
+            $data =Product::select('id','image','category_id', 'model','price', 'manufacturer_id', 'quantity','sort_order','status','date_available')
                 ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date')
+                ->with('productManufacturer')
                 ->withCount(['productReview as review_avg' => function($query) {
                     $query->select(DB::raw('avg(rating)'));
                 }])
@@ -269,7 +273,7 @@ class GeneralApiController extends Controller
   public function getCategories() {
     try {
       $categories = Category::select('category_id','image','parent_id','sort_order','status')
-          ->with('categoryDescription:name,category_id')
+          ->with('categoryDescription:name,category_id,description')
 
           ->where('status','1')->orderBy('sort_order','ASC')->get()->toArray();
 
@@ -303,9 +307,10 @@ class GeneralApiController extends Controller
   public function searchProducts( Request $request) {
     try {
       $keyword = $request->get('q', '');
-      $records = Product::select('id','image', 'price', 'quantity','sort_order','status')
+      $records = Product::select('id','image', 'price', 'quantity','sort_order','status', 'manufacturer_id',)
           ->whereNull('seller_id')
           ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date')
+          ->with('productManufacturer')
           ->when($keyword , function($q) use($keyword) {
               $q->orderBy('sort_order','ASC');
               $q->whereHas('productDescription',function($q) use($keyword){
@@ -335,9 +340,10 @@ class GeneralApiController extends Controller
         try {
             $keyword = $request->get('q', '');
             $seller_id = $request->seller_id;
-            $records = Product::select('id','image', 'price', 'seller_id', 'quantity','sort_order','status', 'deleted_at')
+            $records = Product::select('id','image', 'price', 'seller_id', 'quantity','sort_order','status', 'deleted_at', 'manufacturer_id',)
 
                 ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date', 'seller:id,firstname,lastname,power')
+                ->with('productManufacturer')
                 ->when(!empty($keyword) , function($q) use($keyword) {
                     $q->whereHas('productDescription',function($q) use($keyword){
                         $q->where('name','like',"%$keyword%");
@@ -365,9 +371,10 @@ class GeneralApiController extends Controller
         try {
             $keyword = $request->get('q', '');
             $seller_id = $request->seller_id;
-            $records = Product::select('id','image', 'price', 'seller_id', 'quantity','sort_order','status', 'deleted_at')
+            $records = Product::select('id','image', 'price', 'seller_id', 'quantity','sort_order','status', 'deleted_at', 'manufacturer_id',)
 
                 ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date', 'seller:id,firstname,lastname,power')
+                ->with('productManufacturer')
                 ->when(!empty($keyword) , function($q) use($keyword) {
                     $q->whereHas('productDescription',function($q) use($keyword){
                         $q->where('name','like',"%$keyword%");
@@ -377,7 +384,6 @@ class GeneralApiController extends Controller
                     $query->where('sale', 1)
                         ->orWhere('sale_date', '<=', Carbon::parse('-6 hours'));
                 })
-                ->where('seller_id', '!=', $seller_id)
                 ->whereNotNull('seller_id')
                 ->where('quantity', '>', 0)
                 ->orderBy('sort_order','ASC')
@@ -399,10 +405,11 @@ class GeneralApiController extends Controller
         $data['reletedProducts'] = [];
         $data['productImages'] = [];
         if(count($relatedIds) > 0){
-          $data['reletedProducts'] = Product::select('id','image','price', 'quantity','sort_order','status','date_available')
+          $data['reletedProducts'] = Product::select('id','image','price', 'quantity','sort_order','status','date_available', 'manufacturer_id',)
           ->withCount(['productReview as review_avg' => function($query) {
               $query->select(DB::raw('avg(rating)'));
             }])
+          ->with('productManufacturer')
           ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date')
           ->orderBy('sort_order','ASC')
 		  ->whereIn('id',$relatedIds)->get();
@@ -501,12 +508,12 @@ class GeneralApiController extends Controller
                 $ids[]  =  $value['category_id'];
           }
 
-          $data = Product::with('category:name,category_id','productDescription:id,product_id,name','special:product_id,price,start_date,end_date')
+          $data = Product::with('category:name,category_id','productDescription:id,product_id,name','special:product_id,price,start_date,end_date', 'productManufacturer')
             ->withCount(['productReview as review_avg' => function($query) {
                 $query->select(DB::raw('avg(rating)'));
               }])
 
-             ->select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available')
+             ->select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available', 'manufacturer_id')
              ->whereIn('category_id',$ids)
               ->whereNull('seller_id')
               ->orderBy('created_at','DESC')
@@ -634,7 +641,7 @@ class GeneralApiController extends Controller
                 $seller->save();
             }
             $notification_data = array(
-                'type' => $product->points > 0 ? 'special_item_sell' : 'item_sell',
+                'type' => $product->points > 0 ? 'special_item_sell_auto' : 'item_sell_auto',
                 'product_id' => $product->id,
                 'seller_id' => $product->seller->id ?? null,
                 'quantity' => $product->quantity,

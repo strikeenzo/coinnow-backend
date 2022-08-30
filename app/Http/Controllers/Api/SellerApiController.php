@@ -144,7 +144,7 @@ class SellerApiController extends Controller
             $history = Notification::select('id', 'quantity', 'price', 'type', 'seen', 'created_at', 'product_id')->with(array('product' => function ($query) {
                 $query->select('id', 'image', 'price')->with('productDescription:id,name,product_id');
             }))->where('seller_id', $this->getUser->id)
-                ->whereIn('type', ['item_sell', 'special_item_sell'])
+                ->whereIn('type', ['item_sell', 'special_item_sell', 'item_sell_auto', 'special_item_sell_auto'])
                 ->orderBy('notification.created_at', 'DESC')->paginate($this->defaultPaginate);
             return ['status' => 1, 'data' => $history];
         } catch (\Exception $e) {
@@ -162,7 +162,7 @@ class SellerApiController extends Controller
                     $query->select('id', 'image')->with('productDescription:id,name,product_id');
                 }))
                 ->where('seller_id', $this->getUser->id)
-                ->whereIn('type', ['send_coin', 'receive_coin', 'item_sell', 'special_item_sell', 'item_buy', 'special_item_buy', 'trade'])
+                ->whereIn('type', ['send_coin', 'receive_coin', 'item_sell', 'special_item_sell', 'item_sell_auto', 'special_item_sell_auto', 'item_buy', 'special_item_buy', 'trade'])
                 ->orderBy('notification.created_at', 'DESC')->paginate($this->defaultPaginate);
             return ['status' => 1, 'data' => $history];
         } catch (\Exception $e) {

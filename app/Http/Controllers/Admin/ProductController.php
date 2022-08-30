@@ -64,7 +64,7 @@ class ProductController extends Controller
             })->orderBy('created_at','DESC')->paginate($this->defaultPaginate);
         for ($i = 0; $i < count($records); $i ++)
         {
-          $sum = Product::where([['model', $records[$i]->model]])->sum('quantity');
+          $sum = Product::where([['origin_id', $records[$i]->id]])->sum('quantity');
           $records[$i]['total_quantity'] = $sum;
         }
 
