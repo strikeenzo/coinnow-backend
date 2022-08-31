@@ -5,6 +5,7 @@ use App\Models\Notification;
 use App\Models\Order;
 use App\Models\Customer;
 use App\Models\Seller;
+use App\Models\Special;
 use App\Models\User;
 use App\Models\Product;
 use DB;
@@ -34,12 +35,27 @@ class HomeController extends Controller
       //  dd(Hash::make("otrix@2022AP"));
 
         $data = [];
+        $totalInventoryBalance = 0;
         $data['totalOrders'] = Notification::select('*')->whereRelation('product', 'seller_id', '=', null)->count();
 
         $data['totalSale'] = Notification::select('*')->whereRelation('product', 'seller_id', '=', null)->sum(DB::raw('price * quantity'));
 
         $data['totalCustomer'] = Seller::count();
         $data['totalProduct'] = Product::count();
+        $data['totalBalanceOfCustomer'] = Seller::whereNotNull('balance')->sum('balance');
+        $records = Product::select('id','image','category_id', 'model','price', 'min_price', 'max_price', 'location', 'quantity','sort_order','status', 'points');
+        $records = $user->hasRole('Admin') || empty($seller) ? $records->where('seller_id', 0)->orWhereNull('seller_id') : $records->where('seller_id', 1);
+        $records = $records->get();
+        for ($i = 0; $i < count($records); $i ++)
+        {
+          if ($records[$i]['points'] > 0) {
+            $sum = Special::where('product_id',$records[$i]->id)->sum('quantity');
+          } else {
+            $sum = Product::where([['origin_id', $records[$i]->id]])->sum('quantity');
+          }
+          $totalInventoryBalance += $sum * $records[$i]['price'];
+        }
+        $data['totalInventoryBalance'] = $totalInventoryBalance;
         $data['latestOrders'] = Order::select('id','firstname', 'lastname','payment_method','shipping_name','order_status_id','total','order_date','grand_total','invoice_prefix','invoice_no')
            ->withCount('productRelation')
            ->with('orderStatus:name,id')
