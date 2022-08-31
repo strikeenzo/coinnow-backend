@@ -48,7 +48,7 @@ class GeneralApiController extends Controller
 
         //homepage categories
         $categories = Category::select('category_id','image','parent_id','sort_order','status')
-            ->with('categoryDescription:name,category_id,description')
+            ->with('categoryDescription:name,category_id,description,meta_description')
             ->where('status','1')->orderBy('sort_order','DESC')->get()->toArray();
 
          $data['categories'] =  buildTree($categories,0,9);
@@ -273,7 +273,7 @@ class GeneralApiController extends Controller
   public function getCategories() {
     try {
       $categories = Category::select('category_id','image','parent_id','sort_order','status')
-          ->with('categoryDescription:name,category_id,description')
+          ->with('categoryDescription:name,category_id,description,meta_description')
 
           ->where('status','1')->orderBy('sort_order','ASC')->get()->toArray();
 
