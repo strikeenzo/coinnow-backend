@@ -17,6 +17,7 @@ use App\Models\ProductRelated;
 use App\Models\StoreProductOption;
 use App\Models\ProductRelatedAttribute;
 use App\Models\ProductSpecial;
+use App\Models\Special;
 use App\Models\StockStatus;
 use App\Models\TaxRate;
 use App\Models\WeightClass;
@@ -51,7 +52,7 @@ class ProductController extends Controller
         $quantity = $request->get('quantity', '');
         $status = $request->get('status', '1');
 
-        $records = Product::select('id','image','category_id', 'model','price', 'min_price', 'max_price', 'location', 'quantity','sort_order','status');
+        $records = Product::select('id','image','category_id', 'model','price', 'min_price', 'max_price', 'location', 'quantity','sort_order','status', 'points');
         $records = $user->hasRole('Admin') || empty($seller) ? $records->where('seller_id', 0)->orWhereNull('seller_id') : $records->where('seller_id', 1);
         $records = $records->with('productDescription:name,id,product_id','category:name,category_id')
             ->when($name != ''|| $model != '' || $quantity != '' || $status != ''  , function($q) use($name,$model,$quantity,$status) {
@@ -64,7 +65,11 @@ class ProductController extends Controller
             })->orderBy('created_at','DESC')->paginate($this->defaultPaginate);
         for ($i = 0; $i < count($records); $i ++)
         {
-          $sum = Product::where([['origin_id', $records[$i]->id]])->sum('quantity');
+          if ($records[$i]['points'] > 0) {
+            $sum = Special::where('product_id',$records[$i]->id)->sum('quantity');
+          } else {
+            $sum = Product::where([['origin_id', $records[$i]->id]])->sum('quantity');
+          }
           $records[$i]['total_quantity'] = $sum;
         }
 
