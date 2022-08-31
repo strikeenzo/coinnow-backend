@@ -621,7 +621,14 @@
                         </li>
                     @endif
 
+                    @if ($user->hasRole('Admin'))
 
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('history') }}">
+                                <i class="fa fa-history"></i> {{ __('History') }}
+                            </a>
+                        </li>
+                    @endif
 
                 </ul>
             </div>

@@ -656,13 +656,10 @@ class SellerCartApiController extends Controller
              $product = Product::where('id', $value['id'])->first();
 
              if (!empty($product)) {
-                 $existing_product = Product::where('origin_id', $value['origin_id'] ?? $value['id'])->where('seller_id', $this->getUser->id)->first();
-                 $seconds = rand(32400, 43200);
-                 $sell_date = Carbon::now()->addSeconds($seconds);
+                 $existing_product = Product::where('origin_id', $value['origin_id'] ?? $value['id'])->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
                  if (!empty($existing_product)) {
                      $quantity = $existing_product->quantity + $value['quantity'];
                      $existing_product->quantity = $quantity;
-                     $existing_product->sell_date = $sell_date;
                      $existing_product->sale_date = Carbon::now();
                      $existing_product->sale = 0;
                      $existing_product->save();
@@ -695,7 +692,6 @@ class SellerCartApiController extends Controller
                          'weight_class_id' => $product->weight_class_id,
                          'status' => $product->status,
                          'sort_order' => $product->sort_order,
-                         'sell_date' => $sell_date,
                          'sale_date' => Carbon::now(),
                          'sale' => 0,
                      );
@@ -823,13 +819,10 @@ class SellerCartApiController extends Controller
                     }
 
                 } else {
-                    $existing_product = Product::where('origin_id', $product->origin_id ?? $product->id)->where('seller_id', $this->getUser->id)->first();
-                    $seconds = rand(32400, 43200);
-                    $sell_date = Carbon::now()->addSeconds($seconds);
+                    $existing_product = Product::where('origin_id', $product->origin_id ?? $product->id)->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
                     if (!empty($existing_product)) {
                         $quantity = $existing_product->quantity + 1;
                         $existing_product->quantity = $quantity;
-                        $existing_product->sell_date = $sell_date;
                         $existing_product->sale_date = Carbon::now();
                         $existing_product->sale = 0;
                         $existing_product->save();
@@ -862,7 +855,6 @@ class SellerCartApiController extends Controller
                             'weight_class_id' => $product->weight_class_id,
                             'status' => $product->status,
                             'sort_order' => $product->sort_order,
-                            'sell_date' => $sell_date,
                             'sale_date' => Carbon::now(),
                             'sale' => 0,
                         );
@@ -992,13 +984,10 @@ class SellerCartApiController extends Controller
                 if ($seller_power > $user_power) {
                     return ['status'=> 1,'message'=> 'You lost'];
                 }
-                $existing_product = Product::where('origin_id', $product->origin_id ?? $product->id)->where('seller_id', $this->getUser->id)->first();
-                $seconds = rand(32400, 43200);
-                $sell_date = Carbon::now()->addSeconds($seconds);
+                $existing_product = Product::where('origin_id', $product->origin_id ?? $product->id)->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
                 if (!empty($existing_product)) {
                     $quantity = $existing_product->quantity + 1;
                     $existing_product->quantity = $quantity;
-                    $existing_product->sell_date = $sell_date;
                     $existing_product->sale_date = Carbon::now();
                     $existing_product->sale = 0;
                     $existing_product->save();
@@ -1031,7 +1020,6 @@ class SellerCartApiController extends Controller
                         'weight_class_id' => $product->weight_class_id,
                         'status' => $product->status,
                         'sort_order' => $product->sort_order,
-                        'sell_date' => $sell_date,
                         'sale_date' => Carbon::now(),
                         'sale' => 0,
                     );

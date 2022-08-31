@@ -80,6 +80,7 @@
                                 <th scope="col" class="sort" data-sort="status">Category</th>
                                 <th scope="col" class="sort" data-sort="model">Model</th>
                                 <th scope="col" class="sort" data-sort="quantity">Quantity</th>
+                                <th scope="col" class="sort" data-sort="quantity">Total Quantity Owned by Sellers</th>
                                 <th scope="col" class="sort" data-sort="quantity">Price</th>
                                 <th scope="col" class="sort" data-sort="sort_order">Sort Order</th>
                                 <th scope="col" class="sort" data-sort="status">Status</th>
@@ -101,6 +102,7 @@
                                     <td class="budget">{{ isset($value->category->name) ? $value->category->name : 'No Category' }}</td>
                                     <td class="budget">{{ $value->model }}</td>
                                     <td class="budget "  > <span class="@if($value->quantity < 5) badge badge-danger btn-small @else badge badge-success btn-small @endif" style="font-size:12px;">{{ $value->quantity }}</span></td>
+                                    <td class="budget text-center"  > <span class="@if($value->total_quantity < 5) badge badge-danger btn-small @else badge badge-success btn-small @endif" style="font-size:12px;">{{ $value->total_quantity }}</span></td>
                                     <td class="budget">{{ $value->price }}</td>
                                     <td class="budget">{{ $value->sort_order }}</td>
                                     <td class="budget"><span class="p-2  @if($value->status == 1) badge bg-success text-white  @else  badge bg-danger text-white @endif">{{  config('constant.status')[$value->status] }} </span></td>
