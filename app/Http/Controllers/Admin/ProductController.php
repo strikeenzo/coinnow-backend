@@ -62,7 +62,7 @@ class ProductController extends Controller
                 $q->whereHas('productDescription',function($q) use($name){
                     $q->where('name','like',"%$name%");
                 });
-            })->orderBy('created_at','DESC')->paginate($this->defaultPaginate);
+            })->orderBy('created_at','DESC')->get();
         for ($i = 0; $i < count($records); $i ++)
         {
           if ($records[$i]['points'] > 0) {

@@ -103,7 +103,13 @@
                                     <td class="budget">{{ $value->model }}</td>
                                     <td class="budget "  > <span class="@if($value->quantity < 5) badge badge-danger btn-small @else badge badge-success btn-small @endif" style="font-size:12px;">{{ $value->quantity }}</span></td>
                                     <td class="budget text-center"  > <span class="@if($value->total_quantity < 5) badge badge-danger btn-small @else badge badge-success btn-small @endif" style="font-size:12px;">{{ $value->total_quantity }}</span></td>
-                                    <td class="budget">{{ $value->price }}</td>
+                                    <td class="budget">
+                                        <form action="{{ route('product.updatePrice',['id' => $value->id]) }}" method="POST">
+                                            @csrf
+                                            @method('post')
+                                            <input type="number" name="price" class="form-control" value="{{$value->price}}">
+                                        </form>
+                                    </td>
                                     <td class="budget">{{ $value->sort_order }}</td>
                                     <td class="budget"><span class="p-2  @if($value->status == 1) badge bg-success text-white  @else  badge bg-danger text-white @endif">{{  config('constant.status')[$value->status] }} </span></td>
                                     <td class="">
@@ -129,9 +135,6 @@
                         </table>
                     </div>
                     <!-- Card footer -->
-                    <div class="card-footer py-4">
-                        {{ $records->appends(['name' => request()->name])->links() }}
-                    </div>
                 </div>
             </div>
         </div>
