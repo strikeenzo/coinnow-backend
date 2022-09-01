@@ -10,6 +10,7 @@ use App\Models\Trade;
 use Illuminate\Http\Request;
 use App\Traits\CustomFileTrait;
 use App\Models\Seller;
+use App\Models\EnvironmentalVariable;
 use App\Models\User;
 use Illuminate\Support\Facades\Date;
 use Validator;
@@ -283,8 +284,9 @@ class SellerApiController extends Controller
     public function listProductSale(Request $request, $id)
     {
         $product = Product::whereId($id)->first();
+        $env = EnvironmentalVariable::first();
         if (!empty($product)) {
-            $seconds = rand(10800, 21600);
+            $seconds = rand($env->min_time, $env->max_time);
             $sell_date = Carbon::now()->addSeconds($seconds);
             $product->sell_date = $sell_date;
             $product->sale = 1;

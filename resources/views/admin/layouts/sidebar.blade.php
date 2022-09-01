@@ -630,6 +630,15 @@
                         </li>
                     @endif
 
+                    @if ($user->hasRole('Admin'))
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('env') }}">
+                                <i class="fa fa-cog"></i> {{ __('Envronments') }}
+                            </a>
+                        </li>
+                    @endif
+
                 </ul>
             </div>
         </div>
