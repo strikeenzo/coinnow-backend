@@ -480,4 +480,14 @@ class ProductController extends Controller
         $this->validate($request,$validationArray);
     }
 
+    public function updatePrice ($id, Request $request) {
+      $this->validate($request, [
+        'price' => ['required', 'numeric']
+      ]);
+      $product = Product::where('id', $id)->first();
+      $product->price = $request->price;
+      $product->save();
+      return redirect(route('product'))->with('success','Product Updated Successfully');
+    }
+
 }
