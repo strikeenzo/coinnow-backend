@@ -39,6 +39,15 @@ class GeneralApiController extends Controller
   {
   }
 
+  public function getBannerImages() {
+    try {
+      $bannerImages = BannerImage::orderBy('sort_order','DESC')->get()->toArray();
+      return ['status' => 1, 'images' => $bannerImages];
+    } catch(\Exception $e) {
+      return ['status'=> 0,'message'=>'Error'];
+    }
+  }
+
   //homepage api
   public function getHomePage() {
 

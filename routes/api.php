@@ -43,7 +43,7 @@ Route::middleware(['checkKey'])->group(function () {
         Route::get('/getTrendingProducts', 'getTrendingProducts');
         Route::get('/getTrendingProductsV1', 'getTrendingProductsV1');
         Route::get('/getDODProducts', 'getDODProducts');
-
+        Route::get('/getBannerImages', 'getBannerImages');
         Route::get('/getCategories', 'getCategories');
         Route::get('/getManufacturers', 'getManufacturers');
         Route::get('/searchProducts', 'searchProducts');
