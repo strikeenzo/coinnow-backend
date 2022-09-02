@@ -289,8 +289,12 @@ class SellerApiController extends Controller
             $product->sell_date = $sell_date;
             $product->sale = 1;
             $product->save();
+            $notification = new Notification(['product_id' => $request->get('product_id'), 'quantity' => $request->get('quantity'), 'type' => 'item_sell_list', 'seller_id' => $this->getUser->id, 'price' => $request->get('price'),]);
+            $notification->save();
+            return  ['status' => 1, 'message' => $notification];
         }
-        return  ['status' => 1, 'message' => 'Product updated successfully!'];
+        return  ['status' => 0, 'message' => 'Product update failed!'];
+        
     }
 
     public function changePassword(Request $request)
