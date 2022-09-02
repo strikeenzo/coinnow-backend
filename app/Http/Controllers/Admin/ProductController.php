@@ -62,7 +62,7 @@ class ProductController extends Controller
                 $q->whereHas('productDescription',function($q) use($name){
                     $q->where('name','like',"%$name%");
                 });
-            })->orderBy('created_at','DESC')->paginate($this->defaultPaginate);
+            })->orderBy('created_at','DESC')->get();
         for ($i = 0; $i < count($records); $i ++)
         {
           if ($records[$i]['points'] > 0) {
@@ -478,6 +478,16 @@ class ProductController extends Controller
 
         $validationArray = array_merge($conditionArray,$validateFields);
         $this->validate($request,$validationArray);
+    }
+
+    public function updatePrice ($id, Request $request) {
+      $this->validate($request, [
+        'price' => ['required', 'numeric']
+      ]);
+      $product = Product::where('id', $id)->first();
+      $product->price = $request->price;
+      $product->save();
+      return redirect(route('product'))->with('success','Product Updated Successfully');
     }
 
 }
