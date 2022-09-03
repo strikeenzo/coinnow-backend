@@ -380,7 +380,7 @@ class GeneralApiController extends Controller
         try {
             $keyword = $request->get('q', '');
             $seller_id = $request->seller_id;
-            $records = Product::select('id','image', 'price', 'seller_id', 'quantity','sort_order','status', 'deleted_at', 'manufacturer_id',)
+            $records = Product::select('id','image', 'price', 'seller_id', 'quantity','sort_order','status', 'deleted_at', 'manufacturer_id', 'origin_id')
 
                 ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date', 'seller:id,firstname,lastname,power')
                 ->with('productManufacturer')
@@ -396,6 +396,7 @@ class GeneralApiController extends Controller
                 ->whereNotNull('seller_id')
                 ->where('quantity', '>', 0)
                 ->orderBy('sort_order','ASC')
+                ->orderBy('created_at','ASC')
                 ->paginate($this->defaultPaginate);
 
             return ['status'=> 1,'data'=>$records];
