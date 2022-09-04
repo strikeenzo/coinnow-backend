@@ -315,7 +315,6 @@ class GeneralApiController extends Controller
     try {
       $keyword = $request->get('q', '');
       $records = Product::select('id','image', 'price', 'quantity','sort_order','status', 'manufacturer_id',)
-          ->whereNull('seller_id')
           ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date')
           ->with('productManufacturer')
           ->when($keyword , function($q) use($keyword) {
@@ -537,12 +536,10 @@ class GeneralApiController extends Controller
             ->withCount(['productReview as review_avg' => function($query) {
                 $query->select(DB::raw('avg(rating)'));
               }])
-
-             ->select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available', 'manufacturer_id')
-             ->whereIn('category_id',$ids)
-              ->whereNull('seller_id')
-              ->orderBy('created_at','DESC')
-             ->where('date_available','<=',date('Y-m-d'));
+            ->select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available', 'manufacturer_id')
+            ->whereIn('category_id',$ids)
+            ->orderBy('created_at','DESC')
+            ->where('date_available','<=',date('Y-m-d'));
 
              if(!empty($request->filterPrice )) {
                  $data = $data->where('price','<=',$request->filterPrice);
@@ -607,7 +604,7 @@ class GeneralApiController extends Controller
         ->select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available')
         ->whereHas('productManufacturer',function($q) use($id) {
             $q->where('id',$id);
-          })->whereNull('seller_id');
+          });
 
           //if filter applied
           if(!empty($request->filterPrice )) {
@@ -651,14 +648,14 @@ class GeneralApiController extends Controller
     }
 
     public function something( Request $request) { // terrible naming change later.
-        $products = Product::where('sell_date', '<', Carbon::now())
+        $products = ProductSellerRelation::where('sell_date', '<', Carbon::now())
+            ->with('product')
             ->whereNotNull('sell_date')
-            ->whereNotNull('seller_id')
             ->where('quantity', '>', 0)
             ->paginate($this->defaultPaginate);
 
         foreach($products as $product) {
-            $amount = (float)$product->price * (int)$product->quantity;
+            $amount = (float)$product->product->price * (int)$product->quantity;
             $seller = Seller::find($product->seller_id);
             $seller_balance = (float)$seller->balance;
             if (!empty($seller)) {
@@ -670,7 +667,7 @@ class GeneralApiController extends Controller
                 'product_id' => $product->id,
                 'seller_id' => $product->seller->id ?? null,
                 'quantity' => $product->quantity,
-                'price' => $product->price,
+                'price' => $product->product->price,
                 'balance' => $seller_balance,
                 'seen' => 0,
             );

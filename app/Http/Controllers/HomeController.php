@@ -8,6 +8,7 @@ use App\Models\Seller;
 use App\Models\Special;
 use App\Models\User;
 use App\Models\Product;
+use App\Models\ProductSellerRelation;
 use DB;
 use Hash;
 use Auth;
@@ -51,7 +52,7 @@ class HomeController extends Controller
           if ($records[$i]['points'] > 0) {
             $sum = Special::where('product_id',$records[$i]->id)->sum('quantity');
           } else {
-            $sum = Product::where([['origin_id', $records[$i]->id]])->sum('quantity');
+            $sum = ProductSellerRelation::where([['product_id', $records[$i]->id]])->sum('quantity');
           }
           $totalInventoryBalance += $sum * $records[$i]['price'];
         }

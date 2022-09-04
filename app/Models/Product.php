@@ -124,7 +124,7 @@ class Product extends Model
 
     public function sellers()
     {
-        return $this->belongsToMany('App\Models\Seller', 'product_seller_relations', 'product_id', 'seller_id')->withPivot('sale_date', 'sell_date', 'sale', 'quantity');
+        return $this->belongsToMany('App\Models\Seller', 'product_seller_relations', 'product_id', 'seller_id')->withPivot('sale_date', 'sell_date', 'sale', 'quantity', 'id');
     }
 
 }
