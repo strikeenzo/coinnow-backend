@@ -341,7 +341,6 @@ class ProductController extends Controller
         $new_price = new ProductPrice(array('product_id' => $product->id, 'price' => $product->price, 'date' => $today));
         $new_price->save();
         // update product price for child products
-        Product::where('origin_id', $product->id)->update(['price'=> $product->price]);
         $product = $product->setRelation('productPrice', $product->productPrice->take(6));
         broadcast(
           new MessageSent('price update', $product)
@@ -488,7 +487,6 @@ class ProductController extends Controller
       $product = Product::where('id', $id)->first();
       $product->price = $request->price;
       $product->save();
-      Product::where('origin_id', $id)->update(['price' => $request->price]);
       $today = Carbon::today();
       $new_price = new ProductPrice(array('product_id' => $product->id, 'price' => $product->price, 'date' => $today));
       $new_price->save();

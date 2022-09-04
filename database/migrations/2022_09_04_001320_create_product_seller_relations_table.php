@@ -19,7 +19,7 @@ return new class extends Migration
             $table->integer('product_id')->unsigned();
             $table->dateTime('sale_date')->nullable();
             $table->boolean('sale')->default(false);
-            $table->dateTime('sell_date');
+            $table->dateTime('sell_date')->nullabe();
             $table->integer('quantity');
             $table->timestamps();
         });

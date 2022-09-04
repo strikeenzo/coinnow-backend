@@ -12,6 +12,7 @@ use App\Traits\CustomFileTrait;
 use App\Models\Seller;
 use App\Models\EnvironmentalVariable;
 use App\Models\User;
+use App\Models\ProductSellerRelation;
 use Illuminate\Support\Facades\Date;
 use Validator;
 use File;
@@ -283,7 +284,7 @@ class SellerApiController extends Controller
 
     public function listProductSale(Request $request, $id)
     {
-        $product = Product::whereId($id)->first();
+        $product = ProductSellerRelation::whereId($id)->first();
         $env = EnvironmentalVariable::first();
         if (!empty($product)) {
             $seconds = rand($env->min_time, $env->max_time);
