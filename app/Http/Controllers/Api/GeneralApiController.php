@@ -31,6 +31,8 @@ use File;
 use DB;
 use Auth;
 use Carbon\Carbon;
+use App\Models\ProductSellerRelation;
+
 
 class GeneralApiController extends Controller
 {
@@ -179,10 +181,6 @@ class GeneralApiController extends Controller
                 ->orderBy('created_at','DESC')
                 ->where('date_available','<=',date('Y-m-d'))
                 ->where('status','1')
-                ->where(function($query) {
-                    $query->where('seller_id', 0)
-                        ->orWhereNull('seller_id');
-                })
                 ->paginate(4);
 
             $data->getCollection()->transform(function ($product) {
@@ -377,32 +375,49 @@ class GeneralApiController extends Controller
     }
 
     public function getMarketplaceProducts(Request $request) {
-        try {
+        // try {
             $keyword = $request->get('q', '');
             $seller_id = $request->seller_id;
-            $records = Product::select('id','image', 'price', 'seller_id', 'quantity','sort_order','status', 'deleted_at', 'manufacturer_id', 'origin_id')
+            $records = ProductSellerRelation::with(['product' => function($query) use ($keyword) {
+              $query->select('id','image', 'price', 'seller_id', 'quantity','sort_order','status', 'deleted_at', 'manufacturer_id', 'origin_id')
+              ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date', 'seller:id,firstname,lastname,power')
+              ->with('productManufacturer')
+              ->when(!empty($keyword) , function($q) use($keyword) {
+                  $q->whereHas('productDescription',function($q) use($keyword){
+                    $q->where('name','like',"%$keyword%");
+                  });
+                });
+              }])
+              ->where(function($query) {
+                $query->where('sale', 1)
+                  ->orWhere('sale_date', '<=', Carbon::parse('-6 hours'));
+              })
+              ->where('quantity', '>', 0)
+              ->orderBy('created_at','ASC')
+              ->paginate($this->defaultPaginate);
+            // $records = Product::select('id','image', 'price', 'seller_id', 'quantity','sort_order','status', 'deleted_at', 'manufacturer_id', 'origin_id')
 
-                ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date', 'seller:id,firstname,lastname,power')
-                ->with('productManufacturer')
-                ->when(!empty($keyword) , function($q) use($keyword) {
-                    $q->whereHas('productDescription',function($q) use($keyword){
-                        $q->where('name','like',"%$keyword%");
-                    });
-                })
-                ->where(function($query) {
-                    $query->where('sale', 1)
-                        ->orWhere('sale_date', '<=', Carbon::parse('-6 hours'));
-                })
-                ->whereNotNull('seller_id')
-                ->where('quantity', '>', 0)
-                ->orderBy('sort_order','ASC')
-                ->orderBy('created_at','ASC')
-                ->paginate($this->defaultPaginate);
+            //     ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date', 'seller:id,firstname,lastname,power')
+            //     ->with('productManufacturer')
+            //     ->when(!empty($keyword) , function($q) use($keyword) {
+            //         $q->whereHas('productDescription',function($q) use($keyword){
+            //             $q->where('name','like',"%$keyword%");
+            //         });
+            //     })
+            //     ->where(function($query) {
+            //         $query->where('sale', 1)
+            //             ->orWhere('sale_date', '<=', Carbon::parse('-6 hours'));
+            //     })
+            //     ->whereNotNull('seller_id')
+            //     ->where('quantity', '>', 0)
+            //     ->orderBy('sort_order','ASC')
+            //     ->orderBy('created_at','ASC')
+            //     ->paginate($this->defaultPaginate);
 
             return ['status'=> 1,'data'=>$records];
-        } catch (\Exception $e) {
-            return ['status'=> 0,'message'=>'Error'];
-        }
+        // } catch (\Exception $e) {
+        //     return ['status'=> 0,'message'=>'Error'];
+        // }
     }
 
   //get product details
