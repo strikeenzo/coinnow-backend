@@ -31,6 +31,8 @@ use File;
 use DB;
 use Auth;
 use Carbon\Carbon;
+use App\Models\ProductSellerRelation;
+
 
 class GeneralApiController extends Controller
 {
@@ -76,42 +78,42 @@ class GeneralApiController extends Controller
           ->get();
 
         //homepage new arrival
-        $data['newProducts'] = Product::select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available')
-            ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date')
-            ->withCount(['productReview as review_avg' => function($query) {
-                $query->select(DB::raw('avg(rating)'));
-              }])
-            ->orderBy('created_at','DESC')
-            ->where('date_available','<=',date('Y-m-d'))
-            ->where('status','1')
-            ->where(function($query) {
-                $query->where('seller_id', 0)
-                    ->orWhereNull('seller_id');
-            })
-            ->take(4)
-            ->get()->map(function($query) {
-                $query->setRelation('productPrice', $query->productPrice->take(6));
-                return $query;
-            });
+        // $data['newProducts'] = Product::select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available')
+        //     ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date')
+        //     ->withCount(['productReview as review_avg' => function($query) {
+        //         $query->select(DB::raw('avg(rating)'));
+        //       }])
+        //     ->orderBy('created_at','DESC')
+        //     ->where('date_available','<=',date('Y-m-d'))
+        //     ->where('status','1')
+        //     ->where(function($query) {
+        //         $query->where('seller_id', 0)
+        //             ->orWhereNull('seller_id');
+        //     })
+        //     ->take(4)
+        //     ->get()->map(function($query) {
+        //         $query->setRelation('productPrice', $query->productPrice->take(6));
+        //         return $query;
+        //     });
 
-        //homepage  Trending
-        $data['trendingProducts'] = Product::select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available')
-            ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date')
-            ->withCount(['productReview as review_avg' => function($query) {
-                $query->select(DB::raw('avg(rating)'));
-              }])
-            ->where('date_available','<=',date('Y-m-d'))
-            ->where('status','1')
-            ->where(function($query) {
-                $query->where('seller_id', 0)
-                    ->orWhereNull('seller_id');
-            })
-            ->orderBy('viewed','DESC')
-            ->take(4)
-            ->get()->map(function($query) {
-                $query->setRelation('productPrice', $query->productPrice->take(6));
-                return $query;
-            });
+        // //homepage  Trending
+        // $data['trendingProducts'] = Product::select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available')
+        //     ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date')
+        //     ->withCount(['productReview as review_avg' => function($query) {
+        //         $query->select(DB::raw('avg(rating)'));
+        //       }])
+        //     ->where('date_available','<=',date('Y-m-d'))
+        //     ->where('status','1')
+        //     ->where(function($query) {
+        //         $query->where('seller_id', 0)
+        //             ->orWhereNull('seller_id');
+        //     })
+        //     ->orderBy('viewed','DESC')
+        //     ->take(4)
+        //     ->get()->map(function($query) {
+        //         $query->setRelation('productPrice', $query->productPrice->take(6));
+        //         return $query;
+        //     });
 
         //homepage DOD
         $data['dodProducts'] = DOD::select('id','product_id')
@@ -158,7 +160,7 @@ class GeneralApiController extends Controller
           ->take(20)
           ->get()
           ->map(function($query) {
-              $query->setRelation('productPrice', $query->productPrice->take(6));
+              $query->setRelation('productPrice', $query->productPrice()->take(6));
               return $query;
           });
           return ['status'=> 1,'data'=>$data];
@@ -179,10 +181,6 @@ class GeneralApiController extends Controller
                 ->orderBy('created_at','DESC')
                 ->where('date_available','<=',date('Y-m-d'))
                 ->where('status','1')
-                ->where(function($query) {
-                    $query->where('seller_id', 0)
-                        ->orWhereNull('seller_id');
-                })
                 ->paginate(4);
 
             $data->getCollection()->transform(function ($product) {
@@ -317,7 +315,6 @@ class GeneralApiController extends Controller
     try {
       $keyword = $request->get('q', '');
       $records = Product::select('id','image', 'price', 'quantity','sort_order','status', 'manufacturer_id',)
-          ->whereNull('seller_id')
           ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date')
           ->with('productManufacturer')
           ->when($keyword , function($q) use($keyword) {
@@ -377,31 +374,49 @@ class GeneralApiController extends Controller
     }
 
     public function getMarketplaceProducts(Request $request) {
-        try {
+        // try {
             $keyword = $request->get('q', '');
             $seller_id = $request->seller_id;
-            $records = Product::select('id','image', 'price', 'seller_id', 'quantity','sort_order','status', 'deleted_at', 'manufacturer_id',)
+            $records = ProductSellerRelation::with(['product' => function($query) use ($keyword) {
+              $query->select('id','image', 'price', 'quantity','sort_order','status', 'deleted_at', 'manufacturer_id')
+              ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date', 'seller:id,firstname,lastname,power')
+              ->with('productManufacturer')
+              ->when(!empty($keyword) , function($q) use($keyword) {
+                  $q->whereHas('productDescription',function($q) use($keyword){
+                    $q->where('name','like',"%$keyword%");
+                  });
+                });
+              }])
+              ->where(function($query) {
+                $query->where('sale', 1)
+                  ->orWhere('sale_date', '<=', Carbon::parse('-6 hours'));
+              })
+              ->where('quantity', '>', 0)
+              ->orderBy('created_at','ASC')
+              ->paginate($this->defaultPaginate);
+            // $records = Product::select('id','image', 'price', 'seller_id', 'quantity','sort_order','status', 'deleted_at', 'manufacturer_id', 'origin_id')
 
-                ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date', 'seller:id,firstname,lastname,power')
-                ->with('productManufacturer')
-                ->when(!empty($keyword) , function($q) use($keyword) {
-                    $q->whereHas('productDescription',function($q) use($keyword){
-                        $q->where('name','like',"%$keyword%");
-                    });
-                })
-                ->where(function($query) {
-                    $query->where('sale', 1)
-                        ->orWhere('sale_date', '<=', Carbon::parse('-6 hours'));
-                })
-                ->whereNotNull('seller_id')
-                ->where('quantity', '>', 0)
-                ->orderBy('sort_order','ASC')
-                ->paginate($this->defaultPaginate);
+            //     ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date', 'seller:id,firstname,lastname,power')
+            //     ->with('productManufacturer')
+            //     ->when(!empty($keyword) , function($q) use($keyword) {
+            //         $q->whereHas('productDescription',function($q) use($keyword){
+            //             $q->where('name','like',"%$keyword%");
+            //         });
+            //     })
+            //     ->where(function($query) {
+            //         $query->where('sale', 1)
+            //             ->orWhere('sale_date', '<=', Carbon::parse('-6 hours'));
+            //     })
+            //     ->whereNotNull('seller_id')
+            //     ->where('quantity', '>', 0)
+            //     ->orderBy('sort_order','ASC')
+            //     ->orderBy('created_at','ASC')
+            //     ->paginate($this->defaultPaginate);
 
             return ['status'=> 1,'data'=>$records];
-        } catch (\Exception $e) {
-            return ['status'=> 0,'message'=>'Error'];
-        }
+        // } catch (\Exception $e) {
+        //     return ['status'=> 0,'message'=>'Error'];
+        // }
     }
 
   //get product details
@@ -521,12 +536,10 @@ class GeneralApiController extends Controller
             ->withCount(['productReview as review_avg' => function($query) {
                 $query->select(DB::raw('avg(rating)'));
               }])
-
-             ->select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available', 'manufacturer_id')
-             ->whereIn('category_id',$ids)
-              ->whereNull('seller_id')
-              ->orderBy('created_at','DESC')
-             ->where('date_available','<=',date('Y-m-d'));
+            ->select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available', 'manufacturer_id')
+            ->whereIn('category_id',$ids)
+            ->orderBy('created_at','DESC')
+            ->where('date_available','<=',date('Y-m-d'));
 
              if(!empty($request->filterPrice )) {
                  $data = $data->where('price','<=',$request->filterPrice);
@@ -591,7 +604,7 @@ class GeneralApiController extends Controller
         ->select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available')
         ->whereHas('productManufacturer',function($q) use($id) {
             $q->where('id',$id);
-          })->whereNull('seller_id');
+          });
 
           //if filter applied
           if(!empty($request->filterPrice )) {
@@ -635,14 +648,14 @@ class GeneralApiController extends Controller
     }
 
     public function something( Request $request) { // terrible naming change later.
-        $products = Product::where('sell_date', '<', Carbon::now())
+        $products = ProductSellerRelation::where('sell_date', '<', Carbon::now())
+            ->with('product')
             ->whereNotNull('sell_date')
-            ->whereNotNull('seller_id')
             ->where('quantity', '>', 0)
             ->paginate($this->defaultPaginate);
 
         foreach($products as $product) {
-            $amount = (float)$product->price * (int)$product->quantity;
+            $amount = (float)$product->product->price * (int)$product->quantity;
             $seller = Seller::find($product->seller_id);
             $seller_balance = (float)$seller->balance;
             if (!empty($seller)) {
@@ -654,7 +667,7 @@ class GeneralApiController extends Controller
                 'product_id' => $product->id,
                 'seller_id' => $product->seller->id ?? null,
                 'quantity' => $product->quantity,
-                'price' => $product->price,
+                'price' => $product->product->price,
                 'balance' => $seller_balance,
                 'seen' => 0,
             );

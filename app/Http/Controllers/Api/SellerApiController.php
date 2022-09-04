@@ -10,7 +10,9 @@ use App\Models\Trade;
 use Illuminate\Http\Request;
 use App\Traits\CustomFileTrait;
 use App\Models\Seller;
+use App\Models\EnvironmentalVariable;
 use App\Models\User;
+use App\Models\ProductSellerRelation;
 use Illuminate\Support\Facades\Date;
 use Validator;
 use File;
@@ -177,17 +179,27 @@ class SellerApiController extends Controller
         try {
             $keyword = $request->get('q', '');
             // error_log($this->getUser->id);
-            $records = Product::select('id', 'image', 'price', 'quantity', 'sort_order', 'status', 'sale', 'created_at', 'deleted_at', 'updated_at')
-                ->where('quantity', '>', 0)
-                ->where('seller_id', $this->getUser->id)
-                ->with('productDescription:name,id,product_id', 'special:product_id,price,start_date,end_date')
-                ->when(!empty($keyword), function ($q) use ($keyword) {
-                    $q->whereHas('productDescription', function ($q) use ($keyword) {
-                        $q->where('name', 'like', "%$keyword%");
-                    });
-                })
-                //->orderBy('sort_order','ASC')
-                ->get();
+
+            $records = $this->getUser->products()->wherePivot('quantity', '>', 0)
+            ->select('product.id', 'product.image', 'product.sort_order', 'product.status', 'product.updated_at', 'product.created_at', 'product.price', 'product.deleted_at')
+            ->with('productDescription:name,id,product_id', 'special:product_id,price,start_date,end_date')
+            ->when(!empty($keyword), function ($q) use ($keyword) {
+                $q->whereHas('productDescription', function ($q) use ($keyword) {
+                    $q->where('name', 'like', "%$keyword%");
+                });
+            })
+            ->get();;
+            // $records = Product::select('id', 'image', 'price', 'quantity', 'sort_order', 'status', 'sale', 'created_at', 'deleted_at', 'updated_at')
+            //     ->where('quantity', '>', 0)
+            //     ->where('seller_id', $this->getUser->id)
+            //     ->with('productDescription:name,id,product_id', 'special:product_id,price,start_date,end_date')
+            //     ->when(!empty($keyword), function ($q) use ($keyword) {
+            //         $q->whereHas('productDescription', function ($q) use ($keyword) {
+            //             $q->where('name', 'like', "%$keyword%");
+            //         });
+            //     })
+            //     //->orderBy('sort_order','ASC')
+            //     ->get();
 
             return ['status' => 1, 'data' => $records];
         } catch (\Exception $e) {
@@ -282,9 +294,10 @@ class SellerApiController extends Controller
 
     public function listProductSale(Request $request, $id)
     {
-        $product = Product::whereId($id)->first();
+        $product = ProductSellerRelation::whereId($id)->first();
+        $env = EnvironmentalVariable::first();
         if (!empty($product)) {
-            $seconds = rand(10800, 21600);
+            $seconds = rand($env->min_time, $env->max_time);
             $sell_date = Carbon::now()->addSeconds($seconds);
             $product->sell_date = $sell_date;
             $product->sale = 1;

@@ -19,6 +19,7 @@ use App\Models\Country;
 use App\Models\Order;
 use App\Models\OrderProduct;
 use App\Models\OrderHistory;
+use App\Models\ProductSellerRelation;
 use App\Models\Shipping;
 use App\Models\StoreProductOption;
 use Illuminate\Support\Facades\Log;
@@ -656,93 +657,107 @@ class SellerCartApiController extends Controller
              $product = Product::where('id', $value['id'])->first();
 
              if (!empty($product)) {
-                 $existing_product = Product::where('origin_id', $value['origin_id'] ?? $value['id'])->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
-                 if (!empty($existing_product)) {
-                     $quantity = $existing_product->quantity + $value['quantity'];
-                     $existing_product->quantity = $quantity;
-                     $existing_product->sale_date = Carbon::now();
-                     $existing_product->sale = 0;
-                     $existing_product->save();
-                 } else {
-                     $description = ProductDescription::where('product_id', $product->id)->first();
-                     $related_attributes = ProductRelatedAttribute::where('product_id', $product->id)->first();
-                     $product_related = ProductRelated::where('product_id', $product->id)->first();
-                     $product_option = StoreProductOption::where('product_id', $product->id)->first();
-                     $product_special = ProductSpecial::where('product_id', $product->id)->first();
-                     $product_image = ProductImage::where('product_id', $product->id)->first();
-                     $product_discount = ProductDiscount::where('product_id', $product->id)->first();
-
-                     $new_product_data = array(
-                         'model' => $product->model,
-                         'origin_id' => !empty($product->origin_id) ? $product->origin_id : $product->id,
-                         'seller_id' => $this->getUser->id,
-                         'quantity' => $value['quantity'],
-                         'category_id' => $product->category_id,
-                         'price' => $product->price,
-                         'image' => $product->image,
-                         'option' => $product->option,
-                         'location' => $product->location,
-                         'stock_status_id' => $product->stock_status_id,
-                         'manufacturer_id' => $product->manufacturer_id,
-                         'tax_rate_id' => $product->tax_rate_id,
-                         'date_available' => $product->date_available,
-                         'length' => $product->length,
-                         'width' => $product->width,
-                         'height' => $product->height,
-                         'weight_class_id' => $product->weight_class_id,
-                         'status' => $product->status,
-                         'sort_order' => $product->sort_order,
-                         'sale_date' => Carbon::now(),
-                         'sale' => 0,
-                     );
-                     $new_product = new Product($new_product_data);
-                     $new_product->save();
-                     $notification_data = array(
-                         'type' => 'item_shop_sell',
-                         'product_id' => $product->id,
-                         'quantity' => 1,
-                         'price' => $product->price,
-                         'seen' => 0,
-                     );
-                     $new_notification = new Notification($notification_data);
-                     $new_notification->save();
-
-                     if (!empty($description) && !empty($new_product)) {
-                         $new_description = $description->replicate();
-                         $new_description->product_id = $new_product->id;
-                         $new_description->save();
-                     }
-                     if (!empty($related_attributes) && !empty($new_product)) {
-                         $new_attributes = $related_attributes->replicate();
-                         $new_attributes->product_id = $new_product->id;
-                         $new_attributes->save();
-                     }
-                     if (!empty($product_related) && !empty($new_product)) {
-                         $new_related = $product_related->replicate();
-                         $new_related->product_id = $new_product->id;
-                         $new_related->save();
-                     }
-                     if (!empty($product_option) && !empty($new_product)) {
-                         $new_option = $product_option->replicate();
-                         $new_option->product_id = $new_product->id;
-                         $new_option->save();
-                     }
-                     if (!empty($product_special) && !empty($new_product)) {
-                         $new_special = $product_special->replicate();
-                         $new_special->product_id = $new_product->id;
-                         $new_special->save();
-                     }
-                     if (!empty($product_image) && !empty($new_product)) {
-                         $new_image = $product_image->replicate();
-                         $new_image->product_id = $new_product->id;
-                         $new_image->save();
-                     }
-                     if (!empty($product_discount) && !empty($new_product)) {
-                         $new_discount = $product_discount->replicate();
-                         $new_discount->product_id = $new_product->id;
-                         $new_discount->save();
-                     }
+                $existing_relation = ProductSellerRelation::where('product_id', $product->id)->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
+                if (!empty($existing_relation)) {
+                  $existing_relation->quantity += $value['quantity'];
+                  $existing_relation->sale_date = Carbon::now();
+                  $existing_relation->sale = 0;
+                  $existing_relation->save();
+                } else {
+                  ProductSellerRelation::create([
+                    'seller_id' => $this->getUser->id,
+                    'product_id' => $product->id,
+                    'sale' => 0,
+                    'quantity' => $value['quantity'],
+                  ]);
                 }
+                //  $existing_product = Product::where('origin_id', $value['origin_id'] ?? $value['id'])->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
+                //  if (!empty($existing_product)) {
+                //      $quantity = $existing_product->quantity + $value['quantity'];
+                //      $existing_product->quantity = $quantity;
+                //      $existing_product->sale_date = Carbon::now();
+                //      $existing_product->sale = 0;
+                //      $existing_product->save();
+                //  } else {
+                //      $description = ProductDescription::where('product_id', $product->id)->first();
+                //      $related_attributes = ProductRelatedAttribute::where('product_id', $product->id)->first();
+                //      $product_related = ProductRelated::where('product_id', $product->id)->first();
+                //      $product_option = StoreProductOption::where('product_id', $product->id)->first();
+                //      $product_special = ProductSpecial::where('product_id', $product->id)->first();
+                //      $product_image = ProductImage::where('product_id', $product->id)->first();
+                //      $product_discount = ProductDiscount::where('product_id', $product->id)->first();
+
+                //      $new_product_data = array(
+                //          'model' => $product->model,
+                //          'origin_id' => !empty($product->origin_id) ? $product->origin_id : $product->id,
+                //          'seller_id' => $this->getUser->id,
+                //          'quantity' => $value['quantity'],
+                //          'category_id' => $product->category_id,
+                //          'price' => $product->price,
+                //          'image' => $product->image,
+                //          'option' => $product->option,
+                //          'location' => $product->location,
+                //          'stock_status_id' => $product->stock_status_id,
+                //          'manufacturer_id' => $product->manufacturer_id,
+                //          'tax_rate_id' => $product->tax_rate_id,
+                //          'date_available' => $product->date_available,
+                //          'length' => $product->length,
+                //          'width' => $product->width,
+                //          'height' => $product->height,
+                //          'weight_class_id' => $product->weight_class_id,
+                //          'status' => $product->status,
+                //          'sort_order' => $product->sort_order,
+                //          'sale_date' => Carbon::now(),
+                //          'sale' => 0,
+                //      );
+                //      $new_product = new Product($new_product_data);
+                //      $new_product->save();
+                //      $notification_data = array(
+                //          'type' => 'item_shop_sell',
+                //          'product_id' => $product->id,
+                //          'quantity' => 1,
+                //          'price' => $product->price,
+                //          'seen' => 0,
+                //      );
+                //      $new_notification = new Notification($notification_data);
+                //      $new_notification->save();
+
+                //      if (!empty($description) && !empty($new_product)) {
+                //          $new_description = $description->replicate();
+                //          $new_description->product_id = $new_product->id;
+                //          $new_description->save();
+                //      }
+                //      if (!empty($related_attributes) && !empty($new_product)) {
+                //          $new_attributes = $related_attributes->replicate();
+                //          $new_attributes->product_id = $new_product->id;
+                //          $new_attributes->save();
+                //      }
+                //      if (!empty($product_related) && !empty($new_product)) {
+                //          $new_related = $product_related->replicate();
+                //          $new_related->product_id = $new_product->id;
+                //          $new_related->save();
+                //      }
+                //      if (!empty($product_option) && !empty($new_product)) {
+                //          $new_option = $product_option->replicate();
+                //          $new_option->product_id = $new_product->id;
+                //          $new_option->save();
+                //      }
+                //      if (!empty($product_special) && !empty($new_product)) {
+                //          $new_special = $product_special->replicate();
+                //          $new_special->product_id = $new_product->id;
+                //          $new_special->save();
+                //      }
+                //      if (!empty($product_image) && !empty($new_product)) {
+                //          $new_image = $product_image->replicate();
+                //          $new_image->product_id = $new_product->id;
+                //          $new_image->save();
+                //      }
+                //      if (!empty($product_discount) && !empty($new_product)) {
+                //          $new_discount = $product_discount->replicate();
+                //          $new_discount->product_id = $new_product->id;
+                //          $new_discount->save();
+                //      }
+                // }
              }
          }
 
@@ -819,110 +834,125 @@ class SellerCartApiController extends Controller
                     }
 
                 } else {
-                    $existing_product = Product::where('origin_id', $product->origin_id ?? $product->id)->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
-                    if (!empty($existing_product)) {
-                        $quantity = $existing_product->quantity + 1;
-                        $existing_product->quantity = $quantity;
-                        $existing_product->sale_date = Carbon::now();
-                        $existing_product->sale = 0;
-                        $existing_product->save();
-                    } else {
-                        $description = ProductDescription::where('product_id', $product->id)->first();
-                        $related_attributes = ProductRelatedAttribute::where('product_id', $product->id)->first();
-                        $product_related = ProductRelated::where('product_id', $product->id)->first();
-                        $product_option = StoreProductOption::where('product_id', $product->id)->first();
-                        $product_special = ProductSpecial::where('product_id', $product->id)->first();
-                        $product_image = ProductImage::where('product_id', $product->id)->first();
-                        $product_discount = ProductDiscount::where('product_id', $product->id)->first();
-
-                        $new_product_data = array(
-                            'model' => $product->model,
-                            'origin_id' => !empty($product->origin_id) ? $product->origin_id : $product->id,
-                            'seller_id' => $this->getUser->id,
-                            'quantity' => 1,
-                            'category_id' => $product->category_id,
-                            'price' => $product->price,
-                            'image' => $product->image,
-                            'option' => $product->option,
-                            'location' => $product->location,
-                            'stock_status_id' => $product->stock_status_id,
-                            'manufacturer_id' => $product->manufacturer_id,
-                            'tax_rate_id' => $product->tax_rate_id,
-                            'date_available' => $product->date_available,
-                            'length' => $product->length,
-                            'width' => $product->width,
-                            'height' => $product->height,
-                            'weight_class_id' => $product->weight_class_id,
-                            'status' => $product->status,
-                            'sort_order' => $product->sort_order,
-                            'sale_date' => Carbon::now(),
-                            'sale' => 0,
-                        );
-                        $new_product = new Product($new_product_data);
-                        $new_product->save();
-                        error_log(json_encode($description));
-                        if (!empty($description) && !empty($new_product)) {
-                            $new_description = $description->replicate();
-                            $new_description->product_id = $new_product->id;
-                            $new_description->save();
-                        }
-                        if (!empty($related_attributes) && !empty($new_product)) {
-                            $new_attributes = $related_attributes->replicate();
-                            $new_attributes->product_id = $new_product->id;
-                            $new_attributes->save();
-                        }
-                        if (!empty($product_related) && !empty($new_product)) {
-                            $new_related = $product_related->replicate();
-                            $new_related->product_id = $new_product->id;
-                            $new_related->save();
-                        }
-                        if (!empty($product_option) && !empty($new_product)) {
-                            $new_option = $product_option->replicate();
-                            $new_option->product_id = $new_product->id;
-                            $new_option->save();
-                        }
-                        if (!empty($product_special) && !empty($new_product)) {
-                            $new_special = $product_special->replicate();
-                            $new_special->product_id = $new_product->id;
-                            $new_special->save();
-                        }
-                        if (!empty($product_image) && !empty($new_product)) {
-                            $new_image = $product_image->replicate();
-                            $new_image->product_id = $new_product->id;
-                            $new_image->save();
-                        }
-                        if (!empty($product_discount) && !empty($new_product)) {
-                            $new_discount = $product_discount->replicate();
-                            $new_discount->product_id = $new_product->id;
-                            $new_discount->save();
-                        }
-
-                    }
-                    $notification_data = array(
-                        'type' => 'item_buy',
-                        'product_id' => $product->id,
-                        'seller_id' => $this->getUser->id,
-                        'quantity' => 1,
-                        'price' => $product->price,
-                        'balance' => $balance,
-                        'seen' => 0,
-                    );
-                    $new_notification = new Notification($notification_data);
-                    $new_notification->save();
-                    if (!empty($product->seller)) {
-                        $notification_data = array(
-                            'type' => 'item_sell',
-                            'product_id' => $product->id,
-                            'seller_id' => $product->seller->id,
-                            'quantity' => 1,
-                            'price' => $product->price,
-                            'balance' => $product->seller->balance,
-                            'seen' => 0,
-                        );
-                        $new_notification = new Notification($notification_data);
-                        $new_notification->save();
-                    }
+                  $existing_relation = ProductSellerRelation::where('product_id', $product->id)->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
+                  if (!empty($existing_relation)) {
+                    $existing_relation->quantity += 1;
+                    $existing_relation->sale_date = Carbon::now();
+                    $existing_relation->sale = 0;
+                    $existing_relation->save();
+                  } else {
+                    ProductSellerRelation::create([
+                      'seller_id' => $this->getUser->id,
+                      'product_id' => $product->id,
+                      'sale' => 0,
+                      'quantity' => 1,
+                    ]);
+                  }
                 }
+                //     $existing_product = Product::where('origin_id', $product->origin_id ?? $product->id)->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
+                //     if (!empty($existing_product)) {
+                //         $quantity = $existing_product->quantity + 1;
+                //         $existing_product->quantity = $quantity;
+                //         $existing_product->sale_date = Carbon::now();
+                //         $existing_product->sale = 0;
+                //         $existing_product->save();
+                //     } else {
+                //         $description = ProductDescription::where('product_id', $product->id)->first();
+                //         $related_attributes = ProductRelatedAttribute::where('product_id', $product->id)->first();
+                //         $product_related = ProductRelated::where('product_id', $product->id)->first();
+                //         $product_option = StoreProductOption::where('product_id', $product->id)->first();
+                //         $product_special = ProductSpecial::where('product_id', $product->id)->first();
+                //         $product_image = ProductImage::where('product_id', $product->id)->first();
+                //         $product_discount = ProductDiscount::where('product_id', $product->id)->first();
+
+                //         $new_product_data = array(
+                //             'model' => $product->model,
+                //             'origin_id' => !empty($product->origin_id) ? $product->origin_id : $product->id,
+                //             'seller_id' => $this->getUser->id,
+                //             'quantity' => 1,
+                //             'category_id' => $product->category_id,
+                //             'price' => $product->price,
+                //             'image' => $product->image,
+                //             'option' => $product->option,
+                //             'location' => $product->location,
+                //             'stock_status_id' => $product->stock_status_id,
+                //             'manufacturer_id' => $product->manufacturer_id,
+                //             'tax_rate_id' => $product->tax_rate_id,
+                //             'date_available' => $product->date_available,
+                //             'length' => $product->length,
+                //             'width' => $product->width,
+                //             'height' => $product->height,
+                //             'weight_class_id' => $product->weight_class_id,
+                //             'status' => $product->status,
+                //             'sort_order' => $product->sort_order,
+                //             'sale_date' => Carbon::now(),
+                //             'sale' => 0,
+                //         );
+                //         $new_product = new Product($new_product_data);
+                //         $new_product->save();
+                //         error_log(json_encode($description));
+                //         if (!empty($description) && !empty($new_product)) {
+                //             $new_description = $description->replicate();
+                //             $new_description->product_id = $new_product->id;
+                //             $new_description->save();
+                //         }
+                //         if (!empty($related_attributes) && !empty($new_product)) {
+                //             $new_attributes = $related_attributes->replicate();
+                //             $new_attributes->product_id = $new_product->id;
+                //             $new_attributes->save();
+                //         }
+                //         if (!empty($product_related) && !empty($new_product)) {
+                //             $new_related = $product_related->replicate();
+                //             $new_related->product_id = $new_product->id;
+                //             $new_related->save();
+                //         }
+                //         if (!empty($product_option) && !empty($new_product)) {
+                //             $new_option = $product_option->replicate();
+                //             $new_option->product_id = $new_product->id;
+                //             $new_option->save();
+                //         }
+                //         if (!empty($product_special) && !empty($new_product)) {
+                //             $new_special = $product_special->replicate();
+                //             $new_special->product_id = $new_product->id;
+                //             $new_special->save();
+                //         }
+                //         if (!empty($product_image) && !empty($new_product)) {
+                //             $new_image = $product_image->replicate();
+                //             $new_image->product_id = $new_product->id;
+                //             $new_image->save();
+                //         }
+                //         if (!empty($product_discount) && !empty($new_product)) {
+                //             $new_discount = $product_discount->replicate();
+                //             $new_discount->product_id = $new_product->id;
+                //             $new_discount->save();
+                //         }
+
+                //     }
+                //     $notification_data = array(
+                //         'type' => 'item_buy',
+                //         'product_id' => $product->id,
+                //         'seller_id' => $this->getUser->id,
+                //         'quantity' => 1,
+                //         'price' => $product->price,
+                //         'balance' => $balance,
+                //         'seen' => 0,
+                //     );
+                //     $new_notification = new Notification($notification_data);
+                //     $new_notification->save();
+                //     if (!empty($product->seller)) {
+                //         $notification_data = array(
+                //             'type' => 'item_sell',
+                //             'product_id' => $product->id,
+                //             'seller_id' => $product->seller->id,
+                //             'quantity' => 1,
+                //             'price' => $product->price,
+                //             'balance' => $product->seller->balance,
+                //             'seen' => 0,
+                //         );
+                //         $new_notification = new Notification($notification_data);
+                //         $new_notification->save();
+                //     }
+                // }
                 if (!empty($product->seller)) {
                     $seller = Seller::where('id', $product->seller->id)->first();
                     $newProfit = $seller->profit + $product->price;
@@ -984,84 +1014,98 @@ class SellerCartApiController extends Controller
                 if ($seller_power > $user_power) {
                     return ['status'=> 1,'message'=> 'You lost'];
                 }
-                $existing_product = Product::where('origin_id', $product->origin_id ?? $product->id)->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
-                if (!empty($existing_product)) {
-                    $quantity = $existing_product->quantity + 1;
-                    $existing_product->quantity = $quantity;
-                    $existing_product->sale_date = Carbon::now();
-                    $existing_product->sale = 0;
-                    $existing_product->save();
-                } else {
-                    $description = ProductDescription::where('product_id', $product->id)->first();
-                    $related_attributes = ProductRelatedAttribute::where('product_id', $product->id)->first();
-                    $product_related = ProductRelated::where('product_id', $product->id)->first();
-                    $product_option = StoreProductOption::where('product_id', $product->id)->first();
-                    $product_special = ProductSpecial::where('product_id', $product->id)->first();
-                    $product_image = ProductImage::where('product_id', $product->id)->first();
-                    $product_discount = ProductDiscount::where('product_id', $product->id)->first();
+                $existing_relation = ProductSellerRelation::where('product_id', $product->id)->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
+                  if (!empty($existing_relation)) {
+                    $existing_relation->quantity += 1;
+                    $existing_relation->sale_date = Carbon::now();
+                    $existing_relation->sale = 0;
+                    $existing_relation->save();
+                  } else {
+                    ProductSellerRelation::create([
+                      'seller_id' => $this->getUser->id,
+                      'product_id' => $product->id,
+                      'sale' => 0,
+                      'quantity' => 1,
+                    ]);
+                  }
+                // $existing_product = Product::where('origin_id', $product->origin_id ?? $product->id)->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
+                // if (!empty($existing_product)) {
+                //     $quantity = $existing_product->quantity + 1;
+                //     $existing_product->quantity = $quantity;
+                //     $existing_product->sale_date = Carbon::now();
+                //     $existing_product->sale = 0;
+                //     $existing_product->save();
+                // } else {
+                //     $description = ProductDescription::where('product_id', $product->id)->first();
+                //     $related_attributes = ProductRelatedAttribute::where('product_id', $product->id)->first();
+                //     $product_related = ProductRelated::where('product_id', $product->id)->first();
+                //     $product_option = StoreProductOption::where('product_id', $product->id)->first();
+                //     $product_special = ProductSpecial::where('product_id', $product->id)->first();
+                //     $product_image = ProductImage::where('product_id', $product->id)->first();
+                //     $product_discount = ProductDiscount::where('product_id', $product->id)->first();
 
-                    $new_product_data = array(
-                        'model' => $product->model,
-                        'origin_id' => !empty($product->origin_id) ? $product->origin_id : $product->id,
-                        'seller_id' => $this->getUser->id,
-                        'quantity' => 1,
-                        'category_id' => $product->category_id,
-                        'price' => $product->price,
-                        'image' => $product->image,
-                        'option' => $product->option,
-                        'location' => $product->location,
-                        'stock_status_id' => $product->stock_status_id,
-                        'manufacturer_id' => $product->manufacturer_id,
-                        'tax_rate_id' => $product->tax_rate_id,
-                        'date_available' => $product->date_available,
-                        'length' => $product->length,
-                        'width' => $product->width,
-                        'height' => $product->height,
-                        'weight_class_id' => $product->weight_class_id,
-                        'status' => $product->status,
-                        'sort_order' => $product->sort_order,
-                        'sale_date' => Carbon::now(),
-                        'sale' => 0,
-                    );
-                    $new_product = new Product($new_product_data);
-                    $new_product->save();
-                    if (!empty($description) && !empty($new_product)) {
-                        $new_description = $description->replicate();
-                        $new_description->product_id = $new_product->id;
-                        $new_description->save();
-                    }
-                    if (!empty($related_attributes) && !empty($new_product)) {
-                        $new_attributes = $related_attributes->replicate();
-                        $new_attributes->product_id = $new_product->id;
-                        $new_attributes->save();
-                    }
-                    if (!empty($product_related) && !empty($new_product)) {
-                        $new_related = $product_related->replicate();
-                        $new_related->product_id = $new_product->id;
-                        $new_related->save();
-                    }
-                    if (!empty($product_option) && !empty($new_product)) {
-                        $new_option = $product_option->replicate();
-                        $new_option->product_id = $new_product->id;
-                        $new_option->save();
-                    }
-                    if (!empty($product_special) && !empty($new_product)) {
-                        $new_special = $product_special->replicate();
-                        $new_special->product_id = $new_product->id;
-                        $new_special->save();
-                    }
-                    if (!empty($product_image) && !empty($new_product)) {
-                        $new_image = $product_image->replicate();
-                        $new_image->product_id = $new_product->id;
-                        $new_image->save();
-                    }
-                    if (!empty($product_discount) && !empty($new_product)) {
-                        $new_discount = $product_discount->replicate();
-                        $new_discount->product_id = $new_product->id;
-                        $new_discount->save();
-                    }
+                //     $new_product_data = array(
+                //         'model' => $product->model,
+                //         'origin_id' => !empty($product->origin_id) ? $product->origin_id : $product->id,
+                //         'seller_id' => $this->getUser->id,
+                //         'quantity' => 1,
+                //         'category_id' => $product->category_id,
+                //         'price' => $product->price,
+                //         'image' => $product->image,
+                //         'option' => $product->option,
+                //         'location' => $product->location,
+                //         'stock_status_id' => $product->stock_status_id,
+                //         'manufacturer_id' => $product->manufacturer_id,
+                //         'tax_rate_id' => $product->tax_rate_id,
+                //         'date_available' => $product->date_available,
+                //         'length' => $product->length,
+                //         'width' => $product->width,
+                //         'height' => $product->height,
+                //         'weight_class_id' => $product->weight_class_id,
+                //         'status' => $product->status,
+                //         'sort_order' => $product->sort_order,
+                //         'sale_date' => Carbon::now(),
+                //         'sale' => 0,
+                //     );
+                //     $new_product = new Product($new_product_data);
+                //     $new_product->save();
+                //     if (!empty($description) && !empty($new_product)) {
+                //         $new_description = $description->replicate();
+                //         $new_description->product_id = $new_product->id;
+                //         $new_description->save();
+                //     }
+                //     if (!empty($related_attributes) && !empty($new_product)) {
+                //         $new_attributes = $related_attributes->replicate();
+                //         $new_attributes->product_id = $new_product->id;
+                //         $new_attributes->save();
+                //     }
+                //     if (!empty($product_related) && !empty($new_product)) {
+                //         $new_related = $product_related->replicate();
+                //         $new_related->product_id = $new_product->id;
+                //         $new_related->save();
+                //     }
+                //     if (!empty($product_option) && !empty($new_product)) {
+                //         $new_option = $product_option->replicate();
+                //         $new_option->product_id = $new_product->id;
+                //         $new_option->save();
+                //     }
+                //     if (!empty($product_special) && !empty($new_product)) {
+                //         $new_special = $product_special->replicate();
+                //         $new_special->product_id = $new_product->id;
+                //         $new_special->save();
+                //     }
+                //     if (!empty($product_image) && !empty($new_product)) {
+                //         $new_image = $product_image->replicate();
+                //         $new_image->product_id = $new_product->id;
+                //         $new_image->save();
+                //     }
+                //     if (!empty($product_discount) && !empty($new_product)) {
+                //         $new_discount = $product_discount->replicate();
+                //         $new_discount->product_id = $new_product->id;
+                //         $new_discount->save();
+                //     }
 
-                }
+                // }
                 $notification_data = array(
                     'type' => 'fight_item_buy',
                     'product_id' => $product->id,

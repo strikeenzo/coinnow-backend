@@ -16,6 +16,7 @@ use App\Models\ProductPrice;
 use App\Models\ProductRelated;
 use App\Models\StoreProductOption;
 use App\Models\ProductRelatedAttribute;
+use App\Models\ProductSellerRelation;
 use App\Models\ProductSpecial;
 use App\Models\Special;
 use App\Models\StockStatus;
@@ -53,7 +54,7 @@ class ProductController extends Controller
         $status = $request->get('status', '1');
 
         $records = Product::select('id','image','category_id', 'model','price', 'min_price', 'max_price', 'location', 'quantity','sort_order','status', 'points');
-        $records = $user->hasRole('Admin') || empty($seller) ? $records->where('seller_id', 0)->orWhereNull('seller_id') : $records->where('seller_id', 1);
+        // $records = $user->hasRole('Admin') || empty($seller) ? $records->where('seller_id', 0)->orWhereNull('seller_id') : $records->where('seller_id', 1);
         $records = $records->with('productDescription:name,id,product_id','category:name,category_id')
             ->when($name != ''|| $model != '' || $quantity != '' || $status != ''  , function($q) use($name,$model,$quantity,$status) {
                 $q->where('model','like',"%$model%");
@@ -68,7 +69,7 @@ class ProductController extends Controller
           if ($records[$i]['points'] > 0) {
             $sum = Special::where('product_id',$records[$i]->id)->sum('quantity');
           } else {
-            $sum = Product::where([['origin_id', $records[$i]->id]])->sum('quantity');
+            $sum = ProductSellerRelation::where([['product_id', $records[$i]->id]])->sum('quantity');
           }
           $records[$i]['total_quantity'] = $sum;
         }
@@ -341,9 +342,9 @@ class ProductController extends Controller
         $new_price = new ProductPrice(array('product_id' => $product->id, 'price' => $product->price, 'date' => $today));
         $new_price->save();
         // update product price for child products
-        Product::where('origin_id', $product->id)->update(['price'=> $product->price]);
+        $product = $product->setRelation('productPrice', $product->productPrice->take(6));
         broadcast(
-          new MessageSent('price update', 'price update')
+          new MessageSent('price update', $product)
         )->toOthers();
         return redirect(route('product'))->with('success','Product Updated Successfully');
     }
@@ -487,6 +488,17 @@ class ProductController extends Controller
       $product = Product::where('id', $id)->first();
       $product->price = $request->price;
       $product->save();
+      $today = Carbon::today();
+      $new_price = new ProductPrice(array('product_id' => $product->id, 'price' => $product->price, 'date' => $today));
+      $new_price->save();
+      $product = $product->setRelation('productPrice', $product->productPrice->take(6));
+      broadcast(
+        new MessageSent('price update', [
+          'price' => $product->price,
+          'productPrice' => $product->productPrice,
+          'id' => $product->id
+        ])
+      )->toOthers();
       return redirect(route('product'))->with('success','Product Updated Successfully');
     }
 

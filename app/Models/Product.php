@@ -25,17 +25,17 @@ class Product extends Model
     ];
 
     protected $fillable = [
-        'category_id', 'origin_id', 'model', 'quantity', 'stock_status_id', 'image',
+        'category_id', 'model', 'quantity', 'stock_status_id', 'image',
         'manufacturer_id',  'price',  'tax_rate_id', 'date_available',
         'weight', 'weight_class_id', 'length', 'width', 'height', 'length_class_id',
-        'seller_id', 'points', 'min_price', 'max_price', 'sale', 'sell_date', 'sale_date',
+        'points', 'min_price', 'max_price',
         'sort_order', 'status',
     ];
 
-    public static $fillableValue = [   'category_id', 'origin_id', 'model', 'quantity', 'stock_status_id', 'image',
+    public static $fillableValue = [   'category_id', 'model', 'quantity', 'stock_status_id', 'image',
         'manufacturer_id',  'price',  'tax_rate_id', 'date_available',
         'weight', 'weight_class_id', 'length', 'width', 'height', 'length_class_id',
-        'seller_id', 'points', 'min_price', 'max_price', 'sale', 'sell_date', 'sale_date',
+        'points', 'min_price', 'max_price',
         'sort_order', 'status'];
 
     const ACTIVE = 1;
@@ -102,14 +102,14 @@ class Product extends Model
 
     public function productPrice() {
         return $this->hasMany('App\Models\ProductPrice','product_id','id')
-            ->orderBy('date', 'DESC');
+            ->orderBy('created_at', 'DESC');
     }
 
     public function productPrices() {
 
         return $this->hasMany('App\Models\ProductPrice','product_id','id')
-            ->orderBy('date', 'DESC')
-            ->where('date', '>', Carbon::now()->subDays(30));
+            ->orderBy('created_at', 'DESC')
+            ->where('created_at', '>', Carbon::now()->subDays(30));
     }
 
     public function increment($column, $amount = 1, array $extra = array())
@@ -120,6 +120,11 @@ class Product extends Model
         $columns = array_merge(array($column => $this->raw("$wrapped - $amount")), $extra);
 
         return $this->update($columns);
+    }
+
+    public function sellers()
+    {
+        return $this->belongsToMany('App\Models\Seller', 'product_seller_relations', 'product_id', 'seller_id')->withPivot('sale_date', 'sell_date', 'sale', 'quantity', 'id');
     }
 
 }
