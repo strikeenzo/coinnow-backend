@@ -78,42 +78,42 @@ class GeneralApiController extends Controller
           ->get();
 
         //homepage new arrival
-        $data['newProducts'] = Product::select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available')
-            ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date')
-            ->withCount(['productReview as review_avg' => function($query) {
-                $query->select(DB::raw('avg(rating)'));
-              }])
-            ->orderBy('created_at','DESC')
-            ->where('date_available','<=',date('Y-m-d'))
-            ->where('status','1')
-            ->where(function($query) {
-                $query->where('seller_id', 0)
-                    ->orWhereNull('seller_id');
-            })
-            ->take(4)
-            ->get()->map(function($query) {
-                $query->setRelation('productPrice', $query->productPrice->take(6));
-                return $query;
-            });
+        // $data['newProducts'] = Product::select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available')
+        //     ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date')
+        //     ->withCount(['productReview as review_avg' => function($query) {
+        //         $query->select(DB::raw('avg(rating)'));
+        //       }])
+        //     ->orderBy('created_at','DESC')
+        //     ->where('date_available','<=',date('Y-m-d'))
+        //     ->where('status','1')
+        //     ->where(function($query) {
+        //         $query->where('seller_id', 0)
+        //             ->orWhereNull('seller_id');
+        //     })
+        //     ->take(4)
+        //     ->get()->map(function($query) {
+        //         $query->setRelation('productPrice', $query->productPrice->take(6));
+        //         return $query;
+        //     });
 
-        //homepage  Trending
-        $data['trendingProducts'] = Product::select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available')
-            ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date')
-            ->withCount(['productReview as review_avg' => function($query) {
-                $query->select(DB::raw('avg(rating)'));
-              }])
-            ->where('date_available','<=',date('Y-m-d'))
-            ->where('status','1')
-            ->where(function($query) {
-                $query->where('seller_id', 0)
-                    ->orWhereNull('seller_id');
-            })
-            ->orderBy('viewed','DESC')
-            ->take(4)
-            ->get()->map(function($query) {
-                $query->setRelation('productPrice', $query->productPrice->take(6));
-                return $query;
-            });
+        // //homepage  Trending
+        // $data['trendingProducts'] = Product::select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available')
+        //     ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date')
+        //     ->withCount(['productReview as review_avg' => function($query) {
+        //         $query->select(DB::raw('avg(rating)'));
+        //       }])
+        //     ->where('date_available','<=',date('Y-m-d'))
+        //     ->where('status','1')
+        //     ->where(function($query) {
+        //         $query->where('seller_id', 0)
+        //             ->orWhereNull('seller_id');
+        //     })
+        //     ->orderBy('viewed','DESC')
+        //     ->take(4)
+        //     ->get()->map(function($query) {
+        //         $query->setRelation('productPrice', $query->productPrice->take(6));
+        //         return $query;
+        //     });
 
         //homepage DOD
         $data['dodProducts'] = DOD::select('id','product_id')
@@ -160,7 +160,7 @@ class GeneralApiController extends Controller
           ->take(20)
           ->get()
           ->map(function($query) {
-              $query->setRelation('productPrice', $query->productPrice->take(6));
+              $query->setRelation('productPrice', $query->productPrice()->take(6));
               return $query;
           });
           return ['status'=> 1,'data'=>$data];
@@ -378,7 +378,7 @@ class GeneralApiController extends Controller
             $keyword = $request->get('q', '');
             $seller_id = $request->seller_id;
             $records = ProductSellerRelation::with(['product' => function($query) use ($keyword) {
-              $query->select('id','image', 'price', 'seller_id', 'quantity','sort_order','status', 'deleted_at', 'manufacturer_id', 'origin_id')
+              $query->select('id','image', 'price', 'quantity','sort_order','status', 'deleted_at', 'manufacturer_id')
               ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date', 'seller:id,firstname,lastname,power')
               ->with('productManufacturer')
               ->when(!empty($keyword) , function($q) use($keyword) {

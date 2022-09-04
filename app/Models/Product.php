@@ -102,14 +102,14 @@ class Product extends Model
 
     public function productPrice() {
         return $this->hasMany('App\Models\ProductPrice','product_id','id')
-            ->orderBy('date', 'DESC');
+            ->orderBy('created_at', 'DESC');
     }
 
     public function productPrices() {
 
         return $this->hasMany('App\Models\ProductPrice','product_id','id')
-            ->orderBy('date', 'DESC')
-            ->where('date', '>', Carbon::now()->subDays(30));
+            ->orderBy('created_at', 'DESC')
+            ->where('created_at', '>', Carbon::now()->subDays(30));
     }
 
     public function increment($column, $amount = 1, array $extra = array())
