@@ -781,12 +781,13 @@ class SellerCartApiController extends Controller
     public function buyProduct(Request $request){
         try {
             $product = Product::where('id', $request->id)->with('seller')->first();
+            $quantity = $request->quantity;
 
             $balance = $this->getUser->balance;
-            if ($balance < $product->price) {
+            if ($balance < $product->price * $quantity) {
                 return ['status'=> 0,'message'=> 'No enough balance'];
             }
-            if ($product->quantity < 1) {
+            if ($product->quantity < $quantity) {
                 return ['status'=> 0,'message'=> '0 items in stock'];
             }
             if (!empty($product)) {
@@ -798,7 +799,7 @@ class SellerCartApiController extends Controller
                         'type' => 'special_item_buy',
                         'product_id' => $product->id,
                         'seller_id' => $this->getUser->id,
-                        'quantity' => 1,
+                        'quantity' => $quantity,
                         'price' => $product->price,
                         'balance' => $balance,
                         'seen' => 0,
@@ -808,13 +809,13 @@ class SellerCartApiController extends Controller
 
                     $origin_special = Special::where('product_id', $product->origin_id ?? $product->id)->where('seller_id', $this->getUser->id)->first();
                     if (!empty($origin_special)) {
-                        $origin_special->quantity = $origin_special->quantity + 1;
+                        $origin_special->quantity = $origin_special->quantity + $quantity;
                         $origin_special->save();
                     } else {
                         $new_special_data = array(
                             'product_id' => $product->id,
                             'seller_id' => $this->getUser->id,
-                            'quantity' => 1,
+                            'quantity' => $quantity,
                         );
                         $new_special = new Special($new_special_data);
                         $new_special->save();
@@ -824,7 +825,7 @@ class SellerCartApiController extends Controller
                             'type' => 'special_item_sell',
                             'product_id' => $product->id,
                             'seller_id' => $product->seller->id,
-                            'quantity' => 1,
+                            'quantity' => $quantity,
                             'balance' => $product->seller->balance,
                             'price' => $product->price,
                             'seen' => 0,
@@ -836,7 +837,7 @@ class SellerCartApiController extends Controller
                 } else {
                   $existing_relation = ProductSellerRelation::where('product_id', $product->id)->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
                   if (!empty($existing_relation)) {
-                    $existing_relation->quantity += 1;
+                    $existing_relation->quantity += $quantity;
                     $existing_relation->sale_date = Carbon::now();
                     $existing_relation->sale = 0;
                     $existing_relation->save();
@@ -845,14 +846,14 @@ class SellerCartApiController extends Controller
                       'seller_id' => $this->getUser->id,
                       'product_id' => $product->id,
                       'sale' => 0,
-                      'quantity' => 1,
+                      'quantity' => $quantity,
                     ]);
                   }
                   $notification_data = array(
                     'type' => 'item_buy',
                     'product_id' => $product->id,
                     'seller_id' => $this->getUser->id,
-                    'quantity' => 1,
+                    'quantity' => $quantity,
                     'price' => $product->price,
                     'balance' => $balance,
                     'seen' => 0,
@@ -864,7 +865,7 @@ class SellerCartApiController extends Controller
                         'type' => 'item_sell',
                         'product_id' => $product->id,
                         'seller_id' => $product->seller->id,
-                        'quantity' => 1,
+                        'quantity' => $quantity,
                         'price' => $product->price,
                         'balance' => $product->seller->balance,
                         'seen' => 0,
@@ -873,120 +874,16 @@ class SellerCartApiController extends Controller
                     $new_notification->save();
                   }
                 }
-                //     $existing_product = Product::where('origin_id', $product->origin_id ?? $product->id)->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
-                //     if (!empty($existing_product)) {
-                //         $quantity = $existing_product->quantity + 1;
-                //         $existing_product->quantity = $quantity;
-                //         $existing_product->sale_date = Carbon::now();
-                //         $existing_product->sale = 0;
-                //         $existing_product->save();
-                //     } else {
-                //         $description = ProductDescription::where('product_id', $product->id)->first();
-                //         $related_attributes = ProductRelatedAttribute::where('product_id', $product->id)->first();
-                //         $product_related = ProductRelated::where('product_id', $product->id)->first();
-                //         $product_option = StoreProductOption::where('product_id', $product->id)->first();
-                //         $product_special = ProductSpecial::where('product_id', $product->id)->first();
-                //         $product_image = ProductImage::where('product_id', $product->id)->first();
-                //         $product_discount = ProductDiscount::where('product_id', $product->id)->first();
-
-                //         $new_product_data = array(
-                //             'model' => $product->model,
-                //             'origin_id' => !empty($product->origin_id) ? $product->origin_id : $product->id,
-                //             'seller_id' => $this->getUser->id,
-                //             'quantity' => 1,
-                //             'category_id' => $product->category_id,
-                //             'price' => $product->price,
-                //             'image' => $product->image,
-                //             'option' => $product->option,
-                //             'location' => $product->location,
-                //             'stock_status_id' => $product->stock_status_id,
-                //             'manufacturer_id' => $product->manufacturer_id,
-                //             'tax_rate_id' => $product->tax_rate_id,
-                //             'date_available' => $product->date_available,
-                //             'length' => $product->length,
-                //             'width' => $product->width,
-                //             'height' => $product->height,
-                //             'weight_class_id' => $product->weight_class_id,
-                //             'status' => $product->status,
-                //             'sort_order' => $product->sort_order,
-                //             'sale_date' => Carbon::now(),
-                //             'sale' => 0,
-                //         );
-                //         $new_product = new Product($new_product_data);
-                //         $new_product->save();
-                //         error_log(json_encode($description));
-                //         if (!empty($description) && !empty($new_product)) {
-                //             $new_description = $description->replicate();
-                //             $new_description->product_id = $new_product->id;
-                //             $new_description->save();
-                //         }
-                //         if (!empty($related_attributes) && !empty($new_product)) {
-                //             $new_attributes = $related_attributes->replicate();
-                //             $new_attributes->product_id = $new_product->id;
-                //             $new_attributes->save();
-                //         }
-                //         if (!empty($product_related) && !empty($new_product)) {
-                //             $new_related = $product_related->replicate();
-                //             $new_related->product_id = $new_product->id;
-                //             $new_related->save();
-                //         }
-                //         if (!empty($product_option) && !empty($new_product)) {
-                //             $new_option = $product_option->replicate();
-                //             $new_option->product_id = $new_product->id;
-                //             $new_option->save();
-                //         }
-                //         if (!empty($product_special) && !empty($new_product)) {
-                //             $new_special = $product_special->replicate();
-                //             $new_special->product_id = $new_product->id;
-                //             $new_special->save();
-                //         }
-                //         if (!empty($product_image) && !empty($new_product)) {
-                //             $new_image = $product_image->replicate();
-                //             $new_image->product_id = $new_product->id;
-                //             $new_image->save();
-                //         }
-                //         if (!empty($product_discount) && !empty($new_product)) {
-                //             $new_discount = $product_discount->replicate();
-                //             $new_discount->product_id = $new_product->id;
-                //             $new_discount->save();
-                //         }
-
-                //     }
-                //     $notification_data = array(
-                //         'type' => 'item_buy',
-                //         'product_id' => $product->id,
-                //         'seller_id' => $this->getUser->id,
-                //         'quantity' => 1,
-                //         'price' => $product->price,
-                //         'balance' => $balance,
-                //         'seen' => 0,
-                //     );
-                //     $new_notification = new Notification($notification_data);
-                //     $new_notification->save();
-                //     if (!empty($product->seller)) {
-                //         $notification_data = array(
-                //             'type' => 'item_sell',
-                //             'product_id' => $product->id,
-                //             'seller_id' => $product->seller->id,
-                //             'quantity' => 1,
-                //             'price' => $product->price,
-                //             'balance' => $product->seller->balance,
-                //             'seen' => 0,
-                //         );
-                //         $new_notification = new Notification($notification_data);
-                //         $new_notification->save();
-                //     }
-                // }
                 if (!empty($product->seller)) {
                     $seller = Seller::where('id', $product->seller->id)->first();
-                    $newProfit = $seller->profit + $product->price;
-                    $newBalance = $seller->balance + $product->price;
+                    $newProfit = $seller->profit + $product->price * $quantity;
+                    $newBalance = $seller->balance + $product->price * $quantity;
                     $seller->profit = $newProfit;
                     $seller->balance = $newBalance;
                     $seller->save();
                 }
-                $this->getUser->update(['balance' => $balance - $product->price]);
-                $product->quantity = $product->quantity - 1;
+                $this->getUser->update(['balance' => $balance - $product->price * $quantity]);
+                $product->quantity = $product->quantity - $quantity;
                 $product->save();
             }
 
