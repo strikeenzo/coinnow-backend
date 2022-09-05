@@ -848,6 +848,30 @@ class SellerCartApiController extends Controller
                       'quantity' => 1,
                     ]);
                   }
+                  $notification_data = array(
+                    'type' => 'item_buy',
+                    'product_id' => $product->id,
+                    'seller_id' => $this->getUser->id,
+                    'quantity' => 1,
+                    'price' => $product->price,
+                    'balance' => $balance,
+                    'seen' => 0,
+                  );
+                  $new_notification = new Notification($notification_data);
+                  $new_notification->save();
+                  if (!empty($product->seller)) {
+                    $notification_data = array(
+                        'type' => 'item_sell',
+                        'product_id' => $product->id,
+                        'seller_id' => $product->seller->id,
+                        'quantity' => 1,
+                        'price' => $product->price,
+                        'balance' => $product->seller->balance,
+                        'seen' => 0,
+                    );
+                    $new_notification = new Notification($notification_data);
+                    $new_notification->save();
+                  }
                 }
                 //     $existing_product = Product::where('origin_id', $product->origin_id ?? $product->id)->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
                 //     if (!empty($existing_product)) {
