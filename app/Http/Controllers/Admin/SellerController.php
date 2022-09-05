@@ -7,6 +7,7 @@ use App\Models\Seller;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Models\Notification;
 
 class SellerController extends Controller
 {
@@ -67,6 +68,17 @@ class SellerController extends Controller
         return view('admin.seller.edit',[
             'data' => Seller::findOrFail($id),
         ]);
+    }
+
+    public function getHistory($id) {
+        $records = Notification::select('id', 'quantity', 'price', 'type', 'seen', 'created_at', 'product_id', 'seller_id')
+        ->where('seller_id', $id)
+        ->with(array('product' => function ($query) {
+            $query->select('id', 'image')->with('productDescription:id,name,product_id');
+        }))->with(['seller' => function($query) {
+            $query->select('id', 'email');
+        }])->orderBy('notification.created_at', 'DESC')->paginate($this->defaultPaginate);
+        return view('admin.history.seller', ['records' => $records]);
     }
 
     public function update(Request $request,$id) {
