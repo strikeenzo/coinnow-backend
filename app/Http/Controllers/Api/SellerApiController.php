@@ -10,9 +10,9 @@ use App\Models\Trade;
 use Illuminate\Http\Request;
 use App\Traits\CustomFileTrait;
 use App\Models\Seller;
+use App\Models\ProductSellerRelation;
 use App\Models\EnvironmentalVariable;
 use App\Models\User;
-use App\Models\ProductSellerRelation;
 use Illuminate\Support\Facades\Date;
 use Validator;
 use File;
@@ -165,7 +165,7 @@ class SellerApiController extends Controller
                     $query->select('id', 'image')->with('productDescription:id,name,product_id');
                 }))
                 ->where('seller_id', $this->getUser->id)
-                ->whereIn('type', ['send_coin', 'receive_coin', 'item_sell', 'special_item_sell', 'item_sell_auto', 'special_item_sell_auto', 'item_buy', 'special_item_buy', 'trade'])
+                // ->whereIn('type', ['send_coin', 'receive_coin', 'item_sell', 'special_item_sell', 'item_sell_auto', 'special_item_sell_auto', 'item_buy', 'special_item_buy', 'trade'])
                 ->orderBy('notification.created_at', 'DESC')->paginate($this->defaultPaginate);
             return ['status' => 1, 'data' => $history];
         } catch (\Exception $e) {
@@ -217,7 +217,7 @@ class SellerApiController extends Controller
     public function trade(Request $request) {   
 
         // error_log($request->get('product_id'));
-        $product = Product::where('seller_id', $this->getUser->id)->where('origin_id', $request->get('product_id'))->get();
+        $product = ProductSellerRelation::where('seller_id', $this->getUser->id)->where('product_id', $request->get('product_id'))->where('quantity', '>', 0)->get();
         // return $product;
         if (count($product) == 0) {
             return ['status' => 3];
@@ -229,7 +229,7 @@ class SellerApiController extends Controller
 
         //error_log($request->get('coin_quantity'));
         try {
-            $product = Product::where('seller_id', $this->getUser->id)->where('origin_id', $request->get('product_id'))->decrement('quantity', $request->get('quantity_trade'));
+            $product = ProductSellerRelation::where('seller_id', $this->getUser->id)->where('product_id', $request->get('product_id'))->decrement('quantity', $request->get('quantity_trade'));
             //error_log(count($product));
             Seller::find($this->getUser->id)->increment('balance', $request->get('coin_quantity'));
             Trade::find($request->get('id'))->decrement('quantity', 1);

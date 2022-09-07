@@ -85,6 +85,18 @@
                                         </span>
                                     @endif
                                 </div>
+
+                                <div class="col-md-4 form-group{{ $errors->has('balance') ? ' has-danger' : '' }}">
+                                    <label class="form-control-label" for="balance">{{ __('Balance') }}</label>
+                                    <input type="number" name="balance" id="balance" class="form-control form-control-alternative{{ $errors->has('balance') ? ' is-invalid' : '' }}" placeholder="{{ __('Balance') }}" value="{{ old('balance', $data->balance) }}" autofocus>
+
+                                    @if ($errors->has('balance'))
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $errors->first('balance') }}</strong>
+                                        </span>
+                                    @endif
+                                </div>
+
                                 <div class="col-md-4 form-group{{ $errors->has('telephone') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="telephone">{{ __('Mobile Number') }}</label>
                                     <input type="text" name="telephone" id="telephone" class="form-control form-control-alternative{{ $errors->has('telephone') ? ' is-invalid' : '' }}" placeholder="{{ __('Mobile Number') }}" value="{{ old('telephone', $data->telephone) }}" autofocus>

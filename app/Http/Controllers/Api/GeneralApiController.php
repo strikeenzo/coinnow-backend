@@ -657,22 +657,24 @@ class GeneralApiController extends Controller
         foreach($products as $product) {
             $amount = (float)$product->product->price * (int)$product->quantity;
             $seller = Seller::find($product->seller_id);
-            $seller_balance = (float)$seller->balance;
-            if (!empty($seller)) {
-                $seller->balance = $seller_balance + $amount;
-                $seller->save();
+            if ($seller) {
+              $seller_balance = (float)$seller->balance;
+              if (!empty($seller)) {
+                  $seller->balance = $seller_balance + $amount;
+                  $seller->save();
+              }
+              $notification_data = array(
+                  'type' => $product->points > 0 ? 'special_item_sell_auto' : 'item_sell_auto',
+                  'product_id' => $product->product->id,
+                  'seller_id' => $product->seller->id ?? null,
+                  'quantity' => $product->quantity,
+                  'price' => $product->product->price,
+                  'balance' => $seller_balance,
+                  'seen' => 0,
+              );
+              $new_notification = new Notification($notification_data);
+              $new_notification->save();
             }
-            $notification_data = array(
-                'type' => $product->points > 0 ? 'special_item_sell_auto' : 'item_sell_auto',
-                'product_id' => $product->id,
-                'seller_id' => $product->seller->id ?? null,
-                'quantity' => $product->quantity,
-                'price' => $product->product->price,
-                'balance' => $seller_balance,
-                'seen' => 0,
-            );
-            $new_notification = new Notification($notification_data);
-            $new_notification->save();
             $product->quantity = 0;
             $product->save();
         }
