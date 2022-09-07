@@ -778,6 +778,65 @@ class SellerCartApiController extends Controller
 
     }
 
+    public function buyProductV1(Request $request){
+      $relation = ProductSellerRelation::where('id', $request->id)->with(['product', 'seller'])->first();
+      $quantity = $relation->quantity;
+      $price = $relation->product->price;
+      
+      $balance = $this->getUser->balance;
+      if ($balance < $quantity * $price) {
+        return [
+          'status' => 0,
+          'message' => 'No enough balance'
+        ];
+      }
+      if (!$quantity) {
+        return ['status'=>0, 'message'=>'0 items in stock'];
+      }
+
+      $this->getUser->balance -= $quantity * $price;
+      $this->getUser->save();
+      if ($relation->seller)
+      {
+        $relation->seller->balance += $quantity * $price;
+        $relation->seller->save();
+      }
+      $relation->seller_id = $this->getUser->id;
+      $relation->sale = 1;
+      $relation->sale_date = Carbon::now();
+      $relation->quantity = 0;
+      $relation->save();
+      ProductSellerRelation::create([
+        'seller_id' => $this->getUser->id,
+        'product_id' => $relation->product_id,
+        'sale' => 0,
+        'quantity' => $quantity,
+      ]);
+      $notification_data = array(
+        'type' => 'item_buy',
+        'product_id' => $relation->product_id,
+        'seller_id' => $this->getUser->id,
+        'quantity' => $quantity,
+        'price' => $price,
+        'balance' => $balance,
+        'seen' => 0,
+      );
+      $new_notification = new Notification($notification_data);
+      $new_notification->save();
+      $notification_data = array(
+          'type' => 'item_sell',
+          'product_id' => $relation->product_id,
+          'seller_id' => $relation->seller->id,
+          'quantity' => $quantity,
+          'price' => $price,
+          'balance' => $relation->seller->balance,
+          'seen' => 0,
+      );
+      $new_notification = new Notification($notification_data);
+      $new_notification->save();
+      return ['status'=> 1,'message'=> 'successful!',];
+    }
+
     public function buyProduct(Request $request){
         try {
             $product = Product::where('id', $request->id)->with('seller')->first();

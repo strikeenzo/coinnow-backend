@@ -26,6 +26,7 @@ use Carbon\Carbon;
 use App\Http\Controllers\Controller;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use App\Models\ProductSellerRelation;
 use Illuminate\Support\Facades\Auth;
 
 class TradeController extends Controller
@@ -46,11 +47,18 @@ class TradeController extends Controller
         $user = Auth::user();
         $seller = $user->seller->first();
 
-        $records = Product::select('id','image','category_id', 'model','price', 'min_price', 'max_price', 'location', 'quantity','sort_order','status', 'origin_id');
+        // $records = Product::select('id','image','category_id', 'model','price', 'min_price', 'max_price', 'location', 'quantity','sort_order','status', 'origin_id');
         //$records = $user->hasRole('Admin') || empty($seller) ? $records->where('seller_id', 0)->orWhereNull('seller_id') : $records->where('seller_id', 1);
-        $records = $records->WhereNot('seller_id', null);
+        // $records = $records->WhereNot('seller_id', null);
 
-        $records = $records->with('productDescription:name,id,product_id')->get();
+        $records = ProductSellerRelation::select('product_id')->with(['product' => function($query) {
+            $query->with('productDescription:name,id,product_id');
+        }])->groupby('product_id')->get();
+        // return $records;
+
+        // return $records;
+
+        // $records = $records->with('productDescription:name,id,product_id')->get();
         return view('admin.trade.add', ['records' => $records]);
     }
 

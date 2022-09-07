@@ -96,6 +96,7 @@ Route::middleware(['checkKey'])->group(function () {
                     Route::post('/selectShipping/{id?}', 'selectShipping');
                     Route::post('/placeOrder', 'placeOrder');
                     Route::post('/buyProduct', 'buyProduct');
+                    Route::post('/buyProductV1', 'buyProductV1');
                     Route::post('/fightProduct', 'fightProduct');
                     Route::get('/getOrdersList', 'getOrdersList');
                 }

@@ -53,6 +53,30 @@ class SellerController extends Controller
         $this->validate($request,$validationArray);
     }
 
+    protected function updateValidateData ($request, $id) {
+        //        dd(Route::currentRouteName());
+        
+                $passwordValidations = [];
+                if(Route::currentRouteName() == 'seller.store') {
+                    $passwordValidations = ['password' => ['required','min:6'],
+                    'confirmed' => ['required','same:password']
+                        ];
+                }
+        
+                $sellerValidations = [
+                    'firstname' => ['required', 'string', 'max:32'],
+                    'lastname' => ['required', 'string', 'max:32'],
+                    'store_name' => ['required', 'string', 'max:32'],
+                    'email' => 'unique:users,email,'.$id,
+                    'telephone' => ['required'],
+                    'status' => ['required'],
+                ];
+        
+                $validationArray = array_merge($passwordValidations,$sellerValidations);
+        
+                $this->validate($request,$validationArray);
+            }
+
     public function store(Request $request) {
 
         $this->validateData($request);
@@ -71,21 +95,61 @@ class SellerController extends Controller
     }
 
     public function getHistory($id) {
-        $records = Notification::select('id', 'quantity', 'price', 'type', 'seen', 'created_at', 'product_id', 'seller_id')
-        ->where('seller_id', $id)
-        ->with(array('product' => function ($query) {
-            $query->select('id', 'image')->with('productDescription:id,name,product_id');
-        }))->with(['seller' => function($query) {
-            $query->select('id', 'email');
-        }])->orderBy('notification.created_at', 'DESC')->paginate($this->defaultPaginate);
-        return view('admin.history.seller', ['records' => $records]);
+        $records = Notification::where('seller_id', $id)
+        ->orderBy('notification.created_at', 'DESC')->paginate($this->defaultPaginate);
+        $seller = Seller::where('id', $id)->first();
+        return view('admin.history.seller', ['records' => $records, 'seller' => $seller]);
     }
 
     public function update(Request $request,$id) {
 
-        $this->validateData($request);
+        $this->updateValidateData($request, $id);
         $data = Seller::findOrFail($id);
-        $data->fill($request->only('firstname','lastname','email','telephone', 'store_name', 'password','status'))->save();
+        if($data->balance > $request->balance) {
+            $notification_data = array(
+                'type' => 'deducted coins to account',
+                'receiver_id' => $id,
+                'seller_id' => \Auth::user()->id,
+                'amount' => $data->balance - $request->balance,
+                'balance' => $request->balance,
+                'seen' => 0,
+            );
+            $new_notification = new Notification($notification_data);
+            $new_notification->save();
+            $notification_data = array(
+                'type' => 'deducted coins to account',
+                'sender_id' => \Auth::user()->id,
+                'seller_id' => $id,
+                'amount' => $data->balance - $request->balance,
+                'balance' => $request->balance,
+                'seen' => 0,
+            );
+            $new_notification = new Notification($notification_data);
+            $new_notification->save();
+        } elseif ($data->balance < $request->balance) {
+            $notification_data = array(
+                'type' => 'added coins to account',
+                'receiver_id' => $id,
+                'seller_id' => \Auth::user()->id,
+                'amount' => $request->balance - $data->balance,
+                'balance' => $request->balance,
+                'seen' => 0,
+            );
+            $new_notification = new Notification($notification_data);
+            $new_notification->save();
+            $notification_data = array(
+                'type' => 'added coins to account',
+                'sender_id' => \Auth::user()->id,
+                'seller_id' => $id,
+                'amount' => $request->balance - $data->balance,
+                'balance' => $request->balance,
+                'seen' => 0,
+            );
+            $new_notification = new Notification($notification_data);
+            $new_notification->save();
+        }
+        
+        $data->fill($request->only('firstname','lastname','email','telephone', 'store_name', 'password','status', 'balance'))->save();
 
         return redirect(route('seller'))->with('success','Seller Updated Successfully');
     }

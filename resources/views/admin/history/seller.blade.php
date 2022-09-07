@@ -7,12 +7,12 @@
     <div class="header-body">
       <div class="row align-items-center py-4">
         <div class="col-lg-6 col-7">
-          <h6 class="h2 text-black d-inline-block mb-0">Seller History</h6>
+          <h6 class="h2 text-black d-inline-block mb-0">{{ $seller->firstname }} {{ $seller->lastname }}'s History</h6>
           <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
               <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
                   <li class="breadcrumb-item"><a href={{ route('dashboard') }}><i class="fas fa-home"></i></a></li>
                   <li class="breadcrumb-item"><a href="{{ route('seller') }}">Seller</a></li>
-                  <li class="breadcrumb-item">List</li>
+                  <li class="breadcrumb-item">History</li>
               </ol>
           </nav>
         </div>
@@ -30,22 +30,35 @@
             <table class="table align-items-center table-flush">
               <thead class="thead-dark">
                 <tr>
-                  <th scope="col" class="sort" data-sort="name">Balance History</th>
+                  <th>Seller</th>
+                  <th>Balance</th>
+                  <th>Price</th>
+                  <th>Amount</th>
+                  <th>Product</th>
+                  <th>Type</th>
+                  <th>Date</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                 @forelse($records as $key => $value)
                   <tr>
-                    <td>
+                    <td>{{ $value->seller ? $value->seller->email : "" }}</td>
+                    <td>{{ $value->balance }}</td>
+                    <td>{{ $value->quantity * $value->price }}</td>
+                    <td>{{ $value->amount }}</td>
+                    <td>{{ ($value->product ? $value->product->productDescription->name : "") }}</td>
+                    <td>{{ $value->type }}</td>
+                    <td>{{ $value->created_at }}</td>
+                    <!-- <td>
                       {{
                         ($value->seller ? $value->seller->email : "Anyone{User Removed}")
-                        .(in_array($value->type, ['item_sell', 'item_sell_auto', 'special_item_sell', 'special_item_sell_auto', 'receive_coin']) ? " earned " : " spent ").$value->price * $value->quantity." coins by ".$value->type." "
+                        .(in_array($value->type, ['item_sell', 'item_sell_auto', 'special_item_sell', 'special_item_sell_auto', 'receive_coin', 'added coins to account']) ? " earned " : " spent ").$value->price * $value->quantity." coins by ".$value->type." "
                         .$value->quantity." "
                         .($value->product ? $value->product->productDescription->name : "{Product Removed}")." items "
                         ." at ".$value->created_at
                       }}
-                    </td>
+                    </td> -->
                   </tr>
                 @empty
                   <tr>

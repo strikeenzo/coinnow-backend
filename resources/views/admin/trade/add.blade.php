@@ -48,9 +48,9 @@
                                     <ul class="dropdown-menu mr-4"
                                         style="transform: translateX(20px); height: 200px; overflow: auto;">
                                         @forelse ($records as $key => $value)
-                                            <li class="text-center p-2" product-image="{{ $value->image }}"
-                                                product-id="{{ $value->id }}" origin-id={{ $value->origin_id }}>
-                                                <a href="#">{{ $value->productDescription->name }}</a>
+                                            <li class="text-center p-2" product-image="{{ $value->product->image }}"
+                                                product-id="{{ $value->product_id }}" origin-id={{ $value->product_id }}>
+                                                <a href="#">{{ $value->product->productDescription->name }}</a>
                                             </li>
                                         @empty
                                         @endforelse
