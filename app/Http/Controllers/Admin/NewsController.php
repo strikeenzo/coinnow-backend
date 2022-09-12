@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\News;
+use App\Events\MessageSent;
 
 class NewsController extends Controller
 {
@@ -20,9 +21,13 @@ class NewsController extends Controller
     public function store(Request $request) {
         $content = $request->content;
         $this->validateData($request);
-        News::create([
-            'content' => $request->content
+        $news = News::create([
+            'content' => $request->content,
+            'type' => 'default'
         ]);
+        broadcast(
+            new MessageSent('news-sent', $news)
+        )->toOthers();
         return redirect(route('news'))->with('success','News Created Successfully');
     }
 

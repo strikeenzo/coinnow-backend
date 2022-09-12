@@ -81,6 +81,15 @@
             </span>
             @endif
         </div>
+        <div class="col-md-6 form-group{{ $errors->has('amount') ? ' has-danger' : '' }}">
+            <label class="form-control-label" for="input-name">{{ __('Amount') }}*</label>
+            <input type="number" min="0" name="amount" id="amount" value="{{ old('amount', '') }}" class="form-control form-control-alternative{{ $errors->has('amount') ? ' is-invalid' : '' }}">
+            @if ($errors->has('amount'))
+                <span class="invalid-feedback" role="alert">
+                <strong>{{ $errors->first('amount') }}</strong>
+            </span>
+            @endif
+        </div>
     </div>
         <h3>Product Dimension</h3><br>
         <div class="row">

@@ -12,16 +12,6 @@
         @endif
     </div>
 
-    <div class="col-md-6 form-group{{ $errors->has('price') ? ' has-danger' : '' }}">
-        <label class="form-control-label" for="price">{{ __('Price') }}*</label>
-        <input type="number" name="price" id="price" class="form-control form-control-alternative{{ $errors->has('price') ? ' is-invalid' : '' }}" placeholder="{{ __('Price') }}" value="{{ old('price', $product->price) }}" >
-
-        @if ($errors->has('price'))
-            <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $errors->first('price') }}</strong>
-                                        </span>
-        @endif
-    </div>
   </div>
 
     <div class="row">
@@ -81,6 +71,15 @@
             @if ($errors->has('points'))
                 <span class="invalid-feedback" role="alert">
                 <strong>{{ $errors->first('points') }}</strong>
+            </span>
+            @endif
+        </div>
+        <div class="col-md-6 form-group{{ $errors->has('amount') ? ' has-danger' : '' }}">
+            <label class="form-control-label" for="input-name">{{ __('Amount') }}*</label>
+            <input type="number" min="0" name="amount" id="amount" value="{{ old('amount', $product->amount ?? 0) }}" class="form-control form-control-alternative{{ $errors->has('amount') ? ' is-invalid' : '' }}">
+            @if ($errors->has('amount'))
+                <span class="invalid-feedback" role="alert">
+                <strong>{{ $errors->first('amount') }}</strong>
             </span>
             @endif
         </div>

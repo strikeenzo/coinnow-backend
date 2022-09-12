@@ -508,6 +508,28 @@
                             </div>
                         </li>
                     @endif
+                    @if ($user->hasRole('Admin'))
+                        <li class="nav-item">
+                            <a class="nav-link" href="#navbar-news" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="navbar-examples">
+                                <i class="fa fa-newspaper fa-lg"></i>
+                                <span class="nav-link-text" >{{ __('News') }}</span>
+                            </a>
+                            <div class="collapse" id="navbar-news">
+                                <ul class="nav nav-sm flex-column">
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('news.add') }}">
+                                            <i class="fa fa-plus fa-lg"></i>  {{ __('Add') }}
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('news') }}">
+                                          <i class="fa fa-list-alt fa-lg"></i>   {{ __('News') }}
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    @endif
                     @if (false && $user->hasRole('Admin'))
                         <li class="nav-item">
                             <a class="nav-link" href="#navbar-cms" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="navbar-examples">
@@ -634,7 +656,7 @@
 
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('env') }}">
-                                <i class="fa fa-cog"></i> {{ __('Envronments') }}
+                                <i class="fa fa-cog"></i> {{ __('Environments') }}
                             </a>
                         </li>
                     @endif

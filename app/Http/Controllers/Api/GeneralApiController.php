@@ -26,6 +26,8 @@ use App\Models\Review;
 use App\Models\DOD;
 use App\Models\Page;
 use App\Models\Trade;
+use App\Models\News;
+use App\Models\EnvironmentalVariable;
 use Validator;
 use File;
 use DB;
@@ -310,6 +312,16 @@ class GeneralApiController extends Controller
     }
   }
 
+  public function getNews() {
+    try {
+      $news = News::orderBy('created_at', 'desc')->paginate($this->defaultPaginate);
+      return ['status'=> 1,'data'=>$news];
+    }
+    catch (\Exception $e) {
+      return ['status'=> 0,'message'=>'Error'];
+    }
+  }
+
   //search products
   public function searchProducts( Request $request) {
     try {
@@ -569,29 +581,29 @@ class GeneralApiController extends Controller
 
     }
 
-    public function productRandomPrice(Request $request) {
+    // public function productRandomPrice(Request $request) {
 
-        $products = Product::where('status', 1)
-            ->where(function($query) {
-                $query->where('seller_id', 0)
-                    ->orWhereNull('seller_id');
-            })
-            ->get();
+    //     $products = Product::where('status', 1)
+    //         ->where(function($query) {
+    //             $query->where('seller_id', 0)
+    //                 ->orWhereNull('seller_id');
+    //         })
+    //         ->get();
 
-        $date = !empty($request->date) ? Carbon::parse($request->date) : Carbon::today();
+    //     $date = !empty($request->date) ? Carbon::parse($request->date) : Carbon::today();
 
-        foreach ($products as $product) {
-          $min_price = $product->min_price ?? 0;
-          $max_price = $product->max_price ?? 1000;
-          $random_price = rand($min_price, $max_price);
-          $product->price = $random_price;
-          $product->save();
-          $new_price = new ProductPrice(array('product_id' => $product->id, 'price' => $random_price, 'date' => $date));
-          $new_price->save();
-          Product::where('origin_id', $product->id)->update(['price'=> $product->price]);
-        }
-        return ['status'=> 1,'message'=>'Updated'];
-    }
+    //     foreach ($products as $product) {
+    //       $min_price = $product->min_price ?? 0;
+    //       $max_price = $product->max_price ?? 1000;
+    //       $random_price = rand($min_price, $max_price);
+    //       $product->price = $random_price;
+    //       $product->save();
+    //       $new_price = new ProductPrice(array('product_id' => $product->id, 'price' => $random_price, 'date' => $date));
+    //       $new_price->save();
+    //       Product::where('origin_id', $product->id)->update(['price'=> $product->price]);
+    //     }
+    //     return ['status'=> 1,'message'=>'Updated'];
+    // }
 
     //get product by manufacturer id
     public function getProductByManufacturer(Request $request,$id) {
@@ -648,11 +660,20 @@ class GeneralApiController extends Controller
     }
 
     public function something( Request $request) { // terrible naming change later.
+        $env = EnvironmentalVariable::first();
+        $old_products = ProductSellerRelation::where('sale', 0)
+            ->Where('updated_at', '<=', Carbon::parse('-6 hours'))->get();
+        foreach($old_products as $product) {
+            $seconds = rand($env->min_time, $env->max_time);
+            $sell_date = Carbon::now()->addSeconds($seconds);
+            $product->sell_date = $sell_date;
+            $product->sale = 1;
+            $product->save();
+        }
         $products = ProductSellerRelation::where('sell_date', '<', Carbon::now())
             ->with('product')
             ->whereNotNull('sell_date')
-            ->where('quantity', '>', 0)
-            ->paginate($this->defaultPaginate);
+            ->where('quantity', '>', 0)->get();
 
         foreach($products as $product) {
             $amount = (float)$product->product->price * (int)$product->quantity;

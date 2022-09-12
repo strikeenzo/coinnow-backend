@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use App\Events\ProductUpdate;
 use App\Events\MessageSent;
+use App\Models\News;
 
 class ProductController extends Controller
 {
@@ -53,7 +54,7 @@ class ProductController extends Controller
         $quantity = $request->get('quantity', '');
         $status = $request->get('status', '1');
 
-        $records = Product::select('id','image','category_id', 'model','price', 'min_price', 'max_price', 'location', 'quantity','sort_order','status', 'points');
+        $records = Product::select('id','image','category_id', 'model','price', 'min_price', 'max_price', 'location', 'quantity','sort_order','status', 'points', 'amount');
         // $records = $user->hasRole('Admin') || empty($seller) ? $records->where('seller_id', 0)->orWhereNull('seller_id') : $records->where('seller_id', 1);
         $records = $records->with('productDescription:name,id,product_id','category:name,category_id')
             ->when($name != ''|| $model != '' || $quantity != '' || $status != ''  , function($q) use($name,$model,$quantity,$status) {
@@ -100,7 +101,7 @@ class ProductController extends Controller
 
         $this->validateData($request);
 
-        $product = new Product($request->only('model', 'quantity', 'price','category_id', 'points', 'min_price', 'max_price'));
+        $product = new Product($request->only('model', 'quantity', 'price','category_id', 'points', 'min_price', 'max_price', 'amount'));
 
         //if has main image
         if($request->hasFile('main_image')) {
@@ -227,7 +228,7 @@ class ProductController extends Controller
 
     public function update(Request $request,$id) {
 
-        $this->validateData($request);
+        $this->validateDataUpdate($request);
 
         $product = Product::whereId($id)->first();
 
@@ -270,7 +271,7 @@ class ProductController extends Controller
                     'price' => $request->option[$value]['price'][$i],
                     'color_code' => array_key_exists('color_code',$request->option[$value]) ? $request->option[$value]['color_code'][$i] : '',
                     'option_id' => $value,
-                     'product_id' =>$product->id
+                    'product_id' =>$product->id
                 ];
               }
             }
@@ -338,14 +339,19 @@ class ProductController extends Controller
           ProductSpecial::insert($newSpecialArray);
         }
 
-        $today = Carbon::today();
-        $new_price = new ProductPrice(array('product_id' => $product->id, 'price' => $product->price, 'date' => $today));
-        $new_price->save();
-        // update product price for child products
-        $product = $product->setRelation('productPrice', $product->productPrice->take(6));
-        broadcast(
-          new MessageSent('price update', $product)
-        )->toOthers();
+        // $today = Carbon::today();
+        // $new_price = new ProductPrice(array('product_id' => $product->id, 'price' => $product->price, 'date' => $today));
+        // $new_price->save();
+        // // update product price for child products
+        // $product = $product->setRelation('productPrice', $product->productPrice->take(6));
+        // broadcast(
+        //   new MessageSent('price update', [
+        //     'price' => $product->price,
+        //     'productPrice' => $product->productPrice,
+        //     'id' => $product->id
+        //   ])
+        // )->toOthers();
+
         return redirect(route('product'))->with('success','Product Updated Successfully');
     }
 
@@ -481,25 +487,65 @@ class ProductController extends Controller
         $this->validate($request,$validationArray);
     }
 
+    protected function validateDataUpdate ($request) {
+
+      $conditionArray = [];
+
+      $validateFields = [
+          'name' => ['required'],
+          'category_id' => ['required'],
+          'model' => ['required'],
+          'quantity' => ['required'],
+          'min_price' => ['required'],
+          'max_price' => ['required'],
+      ];
+
+      $validationArray = array_merge($conditionArray,$validateFields);
+      $this->validate($request,$validationArray);
+  }
+
     public function updatePrice ($id, Request $request) {
       $this->validate($request, [
         'price' => ['required', 'numeric']
       ]);
       $product = Product::where('id', $id)->first();
-      $product->price = $request->price;
-      $product->save();
-      $today = Carbon::today();
-      $new_price = new ProductPrice(array('product_id' => $product->id, 'price' => $product->price, 'date' => $today));
-      $new_price->save();
-      $product = $product->setRelation('productPrice', $product->productPrice->take(6));
-      broadcast(
-        new MessageSent('price update', [
-          'price' => $product->price,
-          'productPrice' => $product->productPrice,
-          'id' => $product->id
-        ])
-      )->toOthers();
-      return redirect(route('product'))->with('success','Product Updated Successfully');
-    }
+      if ($product->price != $request->price) {
 
+          if($request->price > $product->price) {
+            $news = News::create([
+              "content" => "The Price Of ".$product->productDescription->name." Has Increased ".($request->price - $product->price)." Coins",
+              "type" => "price increased"
+            ]);
+            broadcast(
+              new MessageSent('news-sent', $news)
+            )->toOthers();
+          }
+    
+          if ($request->price < $product->price) {
+            $news = News::create([
+              "content" => "The Price Of ".$product->productDescription->name." Has Dropped ".($product->price - $request->price)." Coins",
+              "type" => "price dropped"
+            ]);
+            broadcast(
+              new MessageSent('news-sent', $news)
+            )->toOthers();
+          }
+          $product->price = $request->price;
+          $product->save();
+          $today = Carbon::today();
+          $new_price = new ProductPrice(array('product_id' => $product->id, 'price' => $product->price, 'date' => $today));
+          $new_price->save();
+          $product = $product->setRelation('productPrice', $product->productPrice->take(6));
+          broadcast(
+            new MessageSent('price update', [
+              'price' => $product->price,
+              'productPrice' => $product->productPrice,
+              'id' => $product->id
+            ])
+          )->toOthers();
+          return redirect(route('product'))->with('success','Price Updated Successfully');
+        } else {
+          return redirect(route('product'))->with('success','Price Updated Successfully');
+        }
+      } 
 }

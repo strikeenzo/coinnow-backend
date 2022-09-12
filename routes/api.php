@@ -57,7 +57,8 @@ Route::middleware(['checkKey'])->group(function () {
             'getProductByManufacturer'
         );
         Route::get('/getPages/{id?}', 'getPages');
-        Route::put('/productRandomPrice', 'productRandomPrice');
+        // Route::put('/productRandomPrice', 'productRandomPrice');
+        Route::get('/news', 'getNews');
     });
 
     Route::group(['prefix' => 'seller'], function () {

@@ -21,7 +21,8 @@ class Product extends Model
         'sale' => 'integer',
         'points' => 'integer',
         'seller_id' => 'integer',
-        'origin_id' => 'integer'
+        'origin_id' => 'integer',
+        'amount' => 'integer'
     ];
 
     protected $fillable = [
@@ -29,14 +30,14 @@ class Product extends Model
         'manufacturer_id',  'price',  'tax_rate_id', 'date_available',
         'weight', 'weight_class_id', 'length', 'width', 'height', 'length_class_id',
         'points', 'min_price', 'max_price',
-        'sort_order', 'status',
+        'sort_order', 'status', 'amount'
     ];
 
     public static $fillableValue = [   'category_id', 'model', 'quantity', 'stock_status_id', 'image',
         'manufacturer_id',  'price',  'tax_rate_id', 'date_available',
         'weight', 'weight_class_id', 'length', 'width', 'height', 'length_class_id',
         'points', 'min_price', 'max_price',
-        'sort_order', 'status'];
+        'sort_order', 'status', 'amount'];
 
     const ACTIVE = 1;
 
