@@ -111,7 +111,7 @@ class SellerApiController extends Controller
     {
         try {
 
-            $history = Notification::select('id', 'quantity', 'type', 'seen', 'created_at', 'product_id', 'seller_id', 'receiver_id', 'amount', 'balance', 'sender_id')
+            $history = Notification::select('id', 'quantity', 'type', 'seen', 'created_at', 'product_id', 'seller_id', 'receiver_id', 'amount', 'balance', 'sender_id', 'price')
                 ->with('receiver:id,telephone,firstname,lastname,email')
                 ->with('sender:id,telephone,firstname,lastname,email')
                 ->with('product:seller_id')

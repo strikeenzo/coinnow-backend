@@ -42,7 +42,7 @@
                         ." earned ".$value->price * $value->quantity." coins by selling "
                         .$value->quantity." "
                         .($value->product ? $value->product->productDescription->name : "{Product Removed}")." items "
-                        ." at ".$value->created_at
+                        ." at ".date('yy/m/d h:i A', strtotime($value->created_at))
                       }}
                     </td>
                   </tr>

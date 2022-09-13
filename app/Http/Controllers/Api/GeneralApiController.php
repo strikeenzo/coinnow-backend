@@ -165,7 +165,7 @@ class GeneralApiController extends Controller
               $query->setRelation('productPrice', $query->productPrice()->take(6));
               return $query;
           });
-          return ['status'=> 1,'data'=>$data];
+      return ['status'=> 1,'data'=>$data];
     } catch (\Exception $e) {
         return ['status'=> 0,'message'=>'Error'];
     }
@@ -174,7 +174,7 @@ class GeneralApiController extends Controller
     //new products v1
     public function getNewProductsV1() {
         try {
-            $data = Product::select('id','image','category_id', 'manufacturer_id', 'model','price', 'quantity','sort_order','status','date_available')
+            $data = Product::select('id','image','category_id', 'manufacturer_id', 'model','price', 'quantity','sort_order','status','date_available', 'created_at')
                 ->with('productDescription:name,id,product_id,description','special:product_id,price,start_date,end_date')
                 ->withCount(['productReview as review_avg' => function($query) {
                     $query->select(DB::raw('avg(rating)'));
@@ -183,8 +183,15 @@ class GeneralApiController extends Controller
                 ->orderBy('created_at','DESC')
                 ->where('date_available','<=',date('Y-m-d'))
                 ->where('status','1')
-                ->paginate(4);
+                ->paginate(6);
 
+            for($i = 0; $i < count($data); $i ++) {
+              if($data[$i]['created_at'] >= Carbon::parse('-24 hours')) {
+                $data[$i]['new'] = true;
+              } else {
+                $data[$i]['new'] = false;
+              }
+            }
             $data->getCollection()->transform(function ($product) {
                 $product->setRelation('productPrice', $product->productPrice->take(6));
                 return $product;
