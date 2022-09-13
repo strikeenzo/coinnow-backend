@@ -795,14 +795,6 @@ class SellerCartApiController extends Controller
       if (!$quantity) {
         return ['status'=>0, 'message'=>'0 items in stock'];
       }
-
-      $this->getUser->balance -= $quantity * $price;
-      $this->getUser->save();
-      if ($relation->seller)
-      {
-        $relation->seller->balance += $quantity * $price;
-        $relation->seller->save();
-      }
       $relation->seller_id = $this->getUser->id;
       $relation->sale = 1;
       $relation->sale_date = Carbon::now();
@@ -836,6 +828,13 @@ class SellerCartApiController extends Controller
       );
       $new_notification = new Notification($notification_data);
       $new_notification->save();
+      $this->getUser->balance -= $quantity * $price;
+      $this->getUser->save();
+      if ($relation->seller)
+      {
+        $relation->seller->balance += $quantity * $price;
+        $relation->seller->save();
+      }
       return ['status'=> 1,'message'=> 'successful!',];
     }
 
