@@ -22,11 +22,13 @@ use App\Models\OrderHistory;
 use App\Models\ProductSellerRelation;
 use App\Models\Shipping;
 use App\Models\StoreProductOption;
+use App\Models\News;
 use Illuminate\Support\Facades\Log;
 use Validator;
 use File;
 use DB;
 use Auth;
+use App\Events\MessageSent;
 use Carbon\Carbon;
 
 class SellerCartApiController extends Controller
@@ -848,6 +850,15 @@ class SellerCartApiController extends Controller
             }
             if ($product->quantity < $quantity) {
                 return ['status'=> 0,'message'=> '0 items in stock'];
+              }
+            if ($product->amount && $product->amount < $quantity) {
+              $news = News::create([
+                "content" => $this->getUser->firstname." ".$this->getUser->lastname." Bought ".$quantity." ".$product->model,
+                "type" => "seller"
+              ]);
+              broadcast(
+                new MessageSent('news-sent', $news)
+              )->toOthers();
             }
             if (!empty($product)) {
                 if ($product->points > 0) {
