@@ -80,9 +80,7 @@ class SellerApiController extends Controller
         }
         $seller_balance = $this->getUser->balance;
         $receiver_balance = $receiver->balance;
-        $this->getUser->update(['balance' => $seller_balance - $amount]);
-        $receiver->balance = $receiver_balance + $amount;
-        $receiver->save();
+        
         $notification_data = array(
             'type' => 'send_coin',
             'seller_id' => $this->getUser->id,
@@ -104,6 +102,9 @@ class SellerApiController extends Controller
         );
         $new_notification = new Notification($notification_data);
         $new_notification->save();
+        $this->getUser->update(['balance' => $seller_balance - $amount]);
+        $receiver->balance = $receiver_balance + $amount;
+        $receiver->save();
         return ['status' => 1, 'message' => 'Transfer Success!', 'origin_balance' => $seller_balance, 'balance' => $this->getUser->balance];
     }
 
@@ -166,7 +167,7 @@ class SellerApiController extends Controller
                 }))
                 ->where('seller_id', $this->getUser->id)
                 // ->whereIn('type', ['send_coin', 'receive_coin', 'item_sell', 'special_item_sell', 'item_sell_auto', 'special_item_sell_auto', 'item_buy', 'special_item_buy', 'trade'])
-                ->orderBy('notification.created_at', 'DESC')->paginate($this->defaultPaginate);
+                ->orderBy('notification.created_at', 'DESC')->orderBy('notification.id', 'DESC')->paginate($this->defaultPaginate);
             return ['status' => 1, 'data' => $history];
         } catch (\Exception $e) {
             return ['status' => 0, 'message' => $e];
