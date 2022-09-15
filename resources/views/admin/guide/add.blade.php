@@ -91,7 +91,7 @@
 
                                 <div class="text-center">
                                     <button type="submit" class="btn btn-success mt-4">{{ __('Save') }}</button>
-                                    <a href="{{ route('seller') }}" type="button" class="btn btn-danger mt-4">{{ __('Cancel') }}</a>
+                                    <a href="{{ route('guide') }}" type="button" class="btn btn-danger mt-4">{{ __('Cancel') }}</a>
                                 </div>
                             </div>
                         </form>

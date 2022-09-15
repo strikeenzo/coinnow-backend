@@ -27,6 +27,7 @@ use App\Models\DOD;
 use App\Models\Page;
 use App\Models\Trade;
 use App\Models\News;
+use App\Models\Guide;
 use App\Models\EnvironmentalVariable;
 use Validator;
 use File;
@@ -284,7 +285,7 @@ class GeneralApiController extends Controller
             return ['status'=> 0,'message'=>'Error'];
         }
     }
-
+  
   //get categories
   public function getCategories() {
     try {
@@ -733,6 +734,11 @@ class GeneralApiController extends Controller
       }
 
       return ['status'=> 1,'message'=> '$products'];
+    }
+
+    public function getGuide($type) {
+      $guides = Guide::where('type', $type)->get();
+      return $guides;
     }
 
   }

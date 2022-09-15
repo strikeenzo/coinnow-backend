@@ -37,6 +37,7 @@ Route::middleware(['checkKey'])->group(function () {
     });
 
     Route::controller(GeneralApiController::class)->group(function () {
+        Route::get('/getGuide/{type}', 'getGuide');
         Route::get('/getHomePage', 'getHomePage');
         Route::get('/getNewProducts', 'getNewProducts');
         Route::get('/getNewProductsV1', 'getNewProductsV1');
