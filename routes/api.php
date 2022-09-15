@@ -59,6 +59,7 @@ Route::middleware(['checkKey'])->group(function () {
         Route::get('/getPages/{id?}', 'getPages');
         // Route::put('/productRandomPrice', 'productRandomPrice');
         Route::get('/news', 'getNews');
+        Route::get('/productPrice/{id}', 'productPrices');
     });
 
     Route::group(['prefix' => 'seller'], function () {

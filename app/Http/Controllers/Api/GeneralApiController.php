@@ -438,6 +438,11 @@ class GeneralApiController extends Controller
         // }
     }
 
+  public function productPrices($id) {
+    $product = Product::where('id', $id)->first();
+    return $product->productPrice()->paginate(8);
+  }
+
   //get product details
   public function productDetails($id) {
 
