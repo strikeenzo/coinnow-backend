@@ -737,7 +737,7 @@ class GeneralApiController extends Controller
     }
 
     public function getGuide($type) {
-      $guides = Guide::where('type', $type)->get();
+      $guides = Guide::where('type', $type)->where('status', true)->orderBy('sort_order')->get();
       return $guides;
     }
 
