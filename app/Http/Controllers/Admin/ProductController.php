@@ -101,7 +101,7 @@ class ProductController extends Controller
 
         $this->validateData($request);
 
-        $product = new Product($request->only('model', 'quantity', 'price','category_id', 'points', 'min_price', 'max_price', 'amount'));
+        $product = new Product($request->only('model', 'quantity', 'price','category_id', 'points', 'min_price', 'max_price', 'amount', 'power'));
 
         //if has main image
         if($request->hasFile('main_image')) {

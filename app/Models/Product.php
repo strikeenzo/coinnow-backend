@@ -30,14 +30,16 @@ class Product extends Model
         'manufacturer_id',  'price',  'tax_rate_id', 'date_available',
         'weight', 'weight_class_id', 'length', 'width', 'height', 'length_class_id',
         'points', 'min_price', 'max_price',
-        'sort_order', 'status', 'amount'
+        'sort_order', 'status', 'amount', 'power'
     ];
 
-    public static $fillableValue = [   'category_id', 'model', 'quantity', 'stock_status_id', 'image',
+    public static $fillableValue = [
+        'category_id', 'model', 'quantity', 'stock_status_id', 'image',
         'manufacturer_id',  'price',  'tax_rate_id', 'date_available',
         'weight', 'weight_class_id', 'length', 'width', 'height', 'length_class_id',
         'points', 'min_price', 'max_price',
-        'sort_order', 'status', 'amount'];
+        'sort_order', 'status', 'amount', 'power'
+    ];
 
     const ACTIVE = 1;
 

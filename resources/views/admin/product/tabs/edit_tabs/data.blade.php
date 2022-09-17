@@ -32,8 +32,8 @@
 
             @if ($errors->has('max_price'))
                 <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $errors->first('max_price') }}</strong>
-                                        </span>
+                    <strong>{{ $errors->first('max_price') }}</strong>
+                </span>
             @endif
         </div>
     </div>
@@ -75,11 +75,20 @@
             @endif
         </div>
         <div class="col-md-6 form-group{{ $errors->has('amount') ? ' has-danger' : '' }}">
-            <label class="form-control-label" for="input-name">{{ __('Amount') }}*</label>
+            <label class="form-control-label" for="input-name">{{ __('Amount For News') }}*</label>
             <input type="number" min="0" name="amount" id="amount" value="{{ old('amount', $product->amount ?? 0) }}" class="form-control form-control-alternative{{ $errors->has('amount') ? ' is-invalid' : '' }}">
             @if ($errors->has('amount'))
                 <span class="invalid-feedback" role="alert">
                 <strong>{{ $errors->first('amount') }}</strong>
+            </span>
+            @endif
+        </div>
+        <div class="col-md-6 form-group{{ $errors->has('power') ? ' has-danger' : '' }}">
+            <label class="form-control-label" for="input-name">{{ __('Power Required') }}*</label>
+            <input type="number" min="0" name="power" id="power" value="{{ old('power', $product->power ?? 0) }}" class="form-control form-control-alternative{{ $errors->has('power') ? ' is-invalid' : '' }}">
+            @if ($errors->has('power'))
+                <span class="invalid-feedback" role="alert">
+                <strong>{{ $errors->first('power') }}</strong>
             </span>
             @endif
         </div>

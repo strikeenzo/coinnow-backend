@@ -796,8 +796,8 @@ class SellerCartApiController extends Controller
         return ['status'=>0, 'message'=>'0 items in stock'];
       }
       
-      if ($relation->product->points > $this->getUser->power) {
-        return ['status' => 0, 'message' => 'No enough power'];
+      if ($relation->product->power && $relation->product->power > $this->getUser->power) {
+        return ['status' => 0, 'message' => 'Not enough power'];
       }
       $relation->seller_id = $this->getUser->id;
       $relation->sale = 1;
@@ -854,8 +854,8 @@ class SellerCartApiController extends Controller
             if ($product->quantity < $quantity) {
                 return ['status' => 0,'message' => '0 items in stock'];
             }
-            if ($product->points > $this->getUser->power) {
-              return ['status' => 0, 'message' => 'No enough power'];
+            if ($product->power && $product->power > $this->getUser->power) {
+              return ['status' => 0, 'message' => 'Not enough power'];
             }
             if ($product->amount && $product->amount < $quantity) {
               $news = News::create([

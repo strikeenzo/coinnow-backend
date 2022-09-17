@@ -175,7 +175,7 @@ class GeneralApiController extends Controller
     //new products v1
     public function getNewProductsV1() {
         try {
-            $data = Product::select('id','image','category_id', 'manufacturer_id', 'model','price', 'quantity','sort_order','status','date_available', 'created_at')
+            $data = Product::select('id','image','category_id', 'manufacturer_id', 'model','price', 'quantity','sort_order','status','date_available', 'created_at', 'power')
                 ->with('productDescription:name,id,product_id,description','special:product_id,price,start_date,end_date')
                 ->withCount(['productReview as review_avg' => function($query) {
                     $query->select(DB::raw('avg(rating)'));
