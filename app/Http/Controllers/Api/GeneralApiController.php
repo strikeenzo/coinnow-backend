@@ -27,7 +27,9 @@ use App\Models\DOD;
 use App\Models\Page;
 use App\Models\Trade;
 use App\Models\News;
+use App\Models\Guide;
 use App\Models\EnvironmentalVariable;
+use App\Models\CustomerComment;
 use Validator;
 use File;
 use DB;
@@ -174,7 +176,7 @@ class GeneralApiController extends Controller
     //new products v1
     public function getNewProductsV1() {
         try {
-            $data = Product::select('id','image','category_id', 'manufacturer_id', 'model','price', 'quantity','sort_order','status','date_available', 'created_at')
+            $data = Product::select('id','image','category_id', 'manufacturer_id', 'model','price', 'quantity','sort_order','status','date_available', 'created_at', 'power')
                 ->with('productDescription:name,id,product_id,description','special:product_id,price,start_date,end_date')
                 ->withCount(['productReview as review_avg' => function($query) {
                     $query->select(DB::raw('avg(rating)'));
@@ -284,7 +286,7 @@ class GeneralApiController extends Controller
             return ['status'=> 0,'message'=>'Error'];
         }
     }
-
+  
   //get categories
   public function getCategories() {
     try {
@@ -437,6 +439,11 @@ class GeneralApiController extends Controller
         //     return ['status'=> 0,'message'=>'Error'];
         // }
     }
+
+  public function productPrices($id) {
+    $product = Product::where('id', $id)->first();
+    return $product->productPrice()->paginate(8);
+  }
 
   //get product details
   public function productDetails($id) {
@@ -728,6 +735,22 @@ class GeneralApiController extends Controller
       }
 
       return ['status'=> 1,'message'=> '$products'];
+    }
+
+    public function postComment(Request $request) {
+      $comment = CustomerComment::create($request->all());
+      return ['status'=>1, 'message'=>'Comment Posted Successfully'];
+    }
+
+    public function getComments() {
+      $authUser = Auth::guard('seller')->user();
+      $comments = CustomerComment::where('user_id', $authUser->id)->paginate($this->defaultPaginate);
+      return $comments;
+    }
+
+    public function getGuide($type) {
+      $guides = Guide::where('type', $type)->where('status', true)->orderBy('sort_order')->get();
+      return $guides;
     }
 
   }

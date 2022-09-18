@@ -19,14 +19,14 @@
 
                     @if ($user->hasRole('Admin'))
                         <li class="nav-item">
-                            <a class="nav-link @if(Request::is('admin/trade')) active @endif" href="#navbar-seller" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="navbar-examples">
+                            <a class="nav-link @if(Request::is('admin/trade')) active @endif" href="#navbar-trade" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="navbar-examples">
                                 <i class="fas fa-user-tie fa-lg"></i>
                                 <span class="nav-link-text" >
                                     {{ __('Trade') }}
                                 </span>
                             </a>
 
-                            <div class="collapse" id="navbar-seller">
+                            <div class="collapse" id="navbar-trade">
                                 <ul class="nav nav-sm flex-column">
                                     <li class="nav-item">
                                         <a class="nav-link" href="{{ route('trade.add') }}">
@@ -530,6 +530,28 @@
                             </div>
                         </li>
                     @endif
+                    @if ($user->hasRole('Admin'))
+                        <li class="nav-item">
+                            <a class="nav-link" href="#navbar-guide" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="navbar-examples">
+                                <i class="fa fa-book fa-lg"></i>
+                                <span class="nav-link-text" >{{ __('Guide') }}</span>
+                            </a>
+                            <div class="collapse" id="navbar-guide">
+                                <ul class="nav nav-sm flex-column">
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('guide.add') }}">
+                                            <i class="fa fa-plus fa-lg"></i>  {{ __('Add') }}
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('guide') }}">
+                                          <i class="fa fa-list-alt fa-lg"></i>   {{ __('Guide') }}
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    @endif
                     @if (false && $user->hasRole('Admin'))
                         <li class="nav-item">
                             <a class="nav-link" href="#navbar-cms" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="navbar-examples">
@@ -644,7 +666,14 @@
                     @endif
 
                     @if ($user->hasRole('Admin'))
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('comments') }}">
+                                <i class="fa fa-box"></i> {{ __('Customer Support Center') }}
+                            </a>
+                        </li>
+                    @endif
 
+                    @if ($user->hasRole('Admin'))
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('history') }}">
                                 <i class="fa fa-history"></i> {{ __('History') }}

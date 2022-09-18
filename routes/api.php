@@ -37,6 +37,7 @@ Route::middleware(['checkKey'])->group(function () {
     });
 
     Route::controller(GeneralApiController::class)->group(function () {
+        Route::get('/getGuide/{type}', 'getGuide');
         Route::get('/getHomePage', 'getHomePage');
         Route::get('/getNewProducts', 'getNewProducts');
         Route::get('/getNewProductsV1', 'getNewProductsV1');
@@ -59,6 +60,9 @@ Route::middleware(['checkKey'])->group(function () {
         Route::get('/getPages/{id?}', 'getPages');
         // Route::put('/productRandomPrice', 'productRandomPrice');
         Route::get('/news', 'getNews');
+        Route::get('/productPrice/{id}', 'productPrices');
+        Route::post('/postComment', 'postComment');
+        Route::get('/getComments', 'getComments');
     });
 
     Route::group(['prefix' => 'seller'], function () {

@@ -14,7 +14,10 @@ class SellerController extends Controller
     public function index(Request $request) {
 
         $keyword = $request->get('keyword', '');
-        $records = Seller::select('id','firstname','lastname','email','telephone', 'store_name', 'status')
+        $records = Seller::select('id','firstname','lastname','email','telephone', 'store_name', 'status', 'balance')
+            ->with(['products' => function($query) {
+                $query->with('productDescription');
+            }])
             ->when($keyword != '', function($q) use($keyword) {
                 $q->where('firstname','like',"%$keyword%")
                     ->orWhere('lastname','like',"%$keyword%")

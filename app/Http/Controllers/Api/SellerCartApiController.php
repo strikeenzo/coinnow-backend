@@ -795,6 +795,10 @@ class SellerCartApiController extends Controller
       if (!$quantity) {
         return ['status'=>0, 'message'=>'0 items in stock'];
       }
+      
+      if ($relation->product->power && $relation->product->power > $this->getUser->power) {
+        return ['status' => 0, 'message' => 'Not enough power'];
+      }
       $relation->seller_id = $this->getUser->id;
       $relation->sale = 1;
       $relation->sale_date = Carbon::now();
@@ -845,11 +849,14 @@ class SellerCartApiController extends Controller
 
             $balance = $this->getUser->balance;
             if ($balance < $product->price * $quantity) {
-                return ['status'=> 0,'message'=> 'No enough balance'];
+                return ['status' => 0,'message' => 'No enough balance'];
             }
             if ($product->quantity < $quantity) {
-                return ['status'=> 0,'message'=> '0 items in stock'];
-              }
+                return ['status' => 0,'message' => '0 items in stock'];
+            }
+            if ($product->power && $product->power > $this->getUser->power) {
+              return ['status' => 0, 'message' => 'Not enough power'];
+            }
             if ($product->amount && $product->amount < $quantity) {
               $news = News::create([
                 "content" => $this->getUser->firstname." ".$this->getUser->lastname." Bought ".$quantity." ".$product->model,

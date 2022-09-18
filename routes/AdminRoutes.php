@@ -46,6 +46,8 @@ Route::middleware(['check_permission'])->group(function () {
     include('HistoryRoutes.php');
     include('EnvironmentRoutes.php');
     include('NewsRoutes.php');
+    include('GuideRoutes.php');
+    include('CommentRoutes.php');
 
   	Route::get('upgrade', function () {return view('pages.upgrade');})->name('upgrade');
   });

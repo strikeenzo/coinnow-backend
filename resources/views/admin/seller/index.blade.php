@@ -66,6 +66,8 @@
                                 <th scope="col" class="sort" data-sort="name">Last Name</th>
                                 <th scope="col" class="sort" data-sort="name">Email</th>
                                 <th scope="col" class="sort" data-sort="name">Store Name</th>
+                                <th scope="col" class="sort" data-sort="name">Balance</th>
+                                <th scope="col" class="sort" data-sort="name">Inventory</th>
                                 <th scope="col" class="sort" data-sort="name">History</th>
                                 <th scope="col" class="sort" data-sort="name">Mobile Number</th>
                                 <th scope="col" class="sort" data-sort="status">Status</th>
@@ -81,6 +83,21 @@
                                     <td class="budget">{{ $value->lastname }}</td>
                                     <td class="budget">{{ $value->email }}</td>
                                     <td class="budget">{{ $value->store_name }}</td>
+                                    <td class="budget">{{ $value->balance }}</td>
+                                    <td class="budget">
+                                        <ul>
+                                            @foreach($value->products as $key => $inventory)
+                                                @if($inventory->pivot->quantity > 0)
+                                                    <li>
+                                                        {{ $inventory->productDescription->name." * ".$inventory->pivot->quantity }}
+                                                        @if($inventory->pivot->sale)
+                                                        (list for sale)
+                                                        @endif
+                                                    </li>
+                                                @endif
+                                            @endforeach
+                                        </ul>
+                                    </td>
                                     <td class="budget"><a href="{{ route('seller.history', $value->id) }}">history</a></td>
                                     <td class="budget">{{ $value->telephone }}</td>
                                     <td class="budget"><span class="p-2  @if($value->status == 1) badge bg-success text-white  @else  badge bg-danger text-white @endif">{{  config('constant.status')[$value->status] }} </span></td>
