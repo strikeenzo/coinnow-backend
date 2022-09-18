@@ -29,6 +29,7 @@ use App\Models\Trade;
 use App\Models\News;
 use App\Models\Guide;
 use App\Models\EnvironmentalVariable;
+use App\Models\CustomerComment;
 use Validator;
 use File;
 use DB;
@@ -734,6 +735,17 @@ class GeneralApiController extends Controller
       }
 
       return ['status'=> 1,'message'=> '$products'];
+    }
+
+    public function postComment(Request $request) {
+      $comment = CustomerComment::create($request->all());
+      return ['status'=>1, 'message'=>'Comment Posted Successfully'];
+    }
+
+    public function getComments() {
+      $authUser = Auth::guard('seller')->user();
+      $comments = CustomerComment::where('user_id', $authUser->id)->paginate($this->defaultPaginate);
+      return $comments;
     }
 
     public function getGuide($type) {

@@ -667,6 +667,14 @@
 
                     @if ($user->hasRole('Admin'))
                         <li class="nav-item">
+                            <a class="nav-link" href="{{ route('comments') }}">
+                                <i class="fa fa-box"></i> {{ __('Customer Support Center') }}
+                            </a>
+                        </li>
+                    @endif
+
+                    @if ($user->hasRole('Admin'))
+                        <li class="nav-item">
                             <a class="nav-link" href="{{ route('history') }}">
                                 <i class="fa fa-history"></i> {{ __('History') }}
                             </a>
