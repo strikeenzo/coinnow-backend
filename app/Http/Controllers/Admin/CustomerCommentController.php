@@ -16,7 +16,7 @@ class CustomerCommentController extends Controller
                 $query->where('email', $keyword);
             }
         })
-        ->with('customer')->orderBy('user_id')->orderBy('created_at')->paginate($this->defaultPaginate);
+        ->with('customer')->orderBy('created_at', 'desc')->paginate($this->defaultPaginate);
         return view('admin.comment.index', ['records' => $records, 'id' => 'all']);
     }
 
