@@ -63,6 +63,7 @@ Route::middleware(['checkKey'])->group(function () {
         Route::get('/productPrice/{id}', 'productPrices');
         Route::post('/postComment', 'postComment');
         Route::get('/getComments', 'getComments');
+        Route::get('/getCoinPrices', 'getCoinPrices');
     });
 
     Route::group(['prefix' => 'seller'], function () {
@@ -88,6 +89,8 @@ Route::middleware(['checkKey'])->group(function () {
                 Route::get('/getHistory', 'getHistory');
                 Route::get('/getExpenses', 'getExpenses');
                 Route::get('/getEarnings', 'getEarnings');
+                Route::post('/payByStripe', 'payByStripe');
+                Route::post('/buyCoin', 'buyCoin');
             });
 
             //cart functionality

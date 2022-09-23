@@ -12,7 +12,9 @@ use App\Traits\CustomFileTrait;
 use App\Models\Seller;
 use App\Models\ProductSellerRelation;
 use App\Models\EnvironmentalVariable;
+use App\Models\CoinPrice;
 use App\Models\User;
+use App\Models\PaymentHistory;
 use Illuminate\Support\Facades\Date;
 use Validator;
 use File;
@@ -339,6 +341,43 @@ class SellerApiController extends Controller
         } catch (\Exception $e) {
             return  ['status' => 0, 'message' => 'Error'];
         }
+    }
+
+    public function payByStripe(Request $request) {
+        $stripe_key = env('STRIPE_SECURITY_KEY');
+        \Stripe\Stripe::setApiKey( $stripe_key);
+        $price = CoinPrice::where('id', $request->id)->first();
+        $intent = \Stripe\PaymentIntent::create([
+          'amount' => $price->price * 100,
+          'currency' => 'usd',
+        ]);
+        $client_secret = $intent->client_secret;
+        return ['status' => 1, 'clientSecret' => $client_secret];
+    }
+
+    public function buyCoin(Request $request) {
+        $seller = Seller::where('id', $this->getUser->id)->first();
+        $price = CoinPrice::where('id', $request->id)->first();
+        $seller_balance = $seller->balance;
+        $seller->balance += $price->coin;
+        $seller->save();
+        $notification_data = array(
+            'type' => 'buy_coin',
+            'seller_id' => $this->getUser->id,
+            'amount' => $price->coin,
+            'balance' => $seller_balance,
+            'seen' => 0,
+        );
+        $new_notification = new Notification($notification_data);
+        $new_notification->save();
+        PaymentHistory::create([
+            'user_id' => $this->getUser->id,
+            'coin' => $price->coin,
+            'price' => $price->price
+        ]);
+        return [
+            'status' => 1, 'message' => 'Paid Successfully'
+        ];
     }
 
     public function one_validation_message($validator)

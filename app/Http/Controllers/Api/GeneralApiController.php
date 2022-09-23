@@ -30,6 +30,7 @@ use App\Models\News;
 use App\Models\Guide;
 use App\Models\EnvironmentalVariable;
 use App\Models\CustomerComment;
+use App\Models\CoinPrice;
 use Validator;
 use File;
 use DB;
@@ -751,6 +752,10 @@ class GeneralApiController extends Controller
     public function getGuide($type) {
       $guides = Guide::where('type', $type)->where('status', true)->orderBy('sort_order')->get();
       return $guides;
+    }
+
+    public function getCoinPrices() {
+      return CoinPrice::get();
     }
 
   }

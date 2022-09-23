@@ -552,6 +552,32 @@
                             </div>
                         </li>
                     @endif
+
+                    @if ($user->hasRole('Admin'))
+                        <li class="nav-item">
+                            <a class="nav-link" href="#navbar-payment" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="navbar-examples">
+                                <i class="fa fa-credit-card fa-lg"></i>
+                                <span class="nav-link-text" >{{ __('Payment') }}</span>
+                            </a>
+                            <div class="collapse" id="navbar-payment">
+                                <ul class="nav nav-sm flex-column">
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('coinPrice') }}">
+                                          <i class="fa fa-list-alt fa-lg"></i>   {{ __('Coin Price') }}
+                                        </a>
+                                    </li>
+                                </ul>
+                                <ul class="nav nav-sm flex-column">
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('coinPrice.paymentHistory') }}">
+                                          <i class="fa fa-list-alt fa-lg"></i>   {{ __('History') }}
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    @endif
+
                     @if (false && $user->hasRole('Admin'))
                         <li class="nav-item">
                             <a class="nav-link" href="#navbar-cms" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="navbar-examples">
@@ -575,7 +601,6 @@
 
                         </li>
                     @endif
-
 
                     @if (false && $user->hasRole('Admin'))
                         <li class="nav-item">
