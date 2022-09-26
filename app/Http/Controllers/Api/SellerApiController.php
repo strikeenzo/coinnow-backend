@@ -395,10 +395,44 @@ class SellerApiController extends Controller
         ];
     }
 
+    public function getClans() {
+        $clans = Clan::where('owner_id', null)->with(['product' => function($query) {
+            $query->with('productDescription');
+        }])->get();
+        return [
+            'status' => 1, 'clans' => $clans
+        ];
+    }
+
     public function buyClan(Request $request) {
         $seller = Seller::where('id', $this->getUser->id)->first();
-        $price = Clan::where('id', $request->id)->first();
-        return;
+        $clan = Clan::where('id', $request->id)->first();
+        $balance = $seller->balance;
+        if ($clan->price > $seller->balance) {
+            return [
+                'status' => 0,
+                'messge' => 'No enough balance'
+            ];
+        }
+        $clan->owner_id = $seller->id;
+        $seller->balance -= $clan->price;
+        $seller->save();
+        $clan->save();
+        $notification_data = array(
+            'type' => 'clan_buy',
+            'clan_id' => $clan->id,
+            'seller_id' => $this->getUser->id,
+            'quantity' => 1,
+            'price' => $clan->price,
+            'balance' => $balance,
+            'seen' => 0,
+        );
+        $new_notification = new Notification($notification_data);
+        $new_notification->save();
+        return [
+            'status' => 1,
+            'message' => 'successful'
+        ];
     }
 
     public function one_validation_message($validator)

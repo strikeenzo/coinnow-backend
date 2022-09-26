@@ -13,7 +13,7 @@ class Notification extends Model
     use CustomFileTrait,SoftDeletes;
     protected $table = 'notification';
 
-    protected $fillable = ['type', 'product_id', 'quantity', 'price', 'seller_id', 'receiver_id', 'sender_id', 'balance', 'amount', 'seen'];
+    protected $fillable = ['type', 'product_id', 'quantity', 'price', 'seller_id', 'receiver_id', 'sender_id', 'balance', 'amount', 'seen', 'clan_id'];
 
     protected $casts = [
         'price' => 'float',
@@ -40,5 +40,9 @@ class Notification extends Model
 
     public function sender () {
         return $this->belongsTo('App\Models\Seller','sender_id','id');
+    }
+
+    public function clan() {
+        return $this->belonggTo('App\Models\Clan', 'clan_id', 'id');
     }
 }

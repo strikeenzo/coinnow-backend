@@ -92,6 +92,8 @@ Route::middleware(['checkKey'])->group(function () {
                 Route::post('/payByStripe', 'payByStripe');
                 Route::post('/buyCoin', 'buyCoin');
                 Route::get('/myClans', 'getMyClans');
+                Route::get('/clans', 'getClans');
+                Route::post('/buyClan', 'buyClan');
             });
 
             //cart functionality
