@@ -691,6 +691,7 @@ class GeneralApiController extends Controller
             ->where('quantity', '>', 0)->get();
 
         foreach($products as $product) {
+          if ($product->product) {
             $amount = (float)$product->product->price * (int)$product->quantity;
             $seller = Seller::find($product->seller_id);
             if ($seller) {
@@ -713,6 +714,7 @@ class GeneralApiController extends Controller
             }
             $product->quantity = 0;
             $product->save();
+          }
         }
 
         return ['status'=> 1,'message'=> 'Success'];

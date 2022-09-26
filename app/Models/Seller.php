@@ -50,4 +50,12 @@ class Seller extends Authenticatable
     {
         return $this->belongsToMany('App\Models\Product', 'product_seller_relations', 'seller_id', 'product_id')->withPivot('sale_date', 'sell_date', 'sale', 'quantity', 'id', 'updated_at', 'created_at');
     }
+
+    public function clans() {
+        return $this->hasMany('App\Models\Clan', 'owner_id', 'id');
+    }
+
+    public function clan() {
+        return $this->belongsTo('App\Models\Clan', 'clan_id', 'id');
+    }
 }

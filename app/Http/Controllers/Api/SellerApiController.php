@@ -15,6 +15,7 @@ use App\Models\EnvironmentalVariable;
 use App\Models\CoinPrice;
 use App\Models\User;
 use App\Models\PaymentHistory;
+use App\Models\Clan;
 use Illuminate\Support\Facades\Date;
 use Validator;
 use File;
@@ -378,6 +379,26 @@ class SellerApiController extends Controller
         return [
             'status' => 1, 'message' => 'Paid Successfully'
         ];
+    }
+
+    public function getMyClans() {
+        $total_price = Clan::where('owner_id', $this->getUser->id)->sum('price');
+        $total_count = Clan::where('owner_id', $this->getUser->id)->count();
+        $clans = Clan::where('owner_id', $this->getUser->id)->with(['product' => function($query) {
+            $query->with('productDescription');
+        }, 'members'])->get();
+        return [
+            'status' => 1, 'clans' => $clans, "total" => [
+                'price' => $total_price,
+                'count' => $total_count
+            ]
+        ];
+    }
+
+    public function buyClan(Request $request) {
+        $seller = Seller::where('id', $this->getUser->id)->first();
+        $price = Clan::where('id', $request->id)->first();
+        return;
     }
 
     public function one_validation_message($validator)

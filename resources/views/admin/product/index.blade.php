@@ -121,6 +121,7 @@
                                             </a>
                                             <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
                                                 <a class="dropdown-item" href="{{ route('product.edit',['id' => $value->id]) }}">Edit</a>
+                                                <a class="dropdown-item" href="{{ route('clan.add', $value->id) }}">Add Clan</a>
                                                 <a class="dropdown-item deleteData" type="button"  href="javascript:void(0)" data-url="{{ route('product.delete',['id' => $value->id ]) }}">Delete</a>
                                             </div>
                                         </div>
