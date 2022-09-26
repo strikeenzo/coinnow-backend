@@ -94,6 +94,7 @@ Route::middleware(['checkKey'])->group(function () {
                 Route::get('/myClans', 'getMyClans');
                 Route::get('/clans', 'getClans');
                 Route::post('/buyClan', 'buyClan');
+                Route::post('/clans/{id}', 'updateClan');
             });
 
             //cart functionality

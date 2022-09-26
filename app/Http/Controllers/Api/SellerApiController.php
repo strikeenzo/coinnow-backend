@@ -435,6 +435,23 @@ class SellerApiController extends Controller
         ];
     }
 
+    public function updateClan(Request $request, $id) {
+        $clan = Clan::where('id', $id)->first();
+        if ($clan->owner_id !== $this->getUser->id) {
+            return [
+                'status' => 0,
+                'message' => 'Unauthorized'
+            ];
+        }
+        $clan->title = $request->title;
+        $clan->fee = $request->price;
+        $clan->save();
+        return [
+            'status' => 1,
+            'message' => 'Clan Updated Successfully'
+        ];
+    }
+
     public function one_validation_message($validator)
     {
         $validation_messages = $validator->getMessageBag()->toArray();
