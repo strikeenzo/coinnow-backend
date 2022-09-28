@@ -23,6 +23,7 @@ return [
         'product_option' => 'uploads/product_option',
         'store' => 'uploads/store',
         'user' => 'uploads/user',
+        'clan' => 'uploads/clan'
     ],
 
     'date_format' => [

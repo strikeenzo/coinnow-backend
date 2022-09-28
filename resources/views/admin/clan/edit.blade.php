@@ -39,6 +39,7 @@
                             <h6 class="heading-small text-muted mb-4">{{ __('Edit Clan') }}</h6>
                             <div class="pl-lg-4 row flex justify-content-center">
                                 <input name='product_id' value="{{ $clan->product_id }}" hidden/>
+                                
                                 <div class="col-md-7 form-group{{ $errors->has('title') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="input-name">{{ __('Title') }}</label>
                                     <input name="title" id="title"
@@ -80,6 +81,17 @@
                                     @if ($errors->has('discount'))
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $errors->first('discount') }}</strong>
+                                        </span>
+                                    @endif
+                                </div>
+                                <div class="col-md-7 form-group{{ $errors->has('main_image') ? ' has-danger' : '' }}">
+                                    <label class="form-control-label" for="input-email">{{ __('Image') }}</label>
+                                    <input type="file" name="main_image" id="input-email" class="form-control form-control-alternative{{ $errors->has('main_image') ? ' is-invalid' : '' }}" value="{{ old('main_image', '') }}" >
+                                    <a target="_blank" href="{{ url(config('constant.file_path.clan')."/$clan->image") }}">View Image</a>
+
+                                    @if ($errors->has('main_image'))
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $errors->first('main_image') }}</strong>
                                         </span>
                                     @endif
                                 </div>

@@ -30,6 +30,7 @@
             <table class="table align-items-center table-flush">
               <thead class="thead-dark">
                 <tr>
+                  <th>Clan</th>
                   <th>Title</th>
                   <th>Owner</th>
                   <th>Price</th>
@@ -44,6 +45,13 @@
               <tbody>
                 @forelse($records as $key => $value)
                   <tr>
+                   <td class="budget">
+                      @if($value->image)
+                        <img src="{{asset('/public/uploads/clan').'/'.$value->image}}"  alt="{{$value->name}}"  class="img-thumbnail img-fluid" style=" width: 60px;height: 60px;">
+                      @else
+                        <img src="{{asset('/assets/img/default.png')}}"  alt="{{$value->name}}"  class="img-thumbnail img-fluid" style=" width: 60px;height: 60px;">
+                      @endif
+                    </td>
                     <td>{{ $value->title }}</td>
                     <td>{{ $value->owner ? $value->owner->email : "" }}</td>
                     <td>{{ $value->price }}</td>

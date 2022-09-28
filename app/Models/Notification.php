@@ -43,6 +43,6 @@ class Notification extends Model
     }
 
     public function clan() {
-        return $this->belonggTo('App\Models\Clan', 'clan_id', 'id');
+        return $this->belongsTo('App\Models\Clan', 'clan_id', 'id');
     }
 }

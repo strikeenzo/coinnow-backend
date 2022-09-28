@@ -97,6 +97,14 @@
                                         </div>
                                     </ul>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{route('clan')}}" role="button">
+                                        <i class="fas fa-box fa-lg"></i>
+                                        <span class="nav-link-text" >
+                                        {{ __('Clans') }}
+                                    </span>
+                                    </a>
+                                </li>
 
 
 <!--                                <li class="nav-item">

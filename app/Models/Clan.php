@@ -22,4 +22,8 @@ class Clan extends Model
     public function product() {
         return $this->belongsTo('App\Models\Product', 'product_id', 'id');
     }
+
+    public function history() {
+        return $this->hasMany('App\Models\Notification', 'clan_id', 'id');
+    }
 }
