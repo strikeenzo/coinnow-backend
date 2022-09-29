@@ -31,6 +31,7 @@ use App\Models\Guide;
 use App\Models\EnvironmentalVariable;
 use App\Models\CustomerComment;
 use App\Models\CoinPrice;
+use App\Models\AutoPriceChangeHistory;
 use Validator;
 use File;
 use DB;
@@ -53,6 +54,68 @@ class GeneralApiController extends Controller
     } catch(\Exception $e) {
       return ['status'=> 0,'message'=>'Error'];
     }
+  }
+
+  public function autoPriceChange() {
+    $records = Product::where('points', 0)->select('change_amount', 'id', 'origin_price', 'price')->get();
+    for ($i = 0; $i < count($records); $i ++)
+      {
+        if ($records[$i]['points'] > 0) {
+          $sum = Special::where('product_id',$records[$i]->id)->sum('quantity');
+        } else {
+          $sum = ProductSellerRelation::where([['product_id', $records[$i]->id]])->sum('quantity');
+        }
+        $records[$i]['total_quantity'] = $sum;
+      }
+    $sum = 0;
+    for ($i = 0; $i < count($records); $i ++)
+    {
+      if ($records[$i]['change_amount'] && $records[$i]['total_quantity'])
+      {
+        $records[$i]['profit'] = $records[$i]['change_amount'] * $records[$i]['total_quantity'];
+        $sum += $records[$i]['profit'];
+      }
+      else $records[$i]['profit'] = 0;
+    }
+    $records = $records->sortByDesc('profit');
+    $arr1 = [];
+    $arr2 = [];
+    $sum1 = $sum2 = $arr_index = 0;
+
+    while($arr_index < count($records))
+    {
+      if ($sum1 < $sum2) {
+        array_push($arr1, $records[$arr_index]);
+        $sum1 += $records[$arr_index]['profit'];
+      } else {
+        array_push($arr2, $records[$arr_index]);
+        $sum2 += $records[$arr_index]['profit'];
+      }
+      $arr_index ++;
+    }
+    $temp = $sum2 > $sum1 ? $arr2 : $arr1;
+    for ($i = 0; $i < count($temp); $i ++)
+    {
+      $temp[$i]['price'] = $temp[$i]['origin_price'] + ($temp[$i]['change_amount'] ? $temp[$i]['change_amount'] : 0);
+      $record = Product::where('id', $temp[$i]['id'])->first();
+      $record->price = $temp[$i]['price'];
+      $record->save();
+    }
+    $temp = $sum2 < $sum1 ? $arr2 : $arr1;
+    for ($i = 0; $i < count($temp); $i ++)
+    {
+      $temp[$i]['price'] = $temp[$i]['origin_price'] - ($temp[$i]['change_amount'] ? $temp[$i]['change_amount'] : 0);
+      $record = Product::where('id', $temp[$i]['id'])->first();
+      $record->price = $temp[$i]['price'];
+      $record->save();
+    }
+    $records = Product::where('points', 0)->select('change_amount', 'id', 'origin_price', 'price')->get();
+    AutoPriceChangeHistory::create([
+      'total' => $sum,
+      'collected' => $sum2 > $sum1 ? $sum2 : $sum1,
+      'distributed' => $sum2 < $sum1 ? $sum2 : $sum1
+    ]);
+    return ['status' => 1, 'records' => $records];
   }
 
   //homepage api

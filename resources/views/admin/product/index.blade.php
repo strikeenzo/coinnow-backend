@@ -75,17 +75,18 @@
                         <table class="table align-items-center table-flush">
                             <thead class="thead-dark">
                             <tr>
-                                <th scope="col" class="sort" data-sort="name">Product</th>
-                                <th scope="col" class="sort" data-sort="name">Name</th>
-                                <th scope="col" class="sort" data-sort="status">Category</th>
-                                <th scope="col" class="sort" data-sort="model">Model</th>
-                                <th scope="col" class="sort" data-sort="quantity">Quantity</th>
-                                <th scope="col" class="sort" data-sort="quantity">Amount</th>
-                                <th scope="col" class="sort" data-sort="quantity">Total Quantity Owned by Sellers</th>
-                                <th scope="col" class="sort" style="min-width: 150px;" data-sort="quantity">Price</th>
-                                <th scope="col" class="sort" data-sort="sort_order">Sort Order</th>
-                                <th scope="col" class="sort" data-sort="status">Status</th>
-                                <th scope="col" class="sort">Action</th>
+                                <th style="font-size: 10px" scope="col" class="sort" data-sort="name" style="font-size: 10px">Product</th>
+                                <th style="font-size: 10px" scope="col" class="sort" data-sort="name">Name</th>
+                                <th style="font-size: 10px" scope="col" class="sort" data-sort="status">Category</th>
+                                <th style="font-size: 10px" scope="col" class="sort" data-sort="model">Model</th>
+                                <th style="font-size: 10px" scope="col" class="sort" data-sort="quantity">Quantity</th>
+                                <th style="font-size: 10px" scope="col" class="sort" data-sort="quantity">Amount</th>
+                                <th style="font-size: 10px" scope="col" class="sort" data-sort="quantity">Total Quantity Owned by Sellers</th>
+                                <th style="font-size: 10px" scope="col" class="sort" data-sort="quantity">Clan Members</th>
+                                <th style="font-size: 10px" scope="col" class="sort" style="min-width: 150px;" data-sort="quantity">Price</th>
+                                <th style="font-size: 10px" scope="col" class="sort" data-sort="sort_order">Sort Order</th>
+                                <th style="font-size: 10px" scope="col" class="sort" data-sort="status">Status</th>
+                                <th style="font-size: 10px" scope="col" class="sort">Action</th>
                             </tr>
                             </thead>
                             <tbody class="list">
@@ -105,6 +106,7 @@
                                     <td class="budget "  > <span class="@if($value->quantity < 5) badge badge-danger btn-small @else badge badge-success btn-small @endif" style="font-size:12px;">{{ $value->quantity }}</span></td>
                                     <td class="budget "  > <span class="@if($value->amount < 5) badge badge-danger btn-small @else badge badge-success btn-small @endif" style="font-size:12px;">{{ $value->amount ? $value->amount : 0 }}</span></td>
                                     <td class="budget text-center"  > <span class="@if($value->total_quantity < 5) badge badge-danger btn-small @else badge badge-success btn-small @endif" style="font-size:12px;">{{ $value->total_quantity }}</span></td>
+                                    <td class="budget "  > <span class="@if($value->clan_members < 5) badge badge-danger btn-small @else badge badge-success btn-small @endif" style="font-size:12px;">{{ $value->clan_members }}</span></td>
                                     <td class="budget" style="min-width: 120px;">
                                         <form action="{{ route('product.updatePrice',['id' => $value->id]) }}" method="POST">
                                             @csrf

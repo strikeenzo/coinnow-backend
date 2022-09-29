@@ -30,7 +30,7 @@ class Product extends Model
         'manufacturer_id',  'price',  'tax_rate_id', 'date_available',
         'weight', 'weight_class_id', 'length', 'width', 'height', 'length_class_id',
         'points', 'min_price', 'max_price',
-        'sort_order', 'status', 'amount', 'power'
+        'sort_order', 'status', 'amount', 'power', 'change_amount'
     ];
 
     public static $fillableValue = [
@@ -38,7 +38,7 @@ class Product extends Model
         'manufacturer_id',  'price',  'tax_rate_id', 'date_available',
         'weight', 'weight_class_id', 'length', 'width', 'height', 'length_class_id',
         'points', 'min_price', 'max_price',
-        'sort_order', 'status', 'amount', 'power'
+        'sort_order', 'status', 'amount', 'power', 'change_amount'
     ];
 
     const ACTIVE = 1;
@@ -128,6 +128,11 @@ class Product extends Model
     public function sellers()
     {
         return $this->belongsToMany('App\Models\Seller', 'product_seller_relations', 'product_id', 'seller_id')->withPivot('sale_date', 'sell_date', 'sale', 'quantity', 'id', 'updated_at', 'created_at');
+    }
+
+    public function clans()
+    {
+        return $this->hasMany('App\Models\Clan', 'product_id', 'id');
     }
 
 }

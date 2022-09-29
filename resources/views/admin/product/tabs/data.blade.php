@@ -16,8 +16,8 @@
         <input type="number" name="price" id="price" class="form-control form-control-alternative{{ $errors->has('price') ? ' is-invalid' : '' }}" placeholder="{{ __('Price') }}" value="{{ old('price', '') }}"  required>
         @if ($errors->has('price'))
             <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $errors->first('price') }}</strong>
-                                        </span>
+                <strong>{{ $errors->first('price') }}</strong>
+            </span>
         @endif
     </div>
   </div>
@@ -39,8 +39,8 @@
             <input type="number" name="max_price" id="max_price" class="form-control form-control-alternative{{ $errors->has('max_price') ? ' is-invalid' : '' }}" placeholder="{{ __('Max Price') }}" value="{{ old('max_price', '') }}"  required>
             @if ($errors->has('max_price'))
                 <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $errors->first('max_price') }}</strong>
-                                        </span>
+                    <strong>{{ $errors->first('max_price') }}</strong>
+                </span>
             @endif
         </div>
     </div>
@@ -99,6 +99,15 @@
             </span>
             @endif
         </div>
+        <div class="col-md-6 form-group{{ $errors->has('change_amount') ? ' has-danger' : '' }}">
+            <label class="form-control-label" for="input-name">{{ __('Price Change Amount') }}*</label>
+            <input type="number" min="0" name="change_amount" id="change_amount" value="{{ old('change_amount', '') }}" class="form-control form-control-alternative{{ $errors->has('change_amount') ? ' is-invalid' : '' }}">
+            @if ($errors->has('change_amount'))
+                <span class="invalid-feedback" role="alert">
+                <strong>{{ $errors->first('change_amount') }}</strong>
+            </span>
+            @endif
+        </div>
     </div>
         <h3>Product Dimension</h3><br>
         <div class="row">
@@ -108,8 +117,8 @@
 
                 @if ($errors->has('length'))
                     <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $errors->first('length') }}</strong>
-                                                    </span>
+                        <strong>{{ $errors->first('length') }}</strong>
+                    </span>
                 @endif
             </div>
 
@@ -119,8 +128,8 @@
 
                 @if ($errors->has('width'))
                     <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $errors->first('width') }}</strong>
-                                                    </span>
+                        <strong>{{ $errors->first('width') }}</strong>
+                    </span>
                 @endif
             </div>
 
@@ -130,8 +139,8 @@
 
                 @if ($errors->has('height'))
                     <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $errors->first('height') }}</strong>
-                                                    </span>
+                        <strong>{{ $errors->first('height') }}</strong>
+                    </span>
                 @endif
             </div>
         </div>
@@ -142,13 +151,13 @@
           <label class="form-control-label" for="date_available">{{ __('Available Date') }}</label>
           <div class="input-group input-group-alternative">
               <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="ni ni-calendar-grid-58"></i></span>
+                    <span class="input-group-text"><i class="ni ni-calendar-grid-58"></i></span>
               </div>
               <input name="date_available" class="form-control datepicker {{ $errors->has('date_available') ? ' is-invalid' : '' }}" placeholder="Select date" type="text" value="{{ old('date_available', '') }}"  >
               @if ($errors->has('date_available'))
-                  <span class="invalid-feedback" role="alert">
-                                                      <strong>{{ $errors->first('date_available') }}</strong>
-                                                  </span>
+                    <span class="invalid-feedback" role="alert">
+                        <strong>{{ $errors->first('date_available') }}</strong>
+                    </span>
               @endif
           </div>
       </div>
@@ -162,9 +171,9 @@
               @endforeach
           </select>
           @if ($errors->has('weight_class_id'))
-              <span class="invalid-feedback" role="alert">
-                                              <strong>{{ $errors->first('weight_class_id') }}</strong>
-                                          </span>
+                <span class="invalid-feedback" role="alert">
+                    <strong>{{ $errors->first('weight_class_id') }}</strong>
+                </span>
           @endif
       </div>
 
@@ -173,9 +182,9 @@
           <input type="text" name="weight" id="weight" class="form-control form-control-alternative{{ $errors->has('weight') ? ' is-invalid' : '' }}" placeholder="{{ __('Weight') }}" value="{{ old('weight', '') }}" >
 
           @if ($errors->has('weight'))
-              <span class="invalid-feedback" role="alert">
-                                              <strong>{{ $errors->first('weight') }}</strong>
-                                          </span>
+                <span class="invalid-feedback" role="alert">
+                    <strong>{{ $errors->first('weight') }}</strong>
+                </span>
           @endif
       </div>
 
@@ -192,9 +201,9 @@
               @endforeach
           </select>
           @if ($errors->has('stock_status_id'))
-              <span class="invalid-feedback" role="alert">
-                                              <strong>{{ $errors->first('stock_status_id') }}</strong>
-                                          </span>
+                <span class="invalid-feedback" role="alert">
+                    <strong>{{ $errors->first('stock_status_id') }}</strong>
+                </span>
           @endif
       </div>
 
@@ -207,9 +216,9 @@
               @endforeach
           </select>
           @if ($errors->has('status'))
-              <span class="invalid-feedback" role="alert">
-                                              <strong>{{ $errors->first('status') }}</strong>
-                                          </span>
+                <span class="invalid-feedback" role="alert">
+                    <strong>{{ $errors->first('status') }}</strong>
+                </span>
           @endif
       </div>
 
@@ -217,9 +226,9 @@
           <label class="form-control-label" for="input-name">{{ __('Sort Order') }}</label>
           <input type="number" min="1" name="sort_order" id="sort_order" value="{{ old('sort_order', 1) }}" class="form-control form-control-alternative{{ $errors->has('sort_order') ? ' is-invalid' : '' }}" >
           @if ($errors->has('sort_order'))
-              <span class="invalid-feedback" role="alert">
-                                              <strong>{{ $errors->first('sort_order') }}</strong>
-                                          </span>
+                <span class="invalid-feedback" role="alert">
+                    <strong>{{ $errors->first('sort_order') }}</strong>
+                </span>
           @endif
       </div>
     </div>
