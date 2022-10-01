@@ -54,7 +54,9 @@ class ProductController extends Controller
         $quantity = $request->get('quantity', '');
         $status = $request->get('status', '1');
 
-        $records = Product::select('id','image','category_id', 'model','price', 'min_price', 'max_price', 'location', 'quantity','sort_order','status', 'points', 'amount');
+        $records = Product::select('id','image','category_id', 'model','price', 'min_price', 'max_price', 'location', 'quantity','sort_order','status', 'points', 'amount', 'change_amount')->with(['clans' => function($query) {
+          $query->withCount('members');
+        }]);
         // $records = $user->hasRole('Admin') || empty($seller) ? $records->where('seller_id', 0)->orWhereNull('seller_id') : $records->where('seller_id', 1);
         $records = $records->with('productDescription:name,id,product_id','category:name,category_id')
             ->when($name != ''|| $model != '' || $quantity != '' || $status != ''  , function($q) use($name,$model,$quantity,$status) {
@@ -73,6 +75,14 @@ class ProductController extends Controller
             $sum = ProductSellerRelation::where([['product_id', $records[$i]->id]])->sum('quantity');
           }
           $records[$i]['total_quantity'] = $sum;
+        }
+
+        for ($i = 0; $i < count($records); $i ++) {
+          $clan_members = 0;
+          for ($j = 0; $j < count($records[$i]['clans']); $j ++) {
+            $clan_members += $records[$i]['clans'][$j]['members_count'];
+          }
+          $records[$i]['clan_members'] = $clan_members;
         }
 
         return view('admin.product.index',['records' => $records,'status' => $status]);
@@ -101,7 +111,7 @@ class ProductController extends Controller
 
         $this->validateData($request);
 
-        $product = new Product($request->only('model', 'quantity', 'price','category_id', 'points', 'min_price', 'max_price', 'amount', 'power'));
+        $product = new Product($request->only('model', 'quantity', 'price','category_id', 'points', 'min_price', 'max_price', 'amount', 'power', 'change_amount'));
 
         //if has main image
         if($request->hasFile('main_image')) {
@@ -112,6 +122,7 @@ class ProductController extends Controller
         $product->stock_status_id  = $request->stock_status_id ? $request->stock_status_id : 0;
         $product->manufacturer_id  = $request->manufacturer_id ? $request->manufacturer_id : 0;
         $product->tax_rate_id  = $request->tax_rate_id ? $request->tax_rate_id : 0;
+        $product->origin_price = $request->price;
         if($request->date_available) {
           $product->date_available  =   $request->date_available;
         }
@@ -240,7 +251,7 @@ class ProductController extends Controller
         $product->fill($request->only(Product::$fillableValue))->save();
 
         $product->productRelated()->delete();
-
+        
         // Save Related Product
         $relatedProducts = $this->getRelatedProductData($product->id,$request->related_id);
         ProductRelated::insert($relatedProducts);
@@ -481,6 +492,7 @@ class ProductController extends Controller
             'price' => ['required'],
             'min_price' => ['required'],
             'max_price' => ['required'],
+            'change_amount' => []
         ];
 
         $validationArray = array_merge($conditionArray,$validateFields);
@@ -504,48 +516,59 @@ class ProductController extends Controller
       $this->validate($request,$validationArray);
   }
 
-    public function updatePrice ($id, Request $request) {
-      $this->validate($request, [
-        'price' => ['required', 'numeric']
-      ]);
-      $product = Product::where('id', $id)->first();
-      if ($product->price != $request->price) {
+  public function updatePriceChange($id, Request $request) {
+    $this->validate($request, [
+      'change_amount' => ['required']
+    ]);
+    $product = Product::where('id', $id)->first();
+    $product->change_amount = $request->change_amount;
+    $product->save();
+    return redirect(route('product'))->with('success','Price Updated Successfully');
+  }
 
-          if($request->price > $product->price) {
-            $news = News::create([
-              "content" => "The Price Of ".$product->productDescription->name." Has Increased ".($request->price - $product->price)." Coins",
-              "type" => "price increased"
-            ]);
-            broadcast(
-              new MessageSent('news-sent', $news)
-            )->toOthers();
-          }
-    
-          if ($request->price < $product->price) {
-            $news = News::create([
-              "content" => "The Price Of ".$product->productDescription->name." Has Dropped ".($product->price - $request->price)." Coins",
-              "type" => "price dropped"
-            ]);
-            broadcast(
-              new MessageSent('news-sent', $news)
-            )->toOthers();
-          }
-          $product->price = $request->price;
-          $product->save();
-          $today = Carbon::today();
-          $new_price = new ProductPrice(array('product_id' => $product->id, 'price' => $product->price, 'date' => $today));
-          $new_price->save();
-          $product = $product->setRelation('productPrice', $product->productPrice->take(6));
+  public function updatePrice ($id, Request $request) {
+    $this->validate($request, [
+      'price' => ['required', 'numeric']
+    ]);
+    $product = Product::where('id', $id)->first();
+    if ($product->price != $request->price) {
+
+        if($request->price > $product->price) {
+          $news = News::create([
+            "content" => "The Price Of ".$product->productDescription->name." Has Increased ".($request->price - $product->price)." Coins",
+            "type" => "price increased"
+          ]);
           broadcast(
-            new MessageSent('price update', [
-              'price' => $product->price,
-              'productPrice' => $product->productPrice,
-              'id' => $product->id
-            ])
+            new MessageSent('news-sent', $news)
           )->toOthers();
-          return redirect(route('product'))->with('success','Price Updated Successfully');
-        } else {
-          return redirect(route('product'))->with('success','Price Updated Successfully');
         }
-      } 
+  
+        if ($request->price < $product->price) {
+          $news = News::create([
+            "content" => "The Price Of ".$product->productDescription->name." Has Dropped ".($product->price - $request->price)." Coins",
+            "type" => "price dropped"
+          ]);
+          broadcast(
+            new MessageSent('news-sent', $news)
+            )->toOthers();
+          }
+        $product->origin_price = $request->price;
+        $product->price = $request->price;
+        $product->save();
+        $today = Carbon::today();
+        $new_price = new ProductPrice(array('product_id' => $product->id, 'price' => $product->price, 'date' => $today));
+        $new_price->save();
+        $product = $product->setRelation('productPrice', $product->productPrice->take(6));
+        broadcast(
+          new MessageSent('price update', [
+            'price' => $product->price,
+            'productPrice' => $product->productPrice,
+            'id' => $product->id
+          ])
+        )->toOthers();
+        return redirect(route('product'))->with('success','Price Updated Successfully');
+      } else {
+        return redirect(route('product'))->with('success','Price Updated Successfully');
+      }
+    } 
 }

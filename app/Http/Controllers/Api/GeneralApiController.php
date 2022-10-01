@@ -30,11 +30,17 @@ use App\Models\News;
 use App\Models\Guide;
 use App\Models\EnvironmentalVariable;
 use App\Models\CustomerComment;
+use App\Models\CoinPrice;
+use App\Models\AutoPriceChangeHistory;
+use App\Models\AutoPriceChangeDetail;
+use App\Models\CronJobTimer;
+use App\Events\MessageSent;
+
+use Carbon\Carbon;
 use Validator;
 use File;
 use DB;
 use Auth;
-use Carbon\Carbon;
 use App\Models\ProductSellerRelation;
 
 
@@ -52,6 +58,143 @@ class GeneralApiController extends Controller
     } catch(\Exception $e) {
       return ['status'=> 0,'message'=>'Error'];
     }
+  }
+
+  public function autoPriceTimer() {
+    $start = CronJobTimer::first();
+    if ($start){
+      $diff = Carbon::now()->diffInSeconds($start->started_at);
+      $percent = $diff / 1800 * 100;
+      return ['status'=> 1,'percent'=>$percent];
+    }
+    else {
+      return ['status'=> 1,'percent'=>50];
+    }
+  }
+
+  public function autoPriceChange() {
+    $start = CronJobTimer::first();
+    if (!$start) {
+      CronJobTimer::create([
+        'started_at' => Carbon::now()
+      ]);
+    } else {
+      $start->started_at = Carbon::now();
+      $start->save();
+    }
+    $records = Product::where('points', '<', 1)->select('change_amount', 'id', 'price', 'min_price', 'max_price')->get();
+    for ($i = 0; $i < count($records); $i ++)
+      {
+        if ($records[$i]['points'] > 0) {
+          $sum = Special::where('product_id',$records[$i]->id)->sum('quantity');
+        } else {
+          $sum = ProductSellerRelation::where([['product_id', $records[$i]->id]])->sum('quantity');
+        }
+        $records[$i]['total_quantity'] = $sum;
+      }
+    $sum = 0;
+    for ($i = 0; $i < count($records); $i ++)
+    {
+      if ($records[$i]['change_amount'] && $records[$i]['total_quantity'])
+      {
+        $records[$i]['profit'] = $records[$i]['change_amount'] * $records[$i]['total_quantity'];
+        $sum += $records[$i]['profit'];
+      }
+      else $records[$i]['profit'] = 0;
+    }
+    $records = $records->sortByDesc('profit');
+    $arr1 = [];
+    $arr2 = [];
+    $sum1 = $sum2 = 0;
+    foreach ($records as $key => $value) {
+      
+      if ($sum1 < $sum2) {
+        array_push($arr1, $value);
+        $sum1 += $value['profit'];
+      } else {
+        array_push($arr2, $value);
+        $sum2 += $value['profit'];
+      }
+    }
+    $history = AutoPriceChangeHistory::create([
+      'total' => $sum,
+      'collected' => $sum2 > $sum1 ? $sum2 : $sum1,
+      'distributed' => $sum2 < $sum1 ? $sum2 : $sum1
+    ]);
+    // return [$arr1, $arr2];
+    $temp = $sum2 > $sum1 ? $arr2 : $arr1;
+    for ($i = 0; $i < count($temp); $i ++)
+    {
+      if (($temp[$i]['min_price'] <= $temp[$i]['price'] - ($temp[$i]['change_amount'] ? $temp[$i]['change_amount'] : 0)) && $temp[$i]['total_quantity'])
+      {
+        $temp[$i]['price'] = $temp[$i]['price'] - ($temp[$i]['change_amount'] ? $temp[$i]['change_amount'] : 0);
+        $record = Product::where('id', $temp[$i]['id'])->first();
+        $record->price = $temp[$i]['price'];
+        $record->save();
+        AutoPriceChangeDetail::create([
+          'product_id' => $temp[$i]['id'],
+          'auto_price_history_id' => $history->id,
+          'price_change' => -$temp[$i]['change_amount'],
+          'profit' => -$temp[$i]['change_amount'] * $temp[$i]['total_quantity']
+        ]);
+        $news = News::create([
+          "content" => "The Price Of ".$record->productDescription->name." Has Dropped ".($temp[$i]['change_amount'] ? $temp[$i]['change_amount'] : 0)." Coins",
+          "type" => "price dropped"
+        ]);
+        broadcast(
+          new MessageSent('news-sent', $news)
+        )->toOthers();
+        $today = Carbon::today();
+        $new_price = new ProductPrice(array('product_id' => $record->id, 'price' => $record->price, 'date' => $today));
+        $new_price->save();
+        $record = $record->setRelation('productPrice', $record->productPrice->take(6));
+        broadcast(
+          new MessageSent('price update', [
+            'price' => $record->price,
+            'productPrice' => $record->productPrice,
+            'id' => $record->id,
+          ])
+        )->toOthers();
+      }
+    }
+    $temp = $sum2 < $sum1 ? $arr2 : $arr1;
+    for ($i = 0; $i < count($temp); $i ++)
+    {
+      if (($temp[$i]['max_price'] >= $temp[$i]['price'] + ($temp[$i]['change_amount'] ? $temp[$i]['change_amount'] : 0)) && $temp[$i]['total_quantity'])
+      {
+        $temp[$i]['price'] = $temp[$i]['price'] + ($temp[$i]['change_amount'] ? $temp[$i]['change_amount'] : 0);
+        $record = Product::where('id', $temp[$i]['id'])->first();
+        $record->price = $temp[$i]['price'];
+        $record->save();
+        AutoPriceChangeDetail::create([
+          'product_id' => $temp[$i]['id'],
+          'auto_price_history_id' => $history->id,
+          'price_change' => $temp[$i]['change_amount'],
+          'profit' => $temp[$i]['change_amount'] * $temp[$i]['total_quantity']
+        ]);
+        $news = News::create([
+          "content" => "The Price Of ".$record->productDescription->name." Has Increased ".($temp[$i]['change_amount'] ? $temp[$i]['change_amount'] : 0)." Coins",
+          "type" => "price increased"
+        ]);
+        broadcast(
+          new MessageSent('news-sent', $news)
+        )->toOthers();
+        $today = Carbon::today();
+        $new_price = new ProductPrice(array('product_id' => $record->id, 'price' => $record->price, 'date' => $today));
+        $new_price->save();
+        $record = $record->setRelation('productPrice', $record->productPrice->take(6));
+        broadcast(
+          new MessageSent('price update', [
+            'price' => $record->price,
+            'productPrice' => $record->productPrice,
+            'id' => $record->id
+          ])
+        )->toOthers();
+      }
+    }
+    $records = Product::where('points', 0)->select('change_amount', 'id', 'price', 'max_price', 'min_price')->with('productDescription:name,id')->get();
+    
+    return ['status' => 1, 'records' => $records];
   }
 
   //homepage api
@@ -184,6 +327,7 @@ class GeneralApiController extends Controller
                 ->with('productManufacturer')
                 ->orderBy('created_at','DESC')
                 ->where('date_available','<=',date('Y-m-d'))
+                ->where('points', '<', 1)
                 ->where('status','1')
                 ->paginate(6);
 
@@ -415,7 +559,7 @@ class GeneralApiController extends Controller
               ->where('quantity', '>', 0)
               ->orderBy('created_at','ASC')
               ->paginate($this->defaultPaginate);
-            // $records = Product::select('id','image', 'price', 'seller_id', 'quantity','sort_order','status', 'deleted_at', 'manufacturer_id', 'origin_id')
+            // $records = Product::select('id','image', 'price', 'seller_id', 'quantity','sort_order','status', 'deleted_at', 'manufacturer_id', 'id')
 
             //     ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date', 'seller:id,firstname,lastname,power')
             //     ->with('productManufacturer')
@@ -614,7 +758,7 @@ class GeneralApiController extends Controller
     //       $product->save();
     //       $new_price = new ProductPrice(array('product_id' => $product->id, 'price' => $random_price, 'date' => $date));
     //       $new_price->save();
-    //       Product::where('origin_id', $product->id)->update(['price'=> $product->price]);
+    //       Product::where('id', $product->id)->update(['price'=> $product->price]);
     //     }
     //     return ['status'=> 1,'message'=>'Updated'];
     // }
@@ -690,6 +834,7 @@ class GeneralApiController extends Controller
             ->where('quantity', '>', 0)->get();
 
         foreach($products as $product) {
+          if ($product->product) {
             $amount = (float)$product->product->price * (int)$product->quantity;
             $seller = Seller::find($product->seller_id);
             if ($seller) {
@@ -712,6 +857,7 @@ class GeneralApiController extends Controller
             }
             $product->quantity = 0;
             $product->save();
+          }
         }
 
         return ['status'=> 1,'message'=> 'Success'];
@@ -721,14 +867,14 @@ class GeneralApiController extends Controller
 
       $products = Product::whereNotNull('seller_id')->orderBy('id', 'ASC')->get();
       foreach($products as $product) {
-          $origin_product = Product::whereNull('seller_id')->where('category_id', $product->category_id)->where('image', $product->image)->where('model', $product->model)->first();
+          $product = Product::whereNull('seller_id')->where('category_id', $product->category_id)->where('image', $product->image)->where('model', $product->model)->first();
 
-          if (!empty($origin_product)) {
-              $product->price = $origin_product->price;
+          if (!empty($product)) {
+              $product->price = $product->price;
               $product->save();
           } else {
-              $origin_product = Product::find($product->origin_id);
-              $product->price = $origin_product->price;
+              $product = Product::find($product->id);
+              $product->price = $product->price;
               $product->save();
           }
 
@@ -751,6 +897,10 @@ class GeneralApiController extends Controller
     public function getGuide($type) {
       $guides = Guide::where('type', $type)->where('status', true)->orderBy('sort_order')->get();
       return $guides;
+    }
+
+    public function getCoinPrices() {
+      return CoinPrice::get();
     }
 
   }

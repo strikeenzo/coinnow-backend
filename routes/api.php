@@ -28,6 +28,8 @@ Route::middleware('auth:api')->get('/users', function (Request $request) {
 
 Route::get('/something', [GeneralApiController::class, 'something']);
 Route::get('/something2', [GeneralApiController::class, 'something2']);
+Route::get('/autoPriceChange', [GeneralApiController::class, 'autoPriceChange']);
+Route::get('/autoPriceTimer', [GeneralApiController::class, 'autoPriceTimer']);
 // Route::get('/getTrades', [GeneralApiController::class, 'getTrades']);
 // Route::middleware(['checkKey'])->group(function () {
 
@@ -63,6 +65,7 @@ Route::middleware(['checkKey'])->group(function () {
         Route::get('/productPrice/{id}', 'productPrices');
         Route::post('/postComment', 'postComment');
         Route::get('/getComments', 'getComments');
+        Route::get('/getCoinPrices', 'getCoinPrices');
     });
 
     Route::group(['prefix' => 'seller'], function () {
@@ -88,6 +91,16 @@ Route::middleware(['checkKey'])->group(function () {
                 Route::get('/getHistory', 'getHistory');
                 Route::get('/getExpenses', 'getExpenses');
                 Route::get('/getEarnings', 'getEarnings');
+                Route::post('/payByStripe', 'payByStripe');
+                Route::post('/buyCoin', 'buyCoin');
+                Route::get('/myClans', 'getMyClans');
+                Route::get('/clans', 'getClans');
+                Route::get('/joinClans', 'getJoinClans');
+                Route::post('/buyClan', 'buyClan');
+                Route::post('/clans/{id}', 'updateClan');
+                Route::get('/clans/{id}/join', 'joinClan');
+                Route::get('/clans/{id}/leave', 'leaveClan');
+                Route::get('/clans/{id}/history', 'getClanHistoryById');
             });
 
             //cart functionality

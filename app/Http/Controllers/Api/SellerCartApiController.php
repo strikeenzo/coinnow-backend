@@ -786,6 +786,7 @@ class SellerCartApiController extends Controller
       $price = $relation->product->price;
       
       $balance = $this->getUser->balance;
+
       if ($balance < $quantity * $price) {
         return [
           'status' => 0,
@@ -846,9 +847,12 @@ class SellerCartApiController extends Controller
         try {
             $product = Product::where('id', $request->id)->with('seller')->first();
             $quantity = $request->quantity;
-
+            $discount = 0;
+            if ($this->getUser->clan_id && $this->getUser->clan->product->id == $request->id) {
+              $discount =  $this->getUser->clan->discount;
+            }
             $balance = $this->getUser->balance;
-            if ($balance < $product->price * $quantity) {
+            if ($balance < ($product->price - $discount) * $quantity) {
                 return ['status' => 0,'message' => 'No enough balance'];
             }
             if ($product->quantity < $quantity) {
@@ -876,7 +880,7 @@ class SellerCartApiController extends Controller
                         'product_id' => $product->id,
                         'seller_id' => $this->getUser->id,
                         'quantity' => $quantity,
-                        'price' => $product->price,
+                        'price' => ($product->price - $discount),
                         'balance' => $balance,
                         'seen' => 0,
                     );
@@ -903,7 +907,7 @@ class SellerCartApiController extends Controller
                             'seller_id' => $product->seller->id,
                             'quantity' => $quantity,
                             'balance' => $product->seller->balance,
-                            'price' => $product->price,
+                            'price' => ($product->price - $discount),
                             'seen' => 0,
                         );
                         $new_notification = new Notification($notification_data);
@@ -930,7 +934,7 @@ class SellerCartApiController extends Controller
                     'product_id' => $product->id,
                     'seller_id' => $this->getUser->id,
                     'quantity' => $quantity,
-                    'price' => $product->price,
+                    'price' => ($product->price - $discount),
                     'balance' => $balance,
                     'seen' => 0,
                   );
@@ -942,7 +946,7 @@ class SellerCartApiController extends Controller
                         'product_id' => $product->id,
                         'seller_id' => $product->seller->id,
                         'quantity' => $quantity,
-                        'price' => $product->price,
+                        'price' => ($product->price - $discount),
                         'balance' => $product->seller->balance,
                         'seen' => 0,
                     );
@@ -952,13 +956,13 @@ class SellerCartApiController extends Controller
                 }
                 if (!empty($product->seller)) {
                     $seller = Seller::where('id', $product->seller->id)->first();
-                    $newProfit = $seller->profit + $product->price * $quantity;
-                    $newBalance = $seller->balance + $product->price * $quantity;
+                    $newProfit = $seller->profit + ($product->price - $discount) * $quantity;
+                    $newBalance = $seller->balance + ($product->price - $discount) * $quantity;
                     $seller->profit = $newProfit;
                     $seller->balance = $newBalance;
                     $seller->save();
                 }
-                $this->getUser->update(['balance' => $balance - $product->price * $quantity]);
+                $this->getUser->update(['balance' => $balance - ($product->price - $discount) * $quantity]);
                 $product->quantity = $product->quantity - $quantity;
                 $product->save();
             }

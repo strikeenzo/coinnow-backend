@@ -12,7 +12,10 @@ use App\Traits\CustomFileTrait;
 use App\Models\Seller;
 use App\Models\ProductSellerRelation;
 use App\Models\EnvironmentalVariable;
+use App\Models\CoinPrice;
 use App\Models\User;
+use App\Models\PaymentHistory;
+use App\Models\Clan;
 use Illuminate\Support\Facades\Date;
 use Validator;
 use File;
@@ -40,8 +43,13 @@ class SellerApiController extends Controller
     public function getSellerDetails()
     {
         $specials = Special::select('quantity', 'product_id')->where('seller_id', $this->getUser->id)->where('quantity', '>', 0)->with('product:id,image,points', 'productDescription:id,name,product_id')->get();
+        $user = Seller::where('id', $this->getUser->id)->with(['clan' => function($query) {
+            $query->with(['product' => function($query) {
+                $query->with('productDescription');
+            }, 'owner', 'members']);
+        }])->first();
         //$specials = Special::join('product', 'product.id', '=', 'special.product_id')->get();
-        return  ['status' => 1, 'data' => $this->getUser, 'specials' => $specials];
+        return  ['status' => 1, 'data' => $user, 'specials' => $specials];
     }
 
     public function getSellers(Request $request)
@@ -112,10 +120,15 @@ class SellerApiController extends Controller
     {
         try {
 
-            $history = Notification::select('id', 'quantity', 'type', 'seen', 'created_at', 'product_id', 'seller_id', 'receiver_id', 'amount', 'balance', 'sender_id', 'price')
+            $history = Notification::select('id', 'quantity', 'type', 'seen', 'created_at', 'product_id', 'seller_id', 'receiver_id', 'amount', 'balance', 'sender_id', 'price', 'clan_id')
                 ->with('receiver:id,telephone,firstname,lastname,email')
                 ->with('sender:id,telephone,firstname,lastname,email')
                 ->with('product:seller_id')
+                ->with(['clan' => function($query) {
+                    $query->with(['owner' => function($query) {
+                        $query->select('id', 'firstname', 'lastname');
+                    }]);
+                }])
                 ->with(array('product' => function ($query) {
                     $query->select('id', 'image')->with('productDescription:id,name,product_id');
                 }))
@@ -159,9 +172,14 @@ class SellerApiController extends Controller
     public function balanceHistory(Request $request)
     {
         try {
-            $history = Notification::select('id', 'quantity', 'type', 'seen', 'created_at', 'product_id', 'seller_id', 'sender_id', 'receiver_id', 'amount', 'price', 'balance')
+            $history = Notification::select('id', 'quantity', 'type', 'seen', 'created_at', 'product_id', 'seller_id', 'sender_id', 'receiver_id', 'amount', 'price', 'balance', 'clan_id')
                 ->with('receiver:id,telephone,firstname,lastname,email')
                 ->with('sender:id,telephone,firstname,lastname,email')
+                ->with(['clan' => function($query) {
+                    $query->with(['owner' => function($query) {
+                        $query->select('id', 'firstname', 'lastname');
+                    }]);
+                }])
                 ->with(array('product' => function ($query) {
                     $query->select('id', 'image')->with('productDescription:id,name,product_id');
                 }))
@@ -173,6 +191,28 @@ class SellerApiController extends Controller
             return ['status' => 0, 'message' => $e];
         }
     }
+
+    public function getClanHistoryById($id) {
+        try {
+            $history = Notification::where('clan_id', $id)->select('id', 'quantity', 'type', 'seen', 'created_at', 'product_id', 'seller_id', 'sender_id', 'receiver_id', 'amount', 'price', 'balance', 'clan_id')
+                ->with('receiver:id,telephone,firstname,lastname,email')
+                ->with('sender:id,telephone,firstname,lastname,email')
+                ->with(['clan' => function($query) {
+                    $query->with(['owner' => function($query) {
+                        $query->select('id', 'firstname', 'lastname');
+                    }]);
+                }])
+                ->with(array('product' => function ($query) {
+                    $query->select('id', 'image')->with('productDescription:id,name,product_id');
+                }))
+                ->where('type', '!=', 'clan_join')
+                // ->whereIn('type', ['send_coin', 'receive_coin', 'item_sell', 'special_item_sell', 'item_sell_auto', 'special_item_sell_auto', 'item_buy', 'special_item_buy', 'trade'])
+                ->orderBy('notification.created_at', 'DESC')->orderBy('notification.id', 'DESC')->paginate($this->defaultPaginate);
+            return ['status' => 1, 'data' => $history];
+        } catch (\Exception $e) {
+            return ['status' => 0, 'message' => $e];
+        }
+    } 
 
     //search products
     public function searchProducts(Request $request)
@@ -339,6 +379,175 @@ class SellerApiController extends Controller
         } catch (\Exception $e) {
             return  ['status' => 0, 'message' => 'Error'];
         }
+    }
+
+    public function payByStripe(Request $request) {
+        $stripe_key = env('STRIPE_SECURITY_KEY');
+        \Stripe\Stripe::setApiKey( $stripe_key);
+        $price = CoinPrice::where('id', $request->id)->first();
+        $intent = \Stripe\PaymentIntent::create([
+          'amount' => $price->price * 100,
+          'currency' => 'usd',
+        ]);
+        $client_secret = $intent->client_secret;
+        return ['status' => 1, 'clientSecret' => $client_secret];
+    }
+
+    public function buyCoin(Request $request) {
+        $seller = Seller::where('id', $this->getUser->id)->first();
+        $price = CoinPrice::where('id', $request->id)->first();
+        $seller_balance = $seller->balance;
+        $seller->balance += $price->coin;
+        $seller->save();
+        $notification_data = array(
+            'type' => 'buy_coin',
+            'seller_id' => $this->getUser->id,
+            'amount' => $price->coin,
+            'balance' => $seller_balance,
+            'seen' => 0,
+        );
+        $new_notification = new Notification($notification_data);
+        $new_notification->save();
+        PaymentHistory::create([
+            'user_id' => $this->getUser->id,
+            'coin' => $price->coin,
+            'price' => $price->price
+        ]);
+        return [
+            'status' => 1, 'message' => 'Paid Successfully'
+        ];
+    }
+
+    public function getMyClans() {
+        $total_price = Clan::where('owner_id', $this->getUser->id)->first()->history->where('type', 'clan_joining')->sum('price');
+        $total_count = Clan::where('owner_id', $this->getUser->id)->count();
+        $clans = Clan::where('owner_id', $this->getUser->id)->with(['product' => function($query) {
+            $query->with('productDescription');
+        }, 'members'])->withSum(['history' => function($query) {
+            $query->where('type', 'clan_joining');
+        }], 'price')->get();
+        return [
+            'status' => 1, 'clans' => $clans, "total" => [
+                'price' => $total_price,
+                'count' => $total_count
+            ]
+        ];
+    }
+
+    public function getClans() {
+        $clans = Clan::where('owner_id', null)->with(['product' => function($query) {
+            $query->with('productDescription');
+        }])->get();
+        return [
+            'status' => 1, 'clans' => $clans
+        ];
+    }
+
+    public function getJoinClans() {
+        $clans = Clan::whereNotNull('owner_id')->with(['product' => function($query) {
+            $query->with('productDescription');
+        }, 'owner' => function($query) {
+            $query->select(['id', 'firstname', 'lastname']);
+        }, 'members'])->paginate($this->defaultPaginate);
+        return $clans;
+    }
+
+    public function joinClan($id) {
+        $clan = Clan::where('id', $id)->first();
+        $seller = Seller::where('id', $this->getUser->id)->first();
+        $balance = $seller->balance;
+        if ($clan->fee > $seller->balance) {
+            return [
+                'status' => 0,
+                'messge' => 'No enough balance'
+            ];
+        }
+        $seller->clan_id = $clan->id;
+        $seller->balance -= $clan->fee;
+        $seller->save();
+        $owner = $clan->owner;
+        $owner_balance = $owner->balance;
+        $owner->balance += $clan->fee;
+        $owner->save();
+        $notification_data = array(
+            'type' => 'clan_join',
+            'clan_id' => $clan->id,
+            'seller_id' => $this->getUser->id,
+            'quantity' => 1,
+            'price' => $clan->fee,
+            'balance' => $balance,
+            'seen' => 0,
+        );
+        $new_notification = new Notification($notification_data);
+        $new_notification->save();
+        $notification_data = array(
+            'type' => 'clan_joining',
+            'clan_id' => $clan->id,
+            'seller_id' => $owner->id,
+            'quantity' => 1,
+            'price' => $clan->fee,
+            'balance' => $owner_balance,
+            'sender_id' => $this->getUser->id,
+            'seen' => 0,
+        );
+        $new_notification = new Notification($notification_data);
+        $new_notification->save();
+        return [
+            'status' => 1,
+            'message' => 'Join Successful'
+        ];
+    }
+
+    public function leaveClan() {
+        $seller = Seller::where('id', $this->getUser->id)->first();
+        $seller->clan_id = null;
+        $seller->save();
+        return [
+            'status' => 1,
+            'message' => 'Leave Successful'
+        ];
+    }
+
+    public function buyClan(Request $request) {
+        $seller = Seller::where('id', $this->getUser->id)->first();
+        $clan = Clan::where('id', $request->id)->first();
+        $balance = $seller->balance;
+        if ($clan->price > $seller->balance) {
+            return [
+                'status' => 0,
+                'messge' => 'No enough balance'
+            ];
+        }
+        $clan->owner_id = $seller->id;
+        $seller->balance -= $clan->price;
+        $seller->save();
+        $clan->save();
+        $notification_data = array(
+            'type' => 'clan_buy',
+            'clan_id' => $clan->id,
+            'seller_id' => $this->getUser->id,
+            'quantity' => 1,
+            'price' => $clan->price,
+            'balance' => $balance,
+            'seen' => 0,
+        );
+        $new_notification = new Notification($notification_data);
+        $new_notification->save();
+        return [
+            'status' => 1,
+            'message' => 'successful'
+        ];
+    }
+
+    public function updateClan(Request $request, $id) {
+        $clan = Clan::where('id', $id)->first();
+        $clan->title = $request->title;
+        $clan->fee = $request->price;
+        $clan->save();
+        return [
+            'status' => 1,
+            'message' => 'Clan Updated Successfully'
+        ];
     }
 
     public function one_validation_message($validator)
