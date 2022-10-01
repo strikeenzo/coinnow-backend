@@ -81,9 +81,10 @@
                                 <th style="font-size: 10px" scope="col" class="sort" data-sort="model">Model</th>
                                 <th style="font-size: 10px" scope="col" class="sort" data-sort="quantity">Quantity</th>
                                 <th style="font-size: 10px" scope="col" class="sort" data-sort="quantity">Amount</th>
-                                <th style="font-size: 10px" scope="col" class="sort" data-sort="quantity">Total Quantity Owned by Sellers</th>
+                                <th style="font-size: 10px;" scope="col" class="sort" data-sort="quantity">Sellers' Quantity</th>
                                 <th style="font-size: 10px" scope="col" class="sort" data-sort="quantity">Clan Members</th>
                                 <th style="font-size: 10px" scope="col" class="sort" style="min-width: 150px;" data-sort="quantity">Price</th>
+                                <th style="font-size: 10px" scope="col" class="sort" data-sort="quantity">price change</th>
                                 <th style="font-size: 10px" scope="col" class="sort" data-sort="sort_order">Sort Order</th>
                                 <th style="font-size: 10px" scope="col" class="sort" data-sort="status">Status</th>
                                 <th style="font-size: 10px" scope="col" class="sort">Action</th>
@@ -112,6 +113,13 @@
                                             @csrf
                                             @method('post')
                                             <input type="number" name="price" class="form-control" value="{{$value->price}}">
+                                        </form>
+                                    </td>
+                                    <td class="budget " >
+                                        <form action="{{ route('product.updatePriceChange',['id' => $value->id]) }}" method="POST">
+                                            @csrf
+                                            @method('post')
+                                            <input type="number" name="change_amount" class="form-control" value="{{ $value->change_amount ? $value->change_amount : 0 }}">
                                         </form>
                                     </td>
                                     <td class="budget">{{ $value->sort_order }}</td>

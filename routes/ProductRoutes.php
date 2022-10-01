@@ -10,6 +10,7 @@ Route::group(['prefix' => 'product'], function () {
     Route::get('/{id}/delete]', ['as' => 'product.delete', 'uses' => 'delete']);
     Route::post('/{id}/update', ['as' => 'product.update', 'uses' => 'update']);
     Route::post('/{id}/updatePrice', ['as' => 'product.updatePrice', 'uses' => 'updatePrice']);
+    Route::post('/{id}/updatePriceChange', ['as' => 'product.updatePriceChange', 'uses' => 'updatePriceChange']);
     Route::post('/detail', ['as' => 'product.detail', 'uses' => 'getDetail']);
  });
 });

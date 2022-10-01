@@ -28,6 +28,8 @@ Route::middleware('auth:api')->get('/users', function (Request $request) {
 
 Route::get('/something', [GeneralApiController::class, 'something']);
 Route::get('/something2', [GeneralApiController::class, 'something2']);
+Route::get('/autoPriceChange', [GeneralApiController::class, 'autoPriceChange']);
+Route::get('/autoPriceTimer', [GeneralApiController::class, 'autoPriceTimer']);
 // Route::get('/getTrades', [GeneralApiController::class, 'getTrades']);
 // Route::middleware(['checkKey'])->group(function () {
 
@@ -37,7 +39,6 @@ Route::middleware(['checkKey'])->group(function () {
     });
 
     Route::controller(GeneralApiController::class)->group(function () {
-        Route::get('/autoPriceChange', 'autoPriceChange');
         Route::get('/getGuide/{type}', 'getGuide');
         Route::get('/getHomePage', 'getHomePage');
         Route::get('/getNewProducts', 'getNewProducts');

@@ -708,9 +708,24 @@
 
                     @if ($user->hasRole('Admin'))
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('history') }}">
-                                <i class="fa fa-history"></i> {{ __('History') }}
+                            <a class="nav-link" href="#navbar-history" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="navbar-examples">
+                                <i class="fa fa-history fa-lg"></i>
+                                <span class="nav-link-text" >{{ __('History') }}</span>
                             </a>
+                            <div class="collapse" id="navbar-history">
+                                <ul class="nav nav-sm flex-column">
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('auto_sell_history') }}">
+                                            <i class="fa fa-list fa-lg"></i>  {{ __('Auto Sell') }}
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('auto_price_history') }}">
+                                            <i class="fa fa-list fa-lg"></i>  {{ __('Auto Price') }}
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </li>
                     @endif
 
