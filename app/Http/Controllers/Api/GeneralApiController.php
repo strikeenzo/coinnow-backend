@@ -82,9 +82,13 @@ class GeneralApiController extends Controller
       $start->started_at = Carbon::now();
       $start->save();
     }
-    $records = Product::where('points', '<', 1)->select('change_amount', 'id', 'price', 'min_price', 'max_price')->get();
+    $records = Product::where('points', '<', 1)->orWhere('points', null)->select('change_amount', 'id', 'price', 'min_price', 'max_price')->get();
     for ($i = 0; $i < count($records); $i ++)
       {
+        if ($records[$i]['price'] - $records[$i]['min_price'] < ($records[$i]['max_price'] - $records[$i]['min_price']) / 5) {
+          $records[$i]['quantity'] = $records[$i]['range_quantity'] ? $records[$i]['range_quantity'] : 0;
+          $records[$i]->save();
+        }
         if ($records[$i]['points'] > 0) {
           $sum = Special::where('product_id',$records[$i]->id)->sum('quantity');
         } else {
@@ -95,6 +99,9 @@ class GeneralApiController extends Controller
     $sum = 0;
     for ($i = 0; $i < count($records); $i ++)
     {
+      $medium = ($records[$i]['min_price'] + $records[$i]['max_price']) / 2;
+      $range = ($records[$i]['max_price'] - $records[$i]['min_price']);
+      $records[$i]['delta'] = ( $records[$i]['price'] - $medium ) / $range;
       if ($records[$i]['change_amount'] && $records[$i]['total_quantity'])
       {
         $records[$i]['profit'] = $records[$i]['change_amount'] * $records[$i]['total_quantity'];
@@ -102,43 +109,65 @@ class GeneralApiController extends Controller
       }
       else $records[$i]['profit'] = 0;
     }
-    $records = $records->sortByDesc('profit');
+    $records = $records->sortBy('delta');
     $arr1 = [];
     $arr2 = [];
-    $sum1 = $sum2 = 0;
+    $temp = 0;
+
     foreach ($records as $key => $value) {
-      
-      if ($sum1 < $sum2) {
-        array_push($arr1, $value);
-        $sum1 += $value['profit'];
-      } else {
+      if ($sum / 2 > $temp + $value['profit']) {
+        if (($value['max_price'] < $value['price'] + ($value['change_amount'] ? $value['change_amount'] : 0)))
+        {
+          $sum -= $value['profit'];
+          continue;
+        }
+        $temp += $value['profit'];
         array_push($arr2, $value);
-        $sum2 += $value['profit'];
+        continue;
       }
+      if (($value['min_price'] > $value['price'] - ($value['change_amount'] ? $value['change_amount'] : 0)))
+      {
+        $sum -= $value['profit'];
+        continue;
+      }
+      array_push($arr1, $value);
     }
+
+
+    // return [$temp, $arr2, $sum-$temp, $arr1];
+
+    // $sum1 = $sum2 = 0;
+    // foreach ($records as $key => $value) {
+      
+    //   if ($sum / 2 < $sum2) {
+    //     array_push($arr1, $value);
+    //     $sum1 += $value['profit'];
+    //   } else {
+    //     array_push($arr2, $value);
+    //     $sum2 += $value['profit'];
+    //   }
+    // }
     $history = AutoPriceChangeHistory::create([
       'total' => $sum,
-      'collected' => $sum2 > $sum1 ? $sum2 : $sum1,
-      'distributed' => $sum2 < $sum1 ? $sum2 : $sum1
+      'collected' => $sum - $temp,
+      'distributed' => $temp
     ]);
-    // return [$arr1, $arr2];
-    $temp = $sum2 > $sum1 ? $arr2 : $arr1;
-    for ($i = 0; $i < count($temp); $i ++)
+    for ($i = 0; $i < count($arr1); $i ++)
     {
-      if (($temp[$i]['min_price'] <= $temp[$i]['price'] - ($temp[$i]['change_amount'] ? $temp[$i]['change_amount'] : 0)) && $temp[$i]['total_quantity'])
+      $record = Product::where('id', $arr1[$i]['id'])->first();
+      if (($arr1[$i]['min_price'] <= $arr1[$i]['price'] - ($arr1[$i]['change_amount'] ? $arr1[$i]['change_amount'] : 0)))
       {
-        $temp[$i]['price'] = $temp[$i]['price'] - ($temp[$i]['change_amount'] ? $temp[$i]['change_amount'] : 0);
-        $record = Product::where('id', $temp[$i]['id'])->first();
-        $record->price = $temp[$i]['price'];
+        $arr1[$i]['price'] = $arr1[$i]['price'] - ($arr1[$i]['change_amount'] ? $arr1[$i]['change_amount'] : 0);
+        $record->price = $arr1[$i]['price'];
         $record->save();
         AutoPriceChangeDetail::create([
-          'product_id' => $temp[$i]['id'],
+          'product_id' => $arr1[$i]['id'],
           'auto_price_history_id' => $history->id,
-          'price_change' => -$temp[$i]['change_amount'],
-          'profit' => -$temp[$i]['change_amount'] * $temp[$i]['total_quantity']
+          'price_change' => -$arr1[$i]['change_amount'],
+          'profit' => -$arr1[$i]['change_amount'] * $arr1[$i]['total_quantity']
         ]);
         $news = News::create([
-          "content" => "The Price Of ".$record->productDescription->name." Has Dropped ".($temp[$i]['change_amount'] ? $temp[$i]['change_amount'] : 0)." Coins",
+          "content" => "The Price Of ".$record->productDescription->name." Has Dropped ".($arr1[$i]['change_amount'] ? $arr1[$i]['change_amount'] : 0)." Coins",
           "type" => "price dropped"
         ]);
         broadcast(
@@ -157,23 +186,22 @@ class GeneralApiController extends Controller
         )->toOthers();
       }
     }
-    $temp = $sum2 < $sum1 ? $arr2 : $arr1;
-    for ($i = 0; $i < count($temp); $i ++)
+    for ($i = 0; $i < count($arr2); $i ++)
     {
-      if (($temp[$i]['max_price'] >= $temp[$i]['price'] + ($temp[$i]['change_amount'] ? $temp[$i]['change_amount'] : 0)) && $temp[$i]['total_quantity'])
+      if (($arr2[$i]['max_price'] >= $arr2[$i]['price'] + ($arr2[$i]['change_amount'] ? $arr2[$i]['change_amount'] : 0)))
       {
-        $temp[$i]['price'] = $temp[$i]['price'] + ($temp[$i]['change_amount'] ? $temp[$i]['change_amount'] : 0);
-        $record = Product::where('id', $temp[$i]['id'])->first();
-        $record->price = $temp[$i]['price'];
+        $arr2[$i]['price'] = $arr2[$i]['price'] + ($arr2[$i]['change_amount'] ? $arr2[$i]['change_amount'] : 0);
+        $record = Product::where('id', $arr2[$i]['id'])->first();
+        $record->price = $arr2[$i]['price'];
         $record->save();
         AutoPriceChangeDetail::create([
-          'product_id' => $temp[$i]['id'],
+          'product_id' => $arr2[$i]['id'],
           'auto_price_history_id' => $history->id,
-          'price_change' => $temp[$i]['change_amount'],
-          'profit' => $temp[$i]['change_amount'] * $temp[$i]['total_quantity']
+          'price_change' => $arr2[$i]['change_amount'],
+          'profit' => $arr2[$i]['change_amount'] * $arr2[$i]['total_quantity']
         ]);
         $news = News::create([
-          "content" => "The Price Of ".$record->productDescription->name." Has Increased ".($temp[$i]['change_amount'] ? $temp[$i]['change_amount'] : 0)." Coins",
+          "content" => "The Price Of ".$record->productDescription->name." Has Increased ".($arr2[$i]['change_amount'] ? $arr2[$i]['change_amount'] : 0)." Coins",
           "type" => "price increased"
         ]);
         broadcast(
@@ -194,7 +222,7 @@ class GeneralApiController extends Controller
     }
     $records = Product::where('points', 0)->select('change_amount', 'id', 'price', 'max_price', 'min_price')->with('productDescription:name,id')->get();
     
-    return ['status' => 1, 'records' => $records];
+    return ['status' => 1, 'sum1' => $temp, 'sum2' => $sum-$temp];
   }
 
   //homepage api
@@ -327,7 +355,9 @@ class GeneralApiController extends Controller
                 ->with('productManufacturer')
                 ->orderBy('created_at','DESC')
                 ->where('date_available','<=',date('Y-m-d'))
-                ->where('points', '<', 1)
+                ->where(function($query) {
+                  $query->where('points', '<', 1)->orWhere('points', null);
+                })
                 ->where('status','1')
                 ->paginate(6);
 
@@ -542,7 +572,7 @@ class GeneralApiController extends Controller
         // try {
             $keyword = $request->get('q', '');
             $seller_id = $request->seller_id;
-            $records = ProductSellerRelation::with(['product' => function($query) use ($keyword) {
+            $records = ProductSellerRelation::has('product')->with(['product' => function($query) use ($keyword) {
               $query->select('id','image', 'price', 'quantity','sort_order','status', 'deleted_at', 'manufacturer_id')
               ->with('productDescription:name,id,product_id','special:product_id,price,start_date,end_date', 'seller:id,firstname,lastname,power')
               ->with('productManufacturer')

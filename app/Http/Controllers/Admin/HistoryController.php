@@ -19,4 +19,18 @@ class HistoryController extends Controller
             ->orderBy('notification.created_at', 'DESC')->paginate($this->defaultPaginate);
         return view('admin.history.index', ['records' => $records]);
     }
+
+    public function transaction()
+    {
+        $records = Notification::select('id', 'quantity', 'amount', 'type', 'seen', 'created_at', 'product_id', 'seller_id', 'receiver_id')
+        ->with(array('product' => function ($query) {
+            $query->select('id', 'image')->with('productDescription:id,name,product_id');
+        }))->with(['seller' => function($query) {
+            $query->select('id', 'email');
+        }])->with(['receiver' => function($query) {
+            $query->select('id', 'email');
+        }])->whereIn('type', ['send_coin'])
+            ->orderBy('notification.created_at', 'DESC')->paginate($this->defaultPaginate);
+        return view('admin.history.transaction', ['records' => $records]);
+    }
 }

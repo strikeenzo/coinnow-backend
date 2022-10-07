@@ -55,6 +55,15 @@
             </span>
         @endif
     </div>
+    <div class="col-md-6 form-group{{ $errors->has('range_quantity') ? ' has-danger' : '' }}">
+        <label class="form-control-label" for="input-name">{{ __('range_Quantity') }}*</label>
+        <input type="number" min="0" name="range_quantity" id="range_quantity" value="{{ old('range_quantity', '') }}" class="form-control form-control-alternative{{ $errors->has('range_quantity') ? ' is-invalid' : '' }}" required>
+        @if ($errors->has('range_quantity'))
+            <span class="invalid-feedback" role="alert">
+                <strong>{{ $errors->first('range_quantity') }}</strong>
+            </span>
+        @endif
+    </div>
     <div class="col-md-6 form-group {{ $errors->has('tax_rate_id') ? ' has-danger' : '' }}">
         <label class="form-control-label" for="tax_rate_id">{{ __('Tax Rate') }}</label>
         <select class="form-control {{ $errors->has('tax_rate_id') ? ' has-danger' : '' }}" name="tax_rate_id">
