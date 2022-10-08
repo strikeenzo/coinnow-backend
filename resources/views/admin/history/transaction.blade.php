@@ -38,9 +38,14 @@
                   <tr>
                     <td>
                       {{
+                        $value->type == 'send_coin' ?
                         ($value->seller ? $value->seller->email : "Anyone{User Removed}")
                         ." sent ".$value->amount." coins to "
                         .($value->receiver ? $value->receiver->email : "Anyone{User Removed}")." "
+                        ." at ".date('yy/m/d h:i A', strtotime($value->created_at))
+                        : ($value->seller ? $value->seller->email : "Anyone{User Removed}")
+                        ." received ".$value->amount." coins from "
+                        .($value->sender ? $value->sender->email : "Anyone{User Removed}")." "
                         ." at ".date('yy/m/d h:i A', strtotime($value->created_at))
                       }}
                     </td>

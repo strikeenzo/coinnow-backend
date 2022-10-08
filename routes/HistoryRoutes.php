@@ -6,7 +6,7 @@ use App\Http\Controllers\Admin\AutoPriceChangeDetailController;
 Route::group(['prefix' => 'history'], function () {
   Route::controller(HistoryController::class)->group(function () {
     Route::get('/auto_sell', ['as' => 'auto_sell_history','uses' => 'index']);
-    Route::get('/transaction', ['as' => 'transaction_history','uses' => 'transaction']);
+    Route::get('/transaction/{id}', ['as' => 'transaction_history','uses' => 'transaction']);
   });
   Route::controller(AutoPriceController::class)->group(function () {
     Route::get('/auto_price', ['as' => 'auto_price_history','uses' => 'index']);

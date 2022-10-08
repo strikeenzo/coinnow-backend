@@ -720,7 +720,7 @@
                                         </a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link" href="{{ route('transaction_history') }}">
+                                        <a class="nav-link" href="{{ route('transaction_history', 0) }}">
                                             <i class="fa fa-list fa-lg"></i>  {{ __('Transaction') }}
                                         </a>
                                     </li>

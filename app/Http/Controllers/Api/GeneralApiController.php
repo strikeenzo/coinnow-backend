@@ -82,10 +82,11 @@ class GeneralApiController extends Controller
       $start->started_at = Carbon::now();
       $start->save();
     }
-    $records = Product::where('points', '<', 1)->orWhere('points', null)->select('change_amount', 'id', 'price', 'min_price', 'max_price')->get();
+    $records = Product::where('points', '<', 1)->orWhere('points', null)->select('change_amount', 'id', 'price', 'min_price', 'max_price', 'range_quantity')->get();
     for ($i = 0; $i < count($records); $i ++)
-      {
-        if ($records[$i]['price'] - $records[$i]['min_price'] < ($records[$i]['max_price'] - $records[$i]['min_price']) / 5) {
+    {
+        if ($records[$i]['price'] - $records[$i]['min_price'] < ($records[$i]['max_price'] - $records[$i]['min_price']) / 5 
+            && $records[$i]['quantity'] > ($records[$i]['range_quantity'] ? $records[$i]['range_quantity'] : 0)) {
           $records[$i]['quantity'] = $records[$i]['range_quantity'] ? $records[$i]['range_quantity'] : 0;
           $records[$i]->save();
         }
@@ -109,7 +110,8 @@ class GeneralApiController extends Controller
       }
       else $records[$i]['profit'] = 0;
     }
-    $records = $records->sortBy('delta');
+    $records = $records->sortByDesc('profit')->sortBy('delta');
+    // return $records;
     $arr1 = [];
     $arr2 = [];
     $temp = 0;
@@ -119,11 +121,11 @@ class GeneralApiController extends Controller
         if (($value['max_price'] < $value['price'] + ($value['change_amount'] ? $value['change_amount'] : 0)))
         {
           $sum -= $value['profit'];
+        } else {
+          $temp += $value['profit'];
+          array_push($arr2, $value);
           continue;
         }
-        $temp += $value['profit'];
-        array_push($arr2, $value);
-        continue;
       }
       if (($value['min_price'] > $value['price'] - ($value['change_amount'] ? $value['change_amount'] : 0)))
       {
@@ -132,6 +134,8 @@ class GeneralApiController extends Controller
       }
       array_push($arr1, $value);
     }
+
+    // return [$temp, $arr2, $sum-$temp, $arr1];
 
 
     // return [$temp, $arr2, $sum-$temp, $arr1];
@@ -736,7 +740,7 @@ class GeneralApiController extends Controller
             ->withCount(['productReview as review_avg' => function($query) {
                 $query->select(DB::raw('avg(rating)'));
               }])
-            ->select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available', 'manufacturer_id')
+            ->select('id','image','category_id', 'model','price', 'quantity','sort_order','status','date_available', 'manufacturer_id', 'points')
             ->whereIn('category_id',$ids)
             ->orderBy('created_at','DESC')
             ->where('date_available','<=',date('Y-m-d'));
