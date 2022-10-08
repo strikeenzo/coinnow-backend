@@ -69,6 +69,7 @@
                                 <th scope="col" class="sort" data-sort="name">Balance</th>
                                 <th scope="col" class="sort" data-sort="name">Inventory</th>
                                 <th scope="col" class="sort" data-sort="name">History</th>
+                                <th scope="col" class="sort" data-sort="name">Transaction</th>
                                 <th scope="col" class="sort" data-sort="name">Mobile Number</th>
                                 <th scope="col" class="sort" data-sort="status">Status</th>
                                 <th scope="col" class="sort">Action</th>
@@ -99,6 +100,7 @@
                                         </ul>
                                     </td>
                                     <td class="budget"><a href="{{ route('seller.history', $value->id) }}">history</a></td>
+                                    <td class="budget"><a href="{{ route('transaction_history', $value->id) }}">transaction</a></td>
                                     <td class="budget">{{ $value->telephone }}</td>
                                     <td class="budget"><span class="p-2  @if($value->status == 1) badge bg-success text-white  @else  badge bg-danger text-white @endif">{{  config('constant.status')[$value->status] }} </span></td>
 

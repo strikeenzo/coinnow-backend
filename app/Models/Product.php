@@ -30,7 +30,7 @@ class Product extends Model
         'manufacturer_id',  'price',  'tax_rate_id', 'date_available',
         'weight', 'weight_class_id', 'length', 'width', 'height', 'length_class_id',
         'points', 'min_price', 'max_price',
-        'sort_order', 'status', 'amount', 'power', 'change_amount'
+        'sort_order', 'status', 'amount', 'power', 'change_amount', 'range_quantity'
     ];
 
     public static $fillableValue = [
@@ -38,7 +38,7 @@ class Product extends Model
         'manufacturer_id',  'price',  'tax_rate_id', 'date_available',
         'weight', 'weight_class_id', 'length', 'width', 'height', 'length_class_id',
         'points', 'min_price', 'max_price',
-        'sort_order', 'status', 'amount', 'power', 'change_amount'
+        'sort_order', 'status', 'amount', 'power', 'change_amount', 'range_quantity'
     ];
 
     const ACTIVE = 1;

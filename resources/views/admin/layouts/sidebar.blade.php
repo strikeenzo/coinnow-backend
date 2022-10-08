@@ -720,6 +720,11 @@
                                         </a>
                                     </li>
                                     <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('transaction_history', 0) }}">
+                                            <i class="fa fa-list fa-lg"></i>  {{ __('Transaction') }}
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
                                         <a class="nav-link" href="{{ route('auto_price_history') }}">
                                             <i class="fa fa-list fa-lg"></i>  {{ __('Auto Price') }}
                                         </a>

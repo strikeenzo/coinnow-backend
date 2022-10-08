@@ -7,12 +7,11 @@
     <div class="header-body">
       <div class="row align-items-center py-4">
         <div class="col-lg-6 col-7">
-          <h6 class="h2 text-black d-inline-block mb-0">Auto Price Change history</h6>
+          <h6 class="h2 text-black d-inline-block mb-0">Transaction History</h6>
           <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
             <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
               <li class="breadcrumb-item"><a href={{ route('dashboard') }}><i class="fas fa-home"></i></a></li>
-              <li class="breadcrumb-item"><a href={{ route('auto_price_history') }}>Price Change</a></li>
-              <li class="breadcrumb-item">Detail</li>
+              <li class="breadcrumb-item">Transaction</li>
             </ol>
           </nav>
         </div>
@@ -30,25 +29,26 @@
             <table class="table align-items-center table-flush">
               <thead class="thead-dark">
                 <tr>
-                  <th scope="col" class="sort" data-sort="name">Product</th>
-                  <th scope="col" class="sort" data-sort="name">Price Change</th>
-                  <th scope="col" class="sort" data-sort="name">Profit/Loss</th>
-                  <th scope="col" class="sort" data-sort="name">Price</th>
-                  <th scope="col" class="sort" data-sort="name">Min Price</th>
-                  <th scope="col" class="sort" data-sort="name">Max Price</th>
-                  <th scope="col" class="sort" data-sort="name">created at</th>
+                  <th scope="col" class="sort" data-sort="name">Transaction history</th>
                 </tr>
               </thead>
               <tbody>
+                <tr>
                 @forelse($records as $key => $value)
                   <tr>
-                    <td>{{ $value->product ? $value->product->productDescription->name : '' }}</td>
-                    <td>{{ $value->price_change }}</td>
-                    <td>{{ $value->profit }}</td>
-                    <td>{{ $value->product->price }}</td>
-                    <td>{{ $value->product->min_price }}</td>
-                    <td>{{ $value->product->max_price }}</td>
-                    <td>{{ $value->created_at }}</td>
+                    <td>
+                      {{
+                        $value->type == 'send_coin' ?
+                        ($value->seller ? $value->seller->email : "Anyone{User Removed}")
+                        ." sent ".$value->amount." coins to "
+                        .($value->receiver ? $value->receiver->email : "Anyone{User Removed}")." "
+                        ." at ".date('yy/m/d h:i A', strtotime($value->created_at))
+                        : ($value->seller ? $value->seller->email : "Anyone{User Removed}")
+                        ." received ".$value->amount." coins from "
+                        .($value->sender ? $value->sender->email : "Anyone{User Removed}")." "
+                        ." at ".date('yy/m/d h:i A', strtotime($value->created_at))
+                      }}
+                    </td>
                   </tr>
                 @empty
                   <tr>
@@ -57,6 +57,8 @@
                     </td>
                   </tr>
                 @endforelse
+                  <td></td>
+                </tr>
               </tbody>
             </table>
           </div>
