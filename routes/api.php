@@ -47,6 +47,7 @@ Route::middleware(['checkKey'])->group(function () {
         Route::get('/getTrendingProductsV1', 'getTrendingProductsV1');
         Route::get('/getDODProducts', 'getDODProducts');
         Route::get('/getBannerImages', 'getBannerImages');
+        Route::get('/getButtonImages', 'getButtonImages');
         Route::get('/getCategories', 'getCategories');
         Route::get('/getManufacturers', 'getManufacturers');
         Route::get('/searchProducts', 'searchProducts');
