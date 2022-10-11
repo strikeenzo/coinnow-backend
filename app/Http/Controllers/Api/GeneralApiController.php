@@ -593,10 +593,10 @@ class GeneralApiController extends Controller
                   });
                 });
               }])
-              ->where(function($query) {
-                $query->where('sale', 1)
-                  ->orWhere('sale_date', '<=', Carbon::parse('-6 hours'));
-              })
+              // ->where(function($query) {
+              //   $query->where('sale', 1)
+              //     ->orWhere('sale_date', '<=', Carbon::parse('-6 hours'));
+              // })
               ->where('quantity', '>', 0)
               ->orderBy('created_at','ASC')
               ->paginate($this->defaultPaginate);
