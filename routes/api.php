@@ -56,6 +56,7 @@ Route::middleware(['checkKey'])->group(function () {
         Route::get('/productDetail/{id?}', 'productDetails');
         Route::post('/incrementProductView/{id?}', 'incrementProductView');
         Route::get('/getProductByCategory/{id?}', 'getProductByCategory');
+        Route::get('/getSecurityQuestions', 'getSecurityQuestions');
         Route::get(
             '/getProductByManufacturer/{id?}',
             'getProductByManufacturer'
@@ -74,6 +75,10 @@ Route::middleware(['checkKey'])->group(function () {
             Route::post('/register', 'register');
             Route::post('/login', 'login');
             Route::get('/logout', 'logout');
+            Route::post('/getQuestionsByEmail', 'getQuestionsByEmail');
+            Route::post('/checkQuestion', 'checkQuestion');
+            Route::post('/resetPasswordV1', 'resetPasswordV1');
+            Route::middleware(['sellerAuth'])->post('/setQuestion', 'setQuestion');
         });
 
         Route::middleware(['sellerAuth'])->group(function () {

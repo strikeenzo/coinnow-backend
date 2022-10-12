@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use App\Models\Seller;
 use App\Models\Product;
+use App\Models\UserQuestionRelation;
 use Validator;
 use Carbon\Carbon;
 use File;
@@ -175,5 +176,50 @@ class ApiSellerAuthController extends Controller
       return ['status' => 1,'message' => 'successfully logout!'];
   }
 
+  public function setQuestion(Request $request) {
+    $seller_id = $request->seller_id;
+    $question_id = $request->question_id;
+    $answer = $request->answer;
+    $relation = UserQuestionRelation::where('seller_id', $seller_id)->first();
+    if ($relation) {
+      $relation->answer = $answer;
+      $relation->question_id = $question_id;
+      $relation->save();
+    }
+    else {
+      UserQuestionRelation::create($request->all());
+    }
+    return ['status' => 1, 'message' => 'succefully created!'];
+  }
+
+  public function getQuestionsByEmail(Request $request) {
+    $seller = Seller::where('email', $request->email)->first();
+    return $seller->questions->first();
+  }
+
+  public function checkQuestion(Request $request) {
+    $seller = Seller::where('email', $request->email)->first();
+    $relation = UserQuestionRelation::where('seller_id', $seller->id)->first();
+    if ($relation->answer == $request->answer) {
+      return [
+        'status' => 1,
+        'message' => 'Answer is correct'
+      ];
+    } else {
+      return [
+        'status' => 0,
+        'message' => 'Answer is wrong'
+      ];
+    }
+  }
+
+  public function resetPasswordV1(Request $request) {
+    $arr = ['password' => Hash::make($request->password)];
+    $update = Seller::where('email',$request->email)->update($arr);
+    return [
+      'status' => 1,
+      'message' => 'Password Updated Correctly'
+    ];
+  }
 
 }

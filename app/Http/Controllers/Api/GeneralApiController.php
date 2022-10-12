@@ -35,6 +35,7 @@ use App\Models\AutoPriceChangeHistory;
 use App\Models\AutoPriceChangeDetail;
 use App\Models\CronJobTimer;
 use App\Models\ButtonImage;
+use App\Models\SecurityQuestion;
 use App\Events\MessageSent;
 
 use Carbon\Carbon;
@@ -946,6 +947,10 @@ class GeneralApiController extends Controller
 
     public function getButtonImages() {
       return ButtonImage::orderBy('type')->get();
+    }
+
+    public function getSecurityQuestions() {
+      return SecurityQuestion::get();
     }
 
   }

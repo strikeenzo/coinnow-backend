@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\UserQuestionRelation;
 use Validator;
 use Carbon\Carbon;
 use File;
@@ -257,9 +258,23 @@ class ApiAuthController extends Controller
 
 
   public function logout() {
-      Auth::guard('customer')->logout();
-      return ['status' => 1,'message' => 'successfully logout!'];
+    Auth::guard('customer')->logout();
+    return ['status' => 1,'message' => 'successfully logout!'];
   }
 
+  public function setQuestion(Request $request) {
+    $seller_id = $request->seller_id;
+    $question_id = $request->question_id;
+    $answer = $request->answer;
+    $relation = UserQuestionRelation::where('seller_id', $seller_id)->where('question_id', $question_id)->first();
+    if ($relation) {
+      $relation->answer = $answer;
+      $relation->save();
+    }
+    else {
+      UserQuestionRelation::create($request->all());
+    }
+    return ['status' => 1, 'message' => 'succefully created!'];
+  }
 
 }
