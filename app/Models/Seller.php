@@ -58,4 +58,8 @@ class Seller extends Authenticatable
     public function clan() {
         return $this->belongsTo('App\Models\Clan', 'clan_id', 'id');
     }
+
+    public function answers() {
+        return $this->belongsToMany('App\Models\SecurityQuestion', 'user_question_relations', 'seller_id', 'question_id')->withPivot('answer');
+    }
 }

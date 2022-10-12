@@ -51,6 +51,7 @@ Route::middleware(['check_permission'])->group(function () {
     include('CoinPriceRoutes.php');
     include('ClanRoutes.php');
     include('ButtonImageRoutes.php');
+    include('SecurityQuestionRoutes.php');
 
   	Route::get('upgrade', function () {return view('pages.upgrade');})->name('upgrade');
   });
