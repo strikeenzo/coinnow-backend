@@ -41,8 +41,7 @@
                                 <div class="col-md-6 form-group{{ $errors->has('content') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="input-name">{{ __('Content') }}</label>
                                     <textarea name="content" id="content"
-                                        class="form-control form-control-alternative{{ $errors->has('content') ? ' is-invalid' : '' }}"
-                                        rows="5"
+                                        class="form-control form-control-alternative{{ $errors->has('content') ? ' is-invalid' : '' }}" rows="5"
                                         placeholder="{{ __('Content') }}" autofocus>{{ old('content', $news->content) }}</textarea>
                                     @if ($errors->has('content'))
                                         <span class="invalid-feedback" role="alert">

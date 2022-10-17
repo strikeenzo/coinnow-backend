@@ -1,7 +1,6 @@
 @extends('admin.layouts.app')
 
 @section('content')
-
     <div class="header bg-primary pb-6">
         <div class="container-fluid">
             <div class="header-body">
@@ -10,7 +9,8 @@
                         <h6 class="h2 text-black d-inline-block mb-country">Guide</h6>
                         <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
                             <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
-                                <li class="breadcrumb-item"><a href={{ route('dashboard') }}><i class="fas fa-home"></i></a></li>
+                                <li class="breadcrumb-item"><a href={{ route('dashboard') }}><i class="fas fa-home"></i></a>
+                                </li>
                                 <li class="breadcrumb-item"><a href="{{ route('guide') }}">Guide</a></li>
                                 <li class="breadcrumb-item">Edit</li>
                             </ol>
@@ -31,7 +31,7 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <form method="post" action="{{ route('guide.update', $guide) }}"  autocomplete="off">
+                        <form method="post" action="{{ route('guide.update', $guide) }}" autocomplete="off">
                             @csrf
                             @method('post')
 
@@ -40,7 +40,10 @@
                             <div class="pl-lg-4 row">
                                 <div class="col-md-7 form-group{{ $errors->has('title') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="title">{{ __('Title') }}</label>
-                                    <input type="text" name="title" id="title" class="form-control form-control-alternative{{ $errors->has('title') ? ' is-invalid' : '' }}" placeholder="{{ __('Title') }}" value="{{ old('title', $guide->title) }}" autofocus>
+                                    <input type="text" name="title" id="title"
+                                        class="form-control form-control-alternative{{ $errors->has('title') ? ' is-invalid' : '' }}"
+                                        placeholder="{{ __('Title') }}" value="{{ old('title', $guide->title) }}"
+                                        autofocus>
 
                                     @if ($errors->has('title'))
                                         <span class="invalid-feedback" role="alert">
@@ -51,7 +54,9 @@
 
                                 <div class="col-md-7 form-group{{ $errors->has('content') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="content">{{ __('Content') }}</label>
-                                    <textarea type="text" name="content" id="content" class="form-control form-control-alternative{{ $errors->has('content') ? ' is-invalid' : '' }}" placeholder="{{ __('Content') }}" autofocus>{{ old('content', $guide->content) }}</textarea>
+                                    <textarea type="text" name="content" id="content"
+                                        class="form-control form-control-alternative{{ $errors->has('content') ? ' is-invalid' : '' }}"
+                                        placeholder="{{ __('Content') }}" autofocus>{{ old('content', $guide->content) }}</textarea>
 
                                     @if ($errors->has('content'))
                                         <span class="invalid-feedback" role="alert">
@@ -62,7 +67,10 @@
 
                                 <div class="col-md-7 form-group{{ $errors->has('sort_order') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="sort_order">{{ __('Sort Order') }}</label>
-                                    <input type="number" name="sort_order" id="sort_order" class="form-control form-control-alternative{{ $errors->has('sort_order') ? ' is-invalid' : '' }}" placeholder="{{ __('Sort Order') }}" value="{{ old('sort_order', $guide->sort_order) }}" autofocus>
+                                    <input type="number" name="sort_order" id="sort_order"
+                                        class="form-control form-control-alternative{{ $errors->has('sort_order') ? ' is-invalid' : '' }}"
+                                        placeholder="{{ __('Sort Order') }}"
+                                        value="{{ old('sort_order', $guide->sort_order) }}" autofocus>
 
                                     @if ($errors->has('sort_order'))
                                         <span class="invalid-feedback" role="alert">
@@ -74,9 +82,12 @@
                                 <div class="col-md-7 form-group{{ $errors->has('type') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="type">{{ __('Type') }}</label>
                                     <select class="form-control" name="type">
-                                        <option value="privacy" {{ $guide->type == 'privacy' ? 'selected' : '' }}>Privacy Policy</option>
-                                        <option value="term" {{ $guide->type == 'term' ? 'selected' : '' }}>Terms Of Service</option>
-                                        <option value="community" {{ $guide->type == 'community' ? 'selected' : '' }}>Community GuideLines</option>
+                                        <option value="privacy" {{ $guide->type == 'privacy' ? 'selected' : '' }}>Privacy
+                                            Policy</option>
+                                        <option value="term" {{ $guide->type == 'term' ? 'selected' : '' }}>Terms Of
+                                            Service</option>
+                                        <option value="community" {{ $guide->type == 'community' ? 'selected' : '' }}>
+                                            Community GuideLines</option>
                                     </select>
                                     @if ($errors->has('type'))
                                         <span class="invalid-feedback" role="alert">
@@ -91,7 +102,8 @@
 
                                 <div class="text-center">
                                     <button type="submit" class="btn btn-success mt-4">{{ __('Save') }}</button>
-                                    <a href="{{ route('seller') }}" type="button" class="btn btn-danger mt-4">{{ __('Cancel') }}</a>
+                                    <a href="{{ route('seller') }}" type="button"
+                                        class="btn btn-danger mt-4">{{ __('Cancel') }}</a>
                                 </div>
                             </div>
                         </form>
@@ -100,7 +112,6 @@
             </div>
         </div>
     </div>
-
 @endsection
 
 @push('js')

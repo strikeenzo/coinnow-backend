@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Seller;
-use App\Models\Message;
 use App\Events\MessageSent;
-use Validator;
-use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use App\Models\Message;
+use App\Models\Seller;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Validator;
 
 class ChatsApiController extends Controller
 {
@@ -139,7 +138,7 @@ class ChatsApiController extends Controller
             if ($message) {
                 array_push($messages, [
                     'message' => $message,
-                    'unread_message_count' => $unread_messages_count
+                    'unread_message_count' => $unread_messages_count,
                 ]);
             }
         }

@@ -11,16 +11,18 @@ class ProductAttributeGroup extends Model
     protected $fillable = ['name', 'status'];
     const ACTIVE = 1;
 
-
-    public function relationAttributes() {
-        return $this->hasMany('App\Models\ProductAttribute','group_id','id');
+    public function relationAttributes()
+    {
+        return $this->hasMany('App\Models\ProductAttribute', 'group_id', 'id');
     }
 
-    public static function getActivePluck() {
+    public static function getActivePluck()
+    {
         return self::active()->get()->pluck('name', 'id');
     }
 
-    public function scopeActive($query) {
+    public function scopeActive($query)
+    {
         return $query->where('status', self::ACTIVE);
     }
 }

@@ -28,7 +28,6 @@ $attributeCount=count($data['attributeIds']);
                     </div>
                     <div class="col-lg-6 col-5 text-right">
                         <a href="{{ route('product.add') }}" class="btn btn-lg btn-neutral fade-class"><i class="fas fa-plus fa-lg"></i> New</a>
-                        {{--                        <a href="#" class="btn btn-sm btn-neutral">Filters</a>--}}
                     </div>
                 </div>
             </div>

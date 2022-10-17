@@ -11,7 +11,8 @@ class CustomerComment extends Model
 
     protected $guarded = [];
 
-    public function customer() {
+    public function customer()
+    {
         return $this->belongsTo('App\Models\Seller', 'user_id', 'id');
     }
 }

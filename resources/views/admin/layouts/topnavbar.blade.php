@@ -2,7 +2,7 @@
 
     @if (session('success'))
         <div class="alert alert-success alert-dismissible fade show global-alert-message" role="alert">
-                {{ session('success') }}
+            {{ session('success') }}
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -11,7 +11,7 @@
 
     @if (session('error'))
         <div class="alert alert-danger alert-dismissible fade show global-alert-message" role="alert">
-                {{ session('error') }}
+            {{ session('error') }}
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -26,7 +26,8 @@
             <ul class="navbar-nav align-items-center  ml-md-auto ">
                 <li class="nav-item d-xl-none">
                     <!-- Sidenav toggler -->
-                    <div class="pr-3 sidenav-toggler sidenav-toggler-dark" data-action="sidenav-pin" data-target="#sidenav-main">
+                    <div class="pr-3 sidenav-toggler sidenav-toggler-dark" data-action="sidenav-pin"
+                        data-target="#sidenav-main">
                         <div class="sidenav-toggler-inner">
                             <i class="sidenav-toggler-line"></i>
                             <i class="sidenav-toggler-line"></i>
@@ -43,13 +44,15 @@
             </ul>
             <ul class="navbar-nav align-items-center  ml-auto ml-md-0 ">
                 <li class="nav-item dropdown">
-                    <a class="nav-link pr-0" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <a class="nav-link pr-0" href="#" role="button" data-toggle="dropdown" aria-haspopup="true"
+                        aria-expanded="false">
                         <div class="media align-items-center">
-                  <span class="avatar avatar-sm rounded-circle">
-                    <img alt="Image placeholder" src="{{ asset('assets') }}/img/theme/team-4.jpg">
-                  </span>
+                            <span class="avatar avatar-sm rounded-circle">
+                                <img alt="Image placeholder" src="{{ asset('assets') }}/img/theme/team-4.jpg">
+                            </span>
                             <div class="media-body  ml-2  d-none d-lg-block">
-                                <span class="mb-0 text-sm  font-weight-bold">{{Auth::user()->name }} (Role: {{ Auth::user()->getRoleNames()->first() }})</span>
+                                <span class="mb-0 text-sm  font-weight-bold">{{ Auth::user()->name }} (Role:
+                                    {{ Auth::user()->getRoleNames()->first() }})</span>
                             </div>
                         </div>
                     </a>
@@ -57,7 +60,7 @@
                         <div class="dropdown-header noti-title">
                             <h6 class="text-overflow m-0">Welcome!</h6>
                         </div>
-                        <a href="{{route('user.edit',['id' => Auth::user()->id])}}" class="dropdown-item">
+                        <a href="{{ route('user.edit', ['id' => Auth::user()->id]) }}" class="dropdown-item">
                             <i class="ni ni-single-02"></i>
                             <span>My profile</span>
                         </a>
@@ -74,7 +77,8 @@
                             <span>Support</span>
                         </a> -->
                         <div class="dropdown-divider"></div>
-                        <a href="{{ route('logout') }}" class="dropdown-item" onclick="event.preventDefault();
+                        <a href="{{ route('logout') }}" class="dropdown-item"
+                            onclick="event.preventDefault();
                     document.getElementById('logout-form').submit();">
                             <i class="ni ni-user-run"></i>
                             <span>{{ __('Logout') }}</span>

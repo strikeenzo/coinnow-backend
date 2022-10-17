@@ -15,7 +15,8 @@ class ProductDiscount extends Model
 //        $this->attributes['start_date'] = Carbon::parse($value)->toDateString();
 //    }
 //
-    public function getStartDateAttribute($value) {
+    public function getStartDateAttribute($value)
+    {
         return Carbon::parse($value)->format(config('constant.date_format')['custom_date_format']);
     }
 //
@@ -23,7 +24,8 @@ class ProductDiscount extends Model
 //        $this->attributes['end_date'] = Carbon::parse($value)->toDateString();
 //    }
 //
-    public function getEndDateAttribute($value) {
+    public function getEndDateAttribute($value)
+    {
         return Carbon::parse($value)->format(config('constant.date_format')['custom_date_format']);
     }
 }

@@ -1,15 +1,15 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\GeneralApiController;
 use App\Http\Controllers\Api\ApiAuthController;
 use App\Http\Controllers\Api\ApiSellerAuthController;
-use App\Http\Controllers\Api\CustomerApiController;
-use App\Http\Controllers\Api\SellerApiController;
 use App\Http\Controllers\Api\CartApiController;
-use App\Http\Controllers\Api\SellerCartApiController;
 use App\Http\Controllers\Api\ChatsApiController;
+use App\Http\Controllers\Api\CustomerApiController;
+use App\Http\Controllers\Api\GeneralApiController;
+use App\Http\Controllers\Api\SellerApiController;
+use App\Http\Controllers\Api\SellerCartApiController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,7 +20,7 @@ use App\Http\Controllers\Api\ChatsApiController;
 | routes are loaded by the RouteServiceProvider within a group which
 | is assigned the "api" middleware group. Enjoy building your API!
 |
-*/
+ */
 
 Route::middleware('auth:api')->get('/users', function (Request $request) {
     return $request->user();

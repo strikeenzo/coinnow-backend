@@ -3,23 +3,19 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Foundation\Auth\AuthenticatesUsers;
-//use Illuminate\Http\Request;
-use Request;
 use App\Models\Seller;
-use Carbon\Carbon;
-use DB;
+//use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Session;
-use Validator, Input, Redirect;
+use Redirect;
+use Request;
+use Validator;
 
 class SellerLoginController extends Controller
 {
 
     public function __construct()
     {
-      //  $this->middleware('guest:seller')->except('logout');
+        //  $this->middleware('guest:seller')->except('logout');
     }
 
     public function showLoginForm()
@@ -57,7 +53,7 @@ class SellerLoginController extends Controller
         // }
 
         if (Auth::guard('seller')->attempt($userdata)) {
-          //  Session::put('sellerDetail', $seller->find(Auth::guard('seller')->id()));
+            //  Session::put('sellerDetail', $seller->find(Auth::guard('seller')->id()));
 
             return redirect('seller/sellerDashboard');
         } else {
@@ -65,10 +61,10 @@ class SellerLoginController extends Controller
         }
     }
 
-
-    public function sellerlogout(){
-          Auth::guard('seller')->logout();
-          return redirect('seller');
+    public function sellerlogout()
+    {
+        Auth::guard('seller')->logout();
+        return redirect('seller');
 
     }
 }

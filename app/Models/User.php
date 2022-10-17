@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -12,7 +11,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
 
-    use Notifiable,HasRoles,SoftDeletes, HasPermissions;
+    use Notifiable, HasRoles, SoftDeletes, HasPermissions;
 
     /**
      * The attributes that are mass assignable.
@@ -20,7 +19,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password', 'mobile','status'
+        'name', 'email', 'password', 'mobile', 'status',
     ];
 
     /**
@@ -41,12 +40,14 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    public function hasPermissions($currentRouteName) {
+    public function hasPermissions($currentRouteName)
+    {
 
         return $this->hasPermissionTo("customer.add");
     }
 
-    public function seller() {
+    public function seller()
+    {
         return $this->hasMany('App\Models\Seller', 'user_id', 'id');
     }
 

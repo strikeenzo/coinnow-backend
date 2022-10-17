@@ -9,11 +9,12 @@ class Banner extends Model
 {
     protected $table = 'banner';
     use SoftDeletes;
-    protected $fillable = ['name','status'];
+    protected $fillable = ['name', 'status'];
 
 //    protected $primaryKey = 'category_id';
 
-    public function images() {
-        return $this->hasMany('App\Models\BannerImage','banner_id','id');
+    public function images()
+    {
+        return $this->hasMany('App\Models\BannerImage', 'banner_id', 'id');
     }
 }

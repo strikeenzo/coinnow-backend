@@ -9,14 +9,15 @@ class Page extends Model
 {
     use SoftDeletes;
     protected $table = 'pages';
-    protected $fillable = ['title','heading','image','description'];
+    protected $fillable = ['title', 'heading', 'image', 'description'];
 
-
-    public static function getActivePluck() {
-        return self::active()->pluck('title','heading','image','description','id');
+    public static function getActivePluck()
+    {
+        return self::active()->pluck('title', 'heading', 'image', 'description', 'id');
     }
 
-    public function scopeActive($query) {
+    public function scopeActive($query)
+    {
         return $query->where('status', self::ACTIVE);
     }
 }

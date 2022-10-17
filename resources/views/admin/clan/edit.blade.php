@@ -38,13 +38,14 @@
                             @method('post')
                             <h6 class="heading-small text-muted mb-4">{{ __('Edit Clan') }}</h6>
                             <div class="pl-lg-4 row flex justify-content-center">
-                                <input name='product_id' value="{{ $clan->product_id }}" hidden/>
-                                
+                                <input name='product_id' value="{{ $clan->product_id }}" hidden />
+
                                 <div class="col-md-7 form-group{{ $errors->has('title') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="input-name">{{ __('Title') }}</label>
                                     <input name="title" id="title"
                                         class="form-control form-control-alternative{{ $errors->has('title') ? ' is-invalid' : '' }}"
-                                        placeholder="{{ __('title') }}" autofocus value="{{ old('title', $clan->title) }}" />
+                                        placeholder="{{ __('title') }}" autofocus
+                                        value="{{ old('title', $clan->title) }}" />
                                     @if ($errors->has('title'))
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $errors->first('title') }}</strong>
@@ -55,7 +56,8 @@
                                     <label class="form-control-label" for="input-name">{{ __('Price') }}</label>
                                     <input name="price" id="price" type="number"
                                         class="form-control form-control-alternative{{ $errors->has('price') ? ' is-invalid' : '' }}"
-                                        placeholder="{{ __('price') }}" autofocus value="{{ old('price', $clan->price) }}" />
+                                        placeholder="{{ __('price') }}" autofocus
+                                        value="{{ old('price', $clan->price) }}" />
                                     @if ($errors->has('price'))
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $errors->first('price') }}</strong>
@@ -66,7 +68,8 @@
                                     <label class="form-control-label" for="input-name">{{ __('Fee') }}</label>
                                     <input name="fee" id="fee" type="number"
                                         class="form-control form-control-alternative{{ $errors->has('fee') ? ' is-invalid' : '' }}"
-                                        placeholder="{{ __('fee') }}" autofocus value="{{ old('fee', $clan->fee) }}" />
+                                        placeholder="{{ __('fee') }}" autofocus
+                                        value="{{ old('fee', $clan->fee) }}" />
                                     @if ($errors->has('fee'))
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $errors->first('fee') }}</strong>
@@ -77,7 +80,8 @@
                                     <label class="form-control-label" for="input-name">{{ __('Discount') }}</label>
                                     <input name="discount" id="discount" type="number"
                                         class="form-control form-control-alternative{{ $errors->has('discount') ? ' is-invalid' : '' }}"
-                                        placeholder="{{ __('discount') }}" autofocus value="{{ old('discount', $clan->discount) }}" />
+                                        placeholder="{{ __('discount') }}" autofocus
+                                        value="{{ old('discount', $clan->discount) }}" />
                                     @if ($errors->has('discount'))
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $errors->first('discount') }}</strong>
@@ -86,8 +90,12 @@
                                 </div>
                                 <div class="col-md-7 form-group{{ $errors->has('main_image') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="input-email">{{ __('Image') }}</label>
-                                    <input type="file" name="main_image" id="input-email" class="form-control form-control-alternative{{ $errors->has('main_image') ? ' is-invalid' : '' }}" value="{{ old('main_image', '') }}" >
-                                    <a target="_blank" href="{{ url(config('constant.file_path.clan')."/$clan->image") }}">View Image</a>
+                                    <input type="file" name="main_image" id="input-email"
+                                        class="form-control form-control-alternative{{ $errors->has('main_image') ? ' is-invalid' : '' }}"
+                                        value="{{ old('main_image', '') }}">
+                                    <a target="_blank"
+                                        href="{{ url(config('constant.file_path.clan') . "/$clan->image") }}">View
+                                        Image</a>
 
                                     @if ($errors->has('main_image'))
                                         <span class="invalid-feedback" role="alert">

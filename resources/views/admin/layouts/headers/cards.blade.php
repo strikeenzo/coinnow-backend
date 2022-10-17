@@ -9,7 +9,7 @@
                             <div class="row">
                                 <div class="col">
                                     <h5 class="card-title text-uppercase text-muted mb-0">Total Orders</h5>
-                                    <span class="h2 font-weight-bold mb-0">{{$data['totalOrders']}}</span>
+                                    <span class="h2 font-weight-bold mb-0">{{ $data['totalOrders'] }}</span>
                                 </div>
                                 <div class="col-auto">
                                     <div class="icon icon-shape bg-danger text-white rounded-circle shadow">
@@ -26,7 +26,8 @@
                             <div class="row">
                                 <div class="col">
                                     <h5 class="card-title text-uppercase text-muted mb-0">Total Sales</h5>
-                                    <span class="h2 font-weight-bold mb-0">${{number_format($data['totalSale'],2)}}</span>
+                                    <span
+                                        class="h2 font-weight-bold mb-0">${{ number_format($data['totalSale'], 2) }}</span>
                                 </div>
                                 <div class="col-auto">
                                     <div class="icon icon-shape bg-yellow text-white rounded-circle shadow">
@@ -43,7 +44,7 @@
                             <div class="row">
                                 <div class="col">
                                     <h5 class="card-title text-uppercase text-muted mb-0">Total Customers</h5>
-                                    <span class="h2 font-weight-bold mb-0">{{$data['totalCustomer']}}</span>
+                                    <span class="h2 font-weight-bold mb-0">{{ $data['totalCustomer'] }}</span>
                                 </div>
                                 <div class="col-auto">
                                     <div class="icon icon-shape bg-warning text-white rounded-circle shadow">
@@ -62,7 +63,8 @@
                             <div class="row">
                                 <div class="col">
                                     <h5 class="card-title text-uppercase text-muted mb-0">Total Products</h5>
-                                    <span class="h2 font-weight-bold mb-0">{{number_format($data['totalProduct'])}}</span>
+                                    <span
+                                        class="h2 font-weight-bold mb-0">{{ number_format($data['totalProduct']) }}</span>
                                 </div>
                                 <div class="col-auto">
                                     <div class="icon icon-shape bg-info text-white rounded-circle shadow">
@@ -79,8 +81,10 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col">
-                                    <h5 class="card-title text-uppercase text-muted mb-0">Total Balance Of All Users</h5>
-                                    <span class="h2 font-weight-bold mb-0">{{number_format($data['totalBalanceOfCustomer'])}}</span>
+                                    <h5 class="card-title text-uppercase text-muted mb-0">Total Balance Of All Users
+                                    </h5>
+                                    <span
+                                        class="h2 font-weight-bold mb-0">{{ number_format($data['totalBalanceOfCustomer']) }}</span>
                                 </div>
                                 <div class="col-auto">
                                     <div class="icon icon-shape bg-info text-white rounded-circle shadow">
@@ -98,7 +102,8 @@
                             <div class="row">
                                 <div class="col">
                                     <h5 class="card-title text-uppercase text-muted mb-0">Total Inventory Worth</h5>
-                                    <span class="h2 font-weight-bold mb-0">{{number_format($data['totalInventoryBalance'])}}</span>
+                                    <span
+                                        class="h2 font-weight-bold mb-0">{{ number_format($data['totalInventoryBalance']) }}</span>
                                 </div>
                                 <div class="col-auto">
                                     <div class="icon icon-shape bg-info text-white rounded-circle shadow">

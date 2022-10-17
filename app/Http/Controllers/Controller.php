@@ -12,5 +12,4 @@ class Controller extends BaseController
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
     public $defaultPaginate = 10;
 
-
 }

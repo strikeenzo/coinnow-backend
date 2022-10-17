@@ -10,7 +10,8 @@ class PaymentHistory extends Model
     use HasFactory;
     protected $guarded = [];
 
-    public function seller() {
+    public function seller()
+    {
         return $this->belongsTo('App\Models\Seller', 'user_id', 'id');
     }
 }

@@ -11,19 +11,23 @@ class Clan extends Model
 
     protected $guarded = [];
 
-    public function owner() {
+    public function owner()
+    {
         return $this->belongsTo('App\Models\Seller', 'owner_id', 'id');
     }
 
-    public function members() {
+    public function members()
+    {
         return $this->hasMany('App\Models\Seller', 'clan_id', 'id');
     }
 
-    public function product() {
+    public function product()
+    {
         return $this->belongsTo('App\Models\Product', 'product_id', 'id');
     }
 
-    public function history() {
+    public function history()
+    {
         return $this->hasMany('App\Models\Notification', 'clan_id', 'id');
     }
 }

@@ -1,7 +1,6 @@
 @extends('admin.layouts.app')
 
 @section('content')
-
     <div class="header bg-primary pb-6">
         <div class="container-fluid">
             <div class="header-body">
@@ -10,7 +9,8 @@
                         <h6 class="h2 text-black d-inline-block mb-0">Product</h6>
                         <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
                             <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
-                                <li class="breadcrumb-item"><a href={{ route('dashboard') }}><i class="fas fa-home"></i></a></li>
+                                <li class="breadcrumb-item"><a href={{ route('dashboard') }}><i class="fas fa-home"></i></a>
+                                </li>
                                 <li class="breadcrumb-item"><a href="{{ route('product') }}">Product</a></li>
                                 <li class="breadcrumb-item">Envrionment</li>
                             </ol>
@@ -30,7 +30,7 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <form method="post" action="{{ route('env.update') }}"  autocomplete="off">
+                        <form method="post" action="{{ route('env.update') }}" autocomplete="off">
                             @csrf
                             @method('post')
 
@@ -39,7 +39,8 @@
                             <div class="pl-lg-4 row">
                                 <div class="col-md-4 form-group{{ $errors->has('min_time') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="min_time">{{ __('Min Time') }}</label>
-                                    <input type="text" name="min_time" id="min_time" class="form-control" value="{{ $min_time }}" autofocus>
+                                    <input type="text" name="min_time" id="min_time" class="form-control"
+                                        value="{{ $min_time }}" autofocus>
 
                                     @if ($errors->has('min_time'))
                                         <span class="invalid-feedback" role="alert">
@@ -50,7 +51,8 @@
 
                                 <div class="col-md-4 form-group{{ $errors->has('max_time') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="max_time">{{ __('Max Time') }}</label>
-                                    <input type="text" name="max_time" id="max_time" class="form-control" value="{{ $max_time }}" autofocus>
+                                    <input type="text" name="max_time" id="max_time" class="form-control"
+                                        value="{{ $max_time }}" autofocus>
 
                                     @if ($errors->has('max_time'))
                                         <span class="invalid-feedback" role="alert">
@@ -73,14 +75,11 @@
             </div>
         </div>
     </div>
-
-
 @endsection
 
 @push('js')
-
     <script>
-        $(document).on('click','.deleteData',function(){
+        $(document).on('click', '.deleteData', function() {
             let alertMessage = "Are You Sure,You Want to Delete it"
             let routeUrl = $(this).data('url')
             deleteData(alertMessage, routeUrl)

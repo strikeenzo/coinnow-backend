@@ -9,34 +9,38 @@ use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         $name = $request->get('name', '');
 
-        $records = Role::select('id','name')
-            ->when($name != '', function($q) use($name) {
-                $q->where('name','like',"%$name%");
+        $records = Role::select('id', 'name')
+            ->when($name != '', function ($q) use ($name) {
+                $q->where('name', 'like', "%$name%");
             })->paginate($this->defaultPaginate);
-        return view('admin.role.index',['records' => $records]);
+        return view('admin.role.index', ['records' => $records]);
     }
 
-    public function add() {
+    public function add()
+    {
         return view('admin.role.add');
     }
 
-    protected function validateData ($request) {
+    protected function validateData($request)
+    {
 
         $uniqueRuleCode = 'unique:roles';
 
-        if(Route::currentRouteName() == 'role.update') {
-            $uniqueRuleCode = 'unique:roles,name,'.$request->id;
+        if (Route::currentRouteName() == 'role.update') {
+            $uniqueRuleCode = 'unique:roles,name,' . $request->id;
         }
 
         $this->validate($request, [
-            'name' => ['required', 'string', 'max:255', $uniqueRuleCode]
+            'name' => ['required', 'string', 'max:255', $uniqueRuleCode],
         ]);
     }
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
 
         $this->validateData($request);
 
@@ -47,18 +51,19 @@ class RoleController extends Controller
 
         $role->givePermissionTo($permissions);
 
-        return redirect(route('role'))->with('success','Role Created Successfully');
+        return redirect(route('role'))->with('success', 'Role Created Successfully');
     }
 
-    protected function getPermissionArray($requestedPermissions) :array {
+    protected function getPermissionArray($requestedPermissions): array
+    {
 
         $permissions = [];
 
         foreach ($requestedPermissions as $key => $value) {
             $name = $value;
-            $singlePermissionArray = explode('.',$value);
-            if(count($singlePermissionArray) ) {
-                $name = setPermissionValue($singlePermissionArray[0],$singlePermissionArray[1]);
+            $singlePermissionArray = explode('.', $value);
+            if (count($singlePermissionArray)) {
+                $name = setPermissionValue($singlePermissionArray[0], $singlePermissionArray[1]);
             }
             $permissions[] = $name;
         }
@@ -66,18 +71,20 @@ class RoleController extends Controller
         return $permissions;
     }
 
-    public function edit($id) {
+    public function edit($id)
+    {
 
         $role = Role::findOrFail($id);
         $permissions = $role->permissions->pluck('name')->toArray();
 
-        return view('admin.role.edit',[
+        return view('admin.role.edit', [
             'data' => $role,
             'permissions' => $permissions,
         ]);
     }
 
-    public function update(Request $request,$id) {
+    public function update(Request $request, $id)
+    {
 
         $this->validateData($request);
 
@@ -87,11 +94,12 @@ class RoleController extends Controller
         $data->syncPermissions($permissions);
         $data->fill($request->only('name'))->save();
 
-        return redirect(route('role'))->with('success','Role Updated Successfully');
+        return redirect(route('role'))->with('success', 'Role Updated Successfully');
     }
 
-    public function delete($id) {
-        if(! $data = OrderStatus::whereId($id)->first()) {
+    public function delete($id)
+    {
+        if (!$data = OrderStatus::whereId($id)->first()) {
             return redirect()->back()->with('error', 'Something went wrong');
         }
 

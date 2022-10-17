@@ -39,10 +39,8 @@
                             <div class="pl-lg-4 row flex justify-content-center">
                                 <div class="col-md-7 form-group{{ $errors->has('question') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="input-email">{{ __('Question') }}</label>
-                                    <textarea
-                                      name="question"
-                                      class="form-control form-control-alternative{{ $errors->has('question') ? ' is-invalid' : '' }}"
-                                    >{{ old('question', '') }}</textarea>
+                                    <textarea name="question"
+                                        class="form-control form-control-alternative{{ $errors->has('question') ? ' is-invalid' : '' }}">{{ old('question', '') }}</textarea>
                                     @if ($errors->has('question'))
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $errors->first('question') }}</strong>

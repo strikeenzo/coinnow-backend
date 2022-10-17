@@ -40,7 +40,8 @@
                             <div class="pl-lg-4 row flex justify-content-center">
                                 <div class="col-md-7 form-group">
                                     <label class="form-control-label" for="type">{{ __('Type') }}</label>
-                                    <select class="form-control {{ $errors->has('type') ? ' is-invalid' : '' }}" name="type">
+                                    <select class="form-control {{ $errors->has('type') ? ' is-invalid' : '' }}"
+                                        name="type">
                                         <option value="">Select</option>
                                         <option value="1">Clan</option>
                                         <option value="2">Inventory</option>
@@ -48,14 +49,16 @@
                                         <option value="4">Job Offers</option>
                                     </select>
                                     @if ($errors->has('type'))
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $errors->first('type') }}</strong>
-                                    </span>
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $errors->first('type') }}</strong>
+                                        </span>
                                     @endif
                                 </div>
                                 <div class="col-md-7 form-group{{ $errors->has('main_image') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="input-email">{{ __('Image') }}</label>
-                                    <input type="file" name="main_image" id="input-email" class="form-control form-control-alternative{{ $errors->has('main_image') ? ' is-invalid' : '' }}" value="{{ old('main_image', '') }}" >
+                                    <input type="file" name="main_image" id="input-email"
+                                        class="form-control form-control-alternative{{ $errors->has('main_image') ? ' is-invalid' : '' }}"
+                                        value="{{ old('main_image', '') }}">
 
                                     @if ($errors->has('main_image'))
                                         <span class="invalid-feedback" role="alert">

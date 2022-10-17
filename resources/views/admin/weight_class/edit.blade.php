@@ -1,7 +1,6 @@
 @extends('admin.layouts.app')
 
 @section('content')
-
     <div class="header bg-primary pb-6">
         <div class="container-fluid">
             <div class="header-body">
@@ -10,15 +9,17 @@
                         <h6 class="h2 text-black d-inline-block mb-country">Weight Class</h6>
                         <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
                             <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
-                                <li class="breadcrumb-item"><a href={{ route('dashboard') }}><i class="fas fa-home"></i></a></li>
+                                <li class="breadcrumb-item"><a href={{ route('dashboard') }}><i class="fas fa-home"></i></a>
+                                </li>
                                 <li class="breadcrumb-item"><a href="{{ route('weight-class') }}">Weight Class</a></li>
                                 <li class="breadcrumb-item">Edit</li>
                             </ol>
                         </nav>
                     </div>
                     <div class="col-lg-6 col-5 text-right">
-                        <a href="{{ route('weight-class.add') }}" class="btn btn-lg btn-neutral fade-class"><i class="fas fa-plus fa-lg"></i> New</a>
-                        {{--                        <a href="#" class="btn btn-sm btn-neutral">Filters</a>--}}
+                        <a href="{{ route('weight-class.add') }}" class="btn btn-lg btn-neutral fade-class"><i
+                                class="fas fa-plus fa-lg"></i> New</a>
+                        {{--                        <a href="#" class="btn btn-sm btn-neutral">Filters</a> --}}
                     </div>
                 </div>
             </div>
@@ -35,7 +36,8 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <form method="post" action="{{ route('weight-class.update',['id' => $data->id]) }}"  autocomplete="off">
+                        <form method="post" action="{{ route('weight-class.update', ['id' => $data->id]) }}"
+                            autocomplete="off">
                             @csrf
                             @method('post')
 
@@ -44,7 +46,9 @@
                             <div class="pl-lg-4 row">
                                 <div class="col-md-4 form-group{{ $errors->has('name') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="input-name">{{ __('Name') }}</label>
-                                    <input type="text" name="name" id="input-name" class="form-control form-control-alternative{{ $errors->has('name') ? ' is-invalid' : '' }}" placeholder="{{ __('Name') }}" value="{{ old('name', $data->name) }}" autofocus>
+                                    <input type="text" name="name" id="input-name"
+                                        class="form-control form-control-alternative{{ $errors->has('name') ? ' is-invalid' : '' }}"
+                                        placeholder="{{ __('Name') }}" value="{{ old('name', $data->name) }}" autofocus>
 
                                     @if ($errors->has('name'))
                                         <span class="invalid-feedback" role="alert">
@@ -55,7 +59,10 @@
 
                                 <div class="col-md-4 form-group{{ $errors->has('value') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="value">{{ __('Value') }}</label>
-                                    <input type="text" name="value" id="input-name" class="form-control form-control-alternative{{ $errors->has('value') ? ' is-invalid' : '' }}" placeholder="{{ __('Value') }}" value="{{ old('value', $data->value) }}" autofocus>
+                                    <input type="text" name="value" id="input-name"
+                                        class="form-control form-control-alternative{{ $errors->has('value') ? ' is-invalid' : '' }}"
+                                        placeholder="{{ __('Value') }}" value="{{ old('value', $data->value) }}"
+                                        autofocus>
 
                                     @if ($errors->has('value'))
                                         <span class="invalid-feedback" role="alert">
@@ -66,7 +73,10 @@
 
                                 <div class="col-md-4 form-group{{ $errors->has('unit') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="value">{{ __('Unit') }}</label>
-                                    <input type="text" name="unit" id="unit" class="form-control form-control-alternative{{ $errors->has('unit') ? ' is-invalid' : '' }}" placeholder="{{ __('Unit') }}" value="{{ old('unit', $data->unit) }}" autofocus>
+                                    <input type="text" name="unit" id="unit"
+                                        class="form-control form-control-alternative{{ $errors->has('unit') ? ' is-invalid' : '' }}"
+                                        placeholder="{{ __('Unit') }}" value="{{ old('unit', $data->unit) }}"
+                                        autofocus>
                                     @if ($errors->has('unit'))
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $errors->first('unit') }}</strong>
@@ -77,8 +87,9 @@
                                 <div class="col-md-4 form-group{{ $errors->has('status') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="status">{{ __('Status') }}</label>
                                     <select class="form-control" name="status">
-                                        @foreach(config('constant.status') as $key => $value )
-                                            <option value={{ $key }} {{ $key == $data->status ? 'selected' : '' }}>{{ $value }}</option>
+                                        @foreach (config('constant.status') as $key => $value)
+                                            <option value={{ $key }}
+                                                {{ $key == $data->status ? 'selected' : '' }}>{{ $value }}</option>
                                         @endforeach
                                     </select>
                                     @if ($errors->has('status'))
@@ -94,7 +105,8 @@
 
                                 <div class="text-center">
                                     <button type="submit" class="btn btn-success mt-4">{{ __('Save') }}</button>
-                                    <a href="{{ route('weight-class') }}" type="button" class="btn btn-danger mt-4">{{ __('Cancel') }}</a>
+                                    <a href="{{ route('weight-class') }}" type="button"
+                                        class="btn btn-danger mt-4">{{ __('Cancel') }}</a>
                                 </div>
                             </div>
                         </form>
@@ -103,7 +115,6 @@
             </div>
         </div>
     </div>
-
 @endsection
 
 @push('js')

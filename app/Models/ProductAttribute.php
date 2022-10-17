@@ -11,7 +11,8 @@ class ProductAttribute extends Model
     use SoftDeletes;
     protected $fillable = ['name', 'group_id', 'status'];
 
-    public function productGroup() {
-        return $this->belongsTo('App\Models\ProductAttributeGroup','group_id','id');
+    public function productGroup()
+    {
+        return $this->belongsTo('App\Models\ProductAttributeGroup', 'group_id', 'id');
     }
 }

@@ -17,9 +17,9 @@
                         </nav>
                     </div>
                     <!-- <div class="col-lg-6 col-5 text-right">
-                                            <a href="{{ route('trade.add') }}" class="btn btn-lg btn-neutral fade-class"><i class="fas fa-plus fa-lg"></i> New</a>
-                                            {{-- <a href="#" class="btn btn-sm btn-neutral">Filters</a> --}}
-                                        </div> -->
+                                                        <a href="{{ route('trade.add') }}" class="btn btn-lg btn-neutral fade-class"><i class="fas fa-plus fa-lg"></i> New</a>
+                                                        {{-- <a href="#" class="btn btn-sm btn-neutral">Filters</a> --}}
+                                                    </div> -->
                 </div>
             </div>
         </div>
@@ -48,21 +48,23 @@
                                     <ul class="dropdown-menu mr-4"
                                         style="transform: translateX(20px); height: 200px; overflow: auto;">
                                         @forelse ($records as $key => $value)
-                                            <li class="text-center p-2" product-image="{{ $value->product->image }}"
-                                                product-id="{{ $value->product_id }}" origin-id={{ $value->product_id }}>
-                                                <a href="#">{{ $value->product->productDescription->name }}</a>
-                                            </li>
+                                            @if ($value->product)
+                                                <li class="text-center p-2" product-image="{{ $value->product->image }}"
+                                                    product-id="{{ $value->product_id }}"
+                                                    origin-id={{ $value->product_id }}>
+                                                    <a href="#">{{ $value->product->productDescription->name }}</a>
+                                                </li>
+                                            @endif
                                         @empty
                                         @endforelse
                                     </ul>
                                 </div>
                                 <div class="col-md-6 form-group{{ $errors->has('quantity_trade') ? ' has-danger' : '' }}">
-                                    <label class="form-control-label"
-                                        for="input-name">{{ __('Product Quantity') }}</label>
+                                    <label class="form-control-label" for="input-name">{{ __('Product Quantity') }}</label>
                                     <input type="number" min="1" name="quantity_trade" id="quantity_trade"
                                         class="form-control form-control-alternative"
-                                        value="{{ old('quantity_trade', '') }}"
-                                        placeholder="{{ __('Product Quantity') }}" value="" autofocus>
+                                        value="{{ old('quantity_trade', '') }}" placeholder="{{ __('Product Quantity') }}"
+                                        value="" autofocus>
                                     @if ($errors->has('quantity_trade'))
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $errors->first('quantity_trade') }}</strong>
@@ -127,10 +129,8 @@
                                         </span>
                                     @endif
                                 </div>
-                                <input type="hidden" value="" name="product_image"
-                                    id="product_image" />
-                                    <input type="hidden" value="" name="origin_id"
-                                    id="origin_id" />
+                                <input type="hidden" value="" name="product_image" id="product_image" />
+                                <input type="hidden" value="" name="origin_id" id="origin_id" />
                                 <input type="hidden" value="" name="product_id" id="product_id" />
                                 <div class="text-center">
                                     <button type="submit" class="btn btn-success mt-4">{{ __('Save') }}</button>

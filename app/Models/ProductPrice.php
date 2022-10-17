@@ -9,9 +9,10 @@ class ProductPrice extends Model
 {
     use SoftDeletes;
     protected $table = 'product_price';
-    protected $fillable = ['product_id','price', 'date'];
+    protected $fillable = ['product_id', 'price', 'date'];
 
-    public function product() {
+    public function product()
+    {
         return $this->belongsTo('App\Models\Product', 'product_id', 'id');
     }
 }

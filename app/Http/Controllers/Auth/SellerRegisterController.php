@@ -3,19 +3,14 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Foundation\Auth\AuthenticatesUsers;
-use Illuminate\Http\Request;
+use App\Traits\CustomFileTrait;
 //use Request;
-use App\Models\Seller;
 use Carbon\Carbon;
 use DB;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Session;
-use Validator, Input, Redirect;
-use App\Traits\CustomFileTrait;
-
-
+use Redirect;
+use Validator;
 
 class SellerRegisterController extends Controller
 {
@@ -51,29 +46,28 @@ class SellerRegisterController extends Controller
     public function register(Request $request)
     {
 
+        $validator = Validator::make($request->all(), [
+            "firstname" => 'required|max:255',
+            'email' => 'required|max:255',
+            'password' => 'required|max:255',
+            'telephone' => 'required|max:10',
+            'store_name' => 'required|max:255',
+            'store_address' => 'required',
+            'store_logo' => 'required',
+            'store_state' => 'required',
+            'store_zipcode' => 'required',
+        ]);
 
-      $validator = Validator::make($request->all(),[
-                 "firstname" => 'required|max:255',
-                 'email'         => 'required|max:255',
-                 'password'     => 'required|max:255',
-                 'telephone'     => 'required|max:10',
-                 'store_name'         => 'required|max:255',
-                 'store_address'      => 'required',
-                 'store_logo'  => 'required',
-                 'store_state' => 'required',
-                 'store_zipcode' => 'required',
-              ]);
-
-        if($validator->fails()) {
-          return redirect()->back()->withErrors($validator)->withInput();
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
         $this->createDirectory($this->path);
-        if(isset($request->store_logo) && $request->store_logo != ''){
-            $request->store_logo = $this->saveCustomFileAndGetImageName(request()->file('store_logo'),$this->path);
+        if (isset($request->store_logo) && $request->store_logo != '') {
+            $request->store_logo = $this->saveCustomFileAndGetImageName(request()->file('store_logo'), $this->path);
         }
-        if(isset($request->store_banner) && $request->store_banner != ''){
-            $request->store_logo = $this->saveCustomFileAndGetImageName(request()->file('store_banner'),$this->path);
+        if (isset($request->store_banner) && $request->store_banner != '') {
+            $request->store_logo = $this->saveCustomFileAndGetImageName(request()->file('store_banner'), $this->path);
         }
 
         $inputArray = array(
