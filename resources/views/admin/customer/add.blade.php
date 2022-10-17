@@ -1,7 +1,6 @@
 @extends('admin.layouts.app')
 
 @section('content')
-
     <div class="header bg-primary pb-6">
         <div class="container-fluid">
             <div class="header-body">
@@ -10,15 +9,17 @@
                         <h6 class="h2 text-black d-inline-block mb-country">Customer</h6>
                         <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
                             <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
-                                <li class="breadcrumb-item"><a href={{ route('dashboard') }}><i class="fas fa-home"></i></a></li>
+                                <li class="breadcrumb-item"><a href={{ route('dashboard') }}><i class="fas fa-home"></i></a>
+                                </li>
                                 <li class="breadcrumb-item"><a href="{{ route('customer') }}">Customer</a></li>
                                 <li class="breadcrumb-item">Add</li>
                             </ol>
                         </nav>
                     </div>
                     <div class="col-lg-6 col-5 text-right">
-                        <a href="{{ route('customer.add') }}" class="btn btn-lg btn-neutral fade-class"><i class="fas fa-plus fa-lg"></i> New</a>
-                        {{--                        <a href="#" class="btn btn-sm btn-neutral">Filters</a>--}}
+                        <a href="{{ route('customer.add') }}" class="btn btn-lg btn-neutral fade-class"><i
+                                class="fas fa-plus fa-lg"></i> New</a>
+                        {{--                        <a href="#" class="btn btn-sm btn-neutral">Filters</a> --}}
                     </div>
                 </div>
             </div>
@@ -35,7 +36,7 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <form method="post" action="{{ route('customer.store') }}"  autocomplete="off">
+                        <form method="post" action="{{ route('customer.store') }}" autocomplete="off">
                             @csrf
                             @method('post')
 
@@ -44,7 +45,9 @@
                             <div class="pl-lg-4 row">
                                 <div class="col-md-4 form-group{{ $errors->has('firstname') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="firstname">{{ __('First Name') }}</label>
-                                    <input type="text" name="firstname" id="firstname" class="form-control form-control-alternative{{ $errors->has('firstname') ? ' is-invalid' : '' }}" placeholder="{{ __('First Name') }}" value="{{ old('firstname', '') }}" autofocus>
+                                    <input type="text" name="firstname" id="firstname"
+                                        class="form-control form-control-alternative{{ $errors->has('firstname') ? ' is-invalid' : '' }}"
+                                        placeholder="{{ __('First Name') }}" value="{{ old('firstname', '') }}" autofocus>
 
                                     @if ($errors->has('firstname'))
                                         <span class="invalid-feedback" role="alert">
@@ -55,7 +58,9 @@
 
                                 <div class="col-md-4 form-group{{ $errors->has('lastname') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="lastname">{{ __('Last Name') }}</label>
-                                    <input type="text" name="lastname" id="lastname" class="form-control form-control-alternative{{ $errors->has('lastname') ? ' is-invalid' : '' }}" placeholder="{{ __('Last Name') }}" value="{{ old('lastname', '') }}" autofocus>
+                                    <input type="text" name="lastname" id="lastname"
+                                        class="form-control form-control-alternative{{ $errors->has('lastname') ? ' is-invalid' : '' }}"
+                                        placeholder="{{ __('Last Name') }}" value="{{ old('lastname', '') }}" autofocus>
 
                                     @if ($errors->has('lastname'))
                                         <span class="invalid-feedback" role="alert">
@@ -66,7 +71,9 @@
 
                                 <div class="col-md-4 form-group{{ $errors->has('email') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="email">{{ __('Email') }}</label>
-                                    <input type="text" name="email" id="email" class="form-control form-control-alternative{{ $errors->has('email') ? ' is-invalid' : '' }}" placeholder="{{ __('Email') }}" value="{{ old('email', '') }}" autofocus>
+                                    <input type="text" name="email" id="email"
+                                        class="form-control form-control-alternative{{ $errors->has('email') ? ' is-invalid' : '' }}"
+                                        placeholder="{{ __('Email') }}" value="{{ old('email', '') }}" autofocus>
 
                                     @if ($errors->has('email'))
                                         <span class="invalid-feedback" role="alert">
@@ -78,7 +85,10 @@
 
                                 <div class="col-md-4 form-group{{ $errors->has('telephone') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="telephone">{{ __('Mobile Number') }}</label>
-                                    <input type="text" name="telephone" id="telephone" class="form-control form-control-alternative{{ $errors->has('telephone') ? ' is-invalid' : '' }}" placeholder="{{ __('Mobile Number') }}" value="{{ old('telephone', '') }}" autofocus>
+                                    <input type="text" name="telephone" id="telephone"
+                                        class="form-control form-control-alternative{{ $errors->has('telephone') ? ' is-invalid' : '' }}"
+                                        placeholder="{{ __('Mobile Number') }}" value="{{ old('telephone', '') }}"
+                                        autofocus>
 
                                     @if ($errors->has('telephone'))
                                         <span class="invalid-feedback" role="alert">
@@ -89,7 +99,9 @@
 
                                 <div class="col-md-4 form-group{{ $errors->has('password') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="password">{{ __('Password') }}</label>
-                                    <input type="password" name="password" id="password" class="form-control form-control-alternative{{ $errors->has('password') ? ' is-invalid' : '' }}" placeholder="{{ __('Password') }}" value="{{ old('password', '') }}" autofocus>
+                                    <input type="password" name="password" id="password"
+                                        class="form-control form-control-alternative{{ $errors->has('password') ? ' is-invalid' : '' }}"
+                                        placeholder="{{ __('Password') }}" value="{{ old('password', '') }}" autofocus>
 
                                     @if ($errors->has('password'))
                                         <span class="invalid-feedback" role="alert">
@@ -100,7 +112,9 @@
 
                                 <div class="col-md-4 form-group{{ $errors->has('confirmed') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="confirmed">{{ __('Confirmed') }}</label>
-                                    <input type="password" name="confirmed" id="confirmed" class="form-control form-control-alternative{{ $errors->has('confirmed') ? ' is-invalid' : '' }}" placeholder="{{ __('Confirmed') }}" value="{{ old('confirmed', '') }}" autofocus>
+                                    <input type="password" name="confirmed" id="confirmed"
+                                        class="form-control form-control-alternative{{ $errors->has('confirmed') ? ' is-invalid' : '' }}"
+                                        placeholder="{{ __('Confirmed') }}" value="{{ old('confirmed', '') }}" autofocus>
 
                                     @if ($errors->has('confirmed'))
                                         <span class="invalid-feedback" role="alert">
@@ -112,7 +126,7 @@
                                 <div class="col-md-4 form-group{{ $errors->has('status') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="status">{{ __('Status') }}</label>
                                     <select class="form-control" name="status">
-                                        @foreach(config('constant.status') as $key => $value )
+                                        @foreach (config('constant.status') as $key => $value)
                                             <option value={{ $key }}>{{ $value }}</option>
                                         @endforeach
                                     </select>
@@ -129,7 +143,8 @@
 
                                 <div class="text-center">
                                     <button type="submit" class="btn btn-success mt-4">{{ __('Save') }}</button>
-                                    <a href="{{ route('customer') }}" type="button" class="btn btn-danger mt-4">{{ __('Cancel') }}</a>
+                                    <a href="{{ route('customer') }}" type="button"
+                                        class="btn btn-danger mt-4">{{ __('Cancel') }}</a>
                                 </div>
                             </div>
                         </form>
@@ -138,7 +153,6 @@
             </div>
         </div>
     </div>
-
 @endsection
 
 @push('js')

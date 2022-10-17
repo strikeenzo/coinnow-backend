@@ -10,10 +10,10 @@ class Review extends Model
 //customer
     use SoftDeletes;
     protected $table = 'review';
-    protected $fillable = ['customer_id','text','rating','status'];
+    protected $fillable = ['customer_id', 'text', 'rating', 'status'];
 
-
-    public function customer() {
+    public function customer()
+    {
         return $this->belongsTo('App\Models\Customer');
     }
 
@@ -26,6 +26,5 @@ class Review extends Model
     {
         return "{$this->firstname} {$this->lastname}";
     }
-
 
 }

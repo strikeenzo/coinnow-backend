@@ -10,15 +10,17 @@ class Shipping extends Model
 
     use SoftDeletes;
     protected $table = 'shipping';
-    protected $fillable = ['name','shipping_charge','status'];
+    protected $fillable = ['name', 'shipping_charge', 'status'];
 
     const ACTIVE = 1;
 
-    public static function getActivePluck() {
-        return self::select('name','shipping_charge','id')->active()->pluck('name','shipping_charge','id');
+    public static function getActivePluck()
+    {
+        return self::select('name', 'shipping_charge', 'id')->active()->pluck('name', 'shipping_charge', 'id');
     }
 
-    public function scopeActive($query) {
+    public function scopeActive($query)
+    {
         return $query->where('status', self::ACTIVE);
     }
 }

@@ -7,11 +7,10 @@
                 <div class="row justify-content-center">
                     <div class="col-lg-5 col-md-6">
                         <h1 class="text-white">{{ __('Welcome.') }}</h1>
-                        <a href="{{url('/admin/login')}}">Admin Login</a>
+                        <a href="{{ url('/admin/login') }}">Admin Login</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
 @endsection

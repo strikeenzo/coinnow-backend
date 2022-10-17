@@ -16,10 +16,6 @@
                             </ol>
                         </nav>
                     </div>
-                    <!-- <div class="col-lg-6 col-5 text-right">
-                                            <a href="{{ route('trade.add') }}" class="btn btn-lg btn-neutral fade-class"><i class="fas fa-plus fa-lg"></i> New</a>
-                                            {{-- <a href="#" class="btn btn-sm btn-neutral">Filters</a> --}}
-                                        </div> -->
                 </div>
             </div>
         </div>
@@ -45,8 +41,7 @@
                                 <div class="col-md-6 form-group{{ $errors->has('content') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="input-name">{{ __('Content') }}</label>
                                     <textarea name="content" id="content"
-                                        class="form-control form-control-alternative{{ $errors->has('content') ? ' is-invalid' : '' }}"
-                                        rows="5"
+                                        class="form-control form-control-alternative{{ $errors->has('content') ? ' is-invalid' : '' }}" rows="5"
                                         placeholder="{{ __('Content') }}" autofocus>{{ old('content', '') }}</textarea>
                                     @if ($errors->has('content'))
                                         <span class="invalid-feedback" role="alert">

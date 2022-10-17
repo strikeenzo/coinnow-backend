@@ -23,7 +23,8 @@ return [
         'product_option' => 'uploads/product_option',
         'store' => 'uploads/store',
         'user' => 'uploads/user',
-        'clan' => 'uploads/clan'
+        'clan' => 'uploads/clan',
+        'button' => 'uploads/button'
     ],
 
     'date_format' => [

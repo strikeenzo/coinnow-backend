@@ -1,15 +1,15 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\GeneralApiController;
 use App\Http\Controllers\Api\ApiAuthController;
 use App\Http\Controllers\Api\ApiSellerAuthController;
-use App\Http\Controllers\Api\CustomerApiController;
-use App\Http\Controllers\Api\SellerApiController;
 use App\Http\Controllers\Api\CartApiController;
-use App\Http\Controllers\Api\SellerCartApiController;
 use App\Http\Controllers\Api\ChatsApiController;
+use App\Http\Controllers\Api\CustomerApiController;
+use App\Http\Controllers\Api\GeneralApiController;
+use App\Http\Controllers\Api\SellerApiController;
+use App\Http\Controllers\Api\SellerCartApiController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,7 +20,7 @@ use App\Http\Controllers\Api\ChatsApiController;
 | routes are loaded by the RouteServiceProvider within a group which
 | is assigned the "api" middleware group. Enjoy building your API!
 |
-*/
+ */
 
 Route::middleware('auth:api')->get('/users', function (Request $request) {
     return $request->user();
@@ -47,6 +47,7 @@ Route::middleware(['checkKey'])->group(function () {
         Route::get('/getTrendingProductsV1', 'getTrendingProductsV1');
         Route::get('/getDODProducts', 'getDODProducts');
         Route::get('/getBannerImages', 'getBannerImages');
+        Route::get('/getButtonImages', 'getButtonImages');
         Route::get('/getCategories', 'getCategories');
         Route::get('/getManufacturers', 'getManufacturers');
         Route::get('/searchProducts', 'searchProducts');
@@ -55,6 +56,7 @@ Route::middleware(['checkKey'])->group(function () {
         Route::get('/productDetail/{id?}', 'productDetails');
         Route::post('/incrementProductView/{id?}', 'incrementProductView');
         Route::get('/getProductByCategory/{id?}', 'getProductByCategory');
+        Route::get('/getSecurityQuestions', 'getSecurityQuestions');
         Route::get(
             '/getProductByManufacturer/{id?}',
             'getProductByManufacturer'
@@ -73,6 +75,10 @@ Route::middleware(['checkKey'])->group(function () {
             Route::post('/register', 'register');
             Route::post('/login', 'login');
             Route::get('/logout', 'logout');
+            Route::post('/getQuestionsByEmail', 'getQuestionsByEmail');
+            Route::post('/checkQuestion', 'checkQuestion');
+            Route::post('/resetPasswordV1', 'resetPasswordV1');
+            Route::middleware(['sellerAuth'])->post('/setQuestion', 'setQuestion');
         });
 
         Route::middleware(['sellerAuth'])->group(function () {

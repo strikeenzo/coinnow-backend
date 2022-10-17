@@ -16,7 +16,7 @@ class ForgotPasswordController extends Controller
     | includes a Traits which assists in sending these notifications from
     | your application to your users. Feel free to explore this Traits.
     |
-    */
+     */
 
     use SendsPasswordResetEmails;
 }

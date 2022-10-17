@@ -9,15 +9,16 @@ class TaxRate extends Model
 {
     use SoftDeletes;
     protected $table = 'tax_rate';
-    protected $fillable = ['name','rate','type','status'];
+    protected $fillable = ['name', 'rate', 'type', 'status'];
     const ACTIVE = 1;
 
-
-    public static function getActivePluck() {
-        return self::select('name','id')->active()->pluck('name','id');
+    public static function getActivePluck()
+    {
+        return self::select('name', 'id')->active()->pluck('name', 'id');
     }
 
-    public function scopeActive($query) {
+    public function scopeActive($query)
+    {
         return $query->where('status', self::ACTIVE);
     }
 }

@@ -17,13 +17,14 @@
                         </nav>
                     </div>
                     <div class="col-lg-6 col-5 text-right">
-                        <a href="{{ route('news.add') }}" class="btn btn-lg btn-neutral fade-class"><i class="fas fa-plus fa-lg"></i> New</a>
+                        <a href="{{ route('news.add') }}" class="btn btn-lg btn-neutral fade-class"><i
+                                class="fas fa-plus fa-lg"></i> New</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-        <!-- Page content -->
+    <!-- Page content -->
     <div class="container-fluid ">
         <div class="row">
             <div class="col">
@@ -34,42 +35,45 @@
                     <div class="table-responsive">
                         <table class="table align-items-center table-flush">
                             <thead class="thead-dark">
-                            <tr>
-                                <th scope="col" class="sort" data-sort="name">No</th>
-                                <th scope="col" class="sort" data-sort="name">Content</th>
-                                <th scope="col" class="sort" data-sort="status">Created At</th>
-                                <th scope="col" class="sort" data-sort="status">Updated At</th>
-                                <th scope="col" class="sort">Action</th>
-                            </tr>
+                                <tr>
+                                    <th scope="col" class="sort" data-sort="name">No</th>
+                                    <th scope="col" class="sort" data-sort="name">Content</th>
+                                    <th scope="col" class="sort" data-sort="status">Created At</th>
+                                    <th scope="col" class="sort" data-sort="status">Updated At</th>
+                                    <th scope="col" class="sort">Action</th>
+                                </tr>
                             </thead>
                             <tbody class="list">
 
-                            @forelse($records as $key => $value)
-
-                                <tr>
-                                    <td class="budget">{{ $key + 1 }}</td>
-                                    <td class="budget">{{ $value->content }}</td>
-                                    <td class="budget">{{ $value->created_at }}</td>
-                                    <td class="budget">{{ $value->updated_at }}</td>
-                                    <td class="">
-                                        <div class="dropdown">
-                                            <a class="btn btn-sm btn-icon-only text-dark" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                <i class="fas fa-ellipsis-v"></i>
-                                            </a>
-                                            <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
-                                                <a class="dropdown-item" href="{{ route('news.edit', $value->id) }}">Edit</a>
-                                                <a class="dropdown-item deleteData" type="button"  href="javascript:void(0)" data-url="{{ route('news.delete',$value->id) }}">Delete</a>
+                                @forelse($records as $key => $value)
+                                    <tr>
+                                        <td class="budget">{{ $key + 1 }}</td>
+                                        <td class="budget">{{ $value->content }}</td>
+                                        <td class="budget">{{ $value->created_at }}</td>
+                                        <td class="budget">{{ $value->updated_at }}</td>
+                                        <td class="">
+                                            <div class="dropdown">
+                                                <a class="btn btn-sm btn-icon-only text-dark" href="#" role="button"
+                                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
+                                                    <a class="dropdown-item"
+                                                        href="{{ route('news.edit', $value->id) }}">Edit</a>
+                                                    <a class="dropdown-item deleteData" type="button"
+                                                        href="javascript:void(0)"
+                                                        data-url="{{ route('news.delete', $value->id) }}">Delete</a>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="10" class="budget">
-                                        No Record Found
-                                    </td>
-                                </tr>
-                            @endforelse
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="10" class="budget">
+                                            No Record Found
+                                        </td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -84,13 +88,13 @@
 @endsection
 
 @push('js')
-  <script>
-    $(document).on('click','.deleteData',function(){
-      console.error('here')
-      let alertMessage = "Are You Sure,You want to delete it?"
-      let routeUrl = $(this).data('url')
-      console.error(routeUrl)
-      deleteData(alertMessage, routeUrl)
-    })
-  </script>
+    <script>
+        $(document).on('click', '.deleteData', function() {
+            console.error('here')
+            let alertMessage = "Are You Sure,You want to delete it?"
+            let routeUrl = $(this).data('url')
+            console.error(routeUrl)
+            deleteData(alertMessage, routeUrl)
+        })
+    </script>
 @endpush

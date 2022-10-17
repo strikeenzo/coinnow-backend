@@ -17,7 +17,7 @@ class ConfirmPasswordController extends Controller
     | uses a simple Traits to include the behavior. You're free to explore
     | this Traits and override any functions that require customization.
     |
-    */
+     */
 
     use ConfirmsPasswords;
 

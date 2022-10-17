@@ -32,22 +32,18 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <form method="post" action="{{ route('coinPrice.update', $price->id) }}" enctype="multipart/form-data"
-                            autocomplete="off">
+                        <form method="post" action="{{ route('coinPrice.update', $price->id) }}"
+                            enctype="multipart/form-data" autocomplete="off">
                             @csrf
                             @method('post')
                             <h6 class="heading-small text-muted mb-4">{{ __('Edit the Coin Price') }}</h6>
                             <div class="pl-lg-4 row flex justify-content-center">
                                 <div class="col-md-7 form-group{{ $errors->has('title') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="input-name">{{ __('Title') }}</label>
-                                    <input
-                                        name="title"
-                                        id="title"
+                                    <input name="title" id="title"
                                         class="form-control form-control-alternative{{ $errors->has('title') ? ' is-invalid' : '' }}"
-                                        placeholder="{{ __('Title') }}"
-                                        autofocus
-                                        value="{{ old('title', $price->title) }}"
-                                    />
+                                        placeholder="{{ __('Title') }}" autofocus
+                                        value="{{ old('title', $price->title) }}" />
                                     @if ($errors->has('title'))
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $errors->first('title') }}</strong>
@@ -56,15 +52,10 @@
                                 </div>
                                 <div class="col-md-7 form-group{{ $errors->has('coin') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="input-name">{{ __('Coin') }}</label>
-                                    <input
-                                        name="coin"
-                                        id="coin"
-                                        type="number"
+                                    <input name="coin" id="coin" type="number"
                                         class="form-control form-control-alternative{{ $errors->has('coin') ? ' is-invalid' : '' }}"
-                                        placeholder="{{ __('Coin') }}"
-                                        autofocus
-                                        value="{{ old('coin', $price->coin) }}"
-                                    />
+                                        placeholder="{{ __('Coin') }}" autofocus
+                                        value="{{ old('coin', $price->coin) }}" />
                                     @if ($errors->has('coin'))
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $errors->first('coin') }}</strong>
@@ -73,15 +64,10 @@
                                 </div>
                                 <div class="col-md-7 form-group{{ $errors->has('price') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="input-name">{{ __('Price') }}</label>
-                                    <input
-                                        name="price"
-                                        id="price"
-                                        type="number"
+                                    <input name="price" id="price" type="number"
                                         class="form-control form-control-alternative{{ $errors->has('price') ? ' is-invalid' : '' }}"
-                                        placeholder="{{ __('Price') }}"
-                                        autofocus
-                                        value="{{ old('price', $price->price) }}"
-                                    />
+                                        placeholder="{{ __('Price') }}" autofocus
+                                        value="{{ old('price', $price->price) }}" />
                                     @if ($errors->has('price'))
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $errors->first('price') }}</strong>

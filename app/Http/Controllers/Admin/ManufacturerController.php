@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Manufacturer;
 use App\Traits\CustomFileTrait;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 
@@ -24,10 +23,10 @@ class ManufacturerController extends Controller
     {
 //        dd($request->all());
         $name = $request->get('name', '');
-        $records = Manufacturer::select('id','name','image','sort_order', 'status')
+        $records = Manufacturer::select('id', 'name', 'image', 'sort_order', 'status')
             ->when($name != '', function ($q) use ($name) {
-                    $q->where('name', 'like', "%$name%");
-            })->orderBy('created_at','DESC')->paginate($this->defaultPaginate);
+                $q->where('name', 'like', "%$name%");
+            })->orderBy('created_at', 'DESC')->paginate($this->defaultPaginate);
         return view('admin.manufacturer.index', ['records' => $records]);
     }
 
@@ -84,10 +83,11 @@ class ManufacturerController extends Controller
 
     public function delete($id)
     {
-        if (!$data = Manufacturer::whereId($id)->first())
+        if (!$data = Manufacturer::whereId($id)->first()) {
             return redirect()->back()->with('error', 'Something went wrong');
+        }
 
-        $this->removeOldImage($data->image,$this->path);
+        $this->removeOldImage($data->image, $this->path);
         $data->delete();
         return redirect(route('manufacturer'))->with('success', 'Manufacturer  Deleted Successfully');
     }

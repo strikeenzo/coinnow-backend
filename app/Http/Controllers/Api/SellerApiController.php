@@ -3,26 +3,22 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Clan;
+use App\Models\CoinPrice;
+use App\Models\EnvironmentalVariable;
 use App\Models\Notification;
-use App\Models\Product;
+use App\Models\PaymentHistory;
+use App\Models\ProductSellerRelation;
+use App\Models\Seller;
 use App\Models\Special;
 use App\Models\Trade;
-use Illuminate\Http\Request;
-use App\Traits\CustomFileTrait;
-use App\Models\Seller;
-use App\Models\ProductSellerRelation;
-use App\Models\EnvironmentalVariable;
-use App\Models\CoinPrice;
 use App\Models\User;
-use App\Models\PaymentHistory;
-use App\Models\Clan;
-use Illuminate\Support\Facades\Date;
-use Validator;
-use File;
-use DB;
+use App\Traits\CustomFileTrait;
 use Auth;
-use Hash;
 use Carbon\Carbon;
+use Hash;
+use Illuminate\Http\Request;
+use Validator;
 
 class SellerApiController extends Controller
 {
@@ -39,29 +35,28 @@ class SellerApiController extends Controller
         });
     }
 
-
     public function getSellerDetails()
     {
         $specials = Special::select('quantity', 'product_id')->where('seller_id', $this->getUser->id)->where('quantity', '>', 0)->with('product:id,image,points', 'productDescription:id,name,product_id')->get();
-        $user = Seller::where('id', $this->getUser->id)->with(['clan' => function($query) {
-            $query->with(['product' => function($query) {
+        $user = Seller::where('id', $this->getUser->id)->with(['clan' => function ($query) {
+            $query->with(['product' => function ($query) {
                 $query->with('productDescription');
             }, 'owner', 'members']);
         }])->first();
         //$specials = Special::join('product', 'product.id', '=', 'special.product_id')->get();
-        return  ['status' => 1, 'data' => $user, 'specials' => $specials];
+        return ['status' => 1, 'data' => $user, 'specials' => $specials];
     }
 
     public function getSellers(Request $request)
     {
         try {
-            $phone_number = $request->get('q', '');
-            $records = Seller::where('telephone', 'like', empty($phone_number) ? "" : "%$phone_number%")
+            $email = $request->get('q', '');
+            $records = Seller::where('email', 'like', empty($email) ? "" : "%$email%")
                 ->where('id', '!=', $this->getUser->id)
                 ->paginate($this->defaultPaginate);
 
             return ['status' => 1, 'data' => $records];
-        } catch (\Exception $e) {
+        } catch (\Exception$e) {
             return ['status' => 0, 'message' => 'Error'];
         }
     }
@@ -88,7 +83,7 @@ class SellerApiController extends Controller
         }
         $seller_balance = $this->getUser->balance;
         $receiver_balance = $receiver->balance;
-        
+
         $notification_data = array(
             'type' => 'send_coin',
             'seller_id' => $this->getUser->id,
@@ -124,8 +119,8 @@ class SellerApiController extends Controller
                 ->with('receiver:id,telephone,firstname,lastname,email')
                 ->with('sender:id,telephone,firstname,lastname,email')
                 ->with('product:seller_id')
-                ->with(['clan' => function($query) {
-                    $query->with(['owner' => function($query) {
+                ->with(['clan' => function ($query) {
+                    $query->with(['owner' => function ($query) {
                         $query->select('id', 'firstname', 'lastname');
                     }]);
                 }])
@@ -135,7 +130,7 @@ class SellerApiController extends Controller
                 ->where('seller_id', $this->getUser->id)
                 ->orderBy('notification.created_at', 'DESC')->paginate($this->defaultPaginate);
             return ['status' => 1, 'data' => $history];
-        } catch (\Exception $e) {
+        } catch (\Exception$e) {
             return ['status' => 0, 'message' => $e];
         }
     }
@@ -149,7 +144,7 @@ class SellerApiController extends Controller
                 ->whereIn('type', ['item_buy', 'special_item_buy'])
                 ->orderBy('notification.created_at', 'DESC')->paginate($this->defaultPaginate);
             return ['status' => 1, 'data' => $history];
-        } catch (\Exception $e) {
+        } catch (\Exception$e) {
             return ['status' => 0, 'message' => $e];
         }
     }
@@ -164,7 +159,7 @@ class SellerApiController extends Controller
                 ->whereIn('type', ['item_sell', 'special_item_sell', 'item_sell_auto', 'special_item_sell_auto'])
                 ->orderBy('notification.created_at', 'DESC')->paginate($this->defaultPaginate);
             return ['status' => 1, 'data' => $history];
-        } catch (\Exception $e) {
+        } catch (\Exception$e) {
             return ['status' => 0, 'message' => $e];
         }
     }
@@ -175,8 +170,8 @@ class SellerApiController extends Controller
             $history = Notification::select('id', 'quantity', 'type', 'seen', 'created_at', 'product_id', 'seller_id', 'sender_id', 'receiver_id', 'amount', 'price', 'balance', 'clan_id')
                 ->with('receiver:id,telephone,firstname,lastname,email')
                 ->with('sender:id,telephone,firstname,lastname,email')
-                ->with(['clan' => function($query) {
-                    $query->with(['owner' => function($query) {
+                ->with(['clan' => function ($query) {
+                    $query->with(['owner' => function ($query) {
                         $query->select('id', 'firstname', 'lastname');
                     }]);
                 }])
@@ -184,21 +179,22 @@ class SellerApiController extends Controller
                     $query->select('id', 'image')->with('productDescription:id,name,product_id');
                 }))
                 ->where('seller_id', $this->getUser->id)
-                // ->whereIn('type', ['send_coin', 'receive_coin', 'item_sell', 'special_item_sell', 'item_sell_auto', 'special_item_sell_auto', 'item_buy', 'special_item_buy', 'trade'])
+            // ->whereIn('type', ['send_coin', 'receive_coin', 'item_sell', 'special_item_sell', 'item_sell_auto', 'special_item_sell_auto', 'item_buy', 'special_item_buy', 'trade'])
                 ->orderBy('notification.created_at', 'DESC')->orderBy('notification.id', 'DESC')->paginate($this->defaultPaginate);
             return ['status' => 1, 'data' => $history];
-        } catch (\Exception $e) {
+        } catch (\Exception$e) {
             return ['status' => 0, 'message' => $e];
         }
     }
 
-    public function getClanHistoryById($id) {
+    public function getClanHistoryById($id)
+    {
         try {
             $history = Notification::where('clan_id', $id)->select('id', 'quantity', 'type', 'seen', 'created_at', 'product_id', 'seller_id', 'sender_id', 'receiver_id', 'amount', 'price', 'balance', 'clan_id')
                 ->with('receiver:id,telephone,firstname,lastname,email')
                 ->with('sender:id,telephone,firstname,lastname,email')
-                ->with(['clan' => function($query) {
-                    $query->with(['owner' => function($query) {
+                ->with(['clan' => function ($query) {
+                    $query->with(['owner' => function ($query) {
                         $query->select('id', 'firstname', 'lastname');
                     }]);
                 }])
@@ -206,13 +202,13 @@ class SellerApiController extends Controller
                     $query->select('id', 'image')->with('productDescription:id,name,product_id');
                 }))
                 ->where('type', '!=', 'clan_join')
-                // ->whereIn('type', ['send_coin', 'receive_coin', 'item_sell', 'special_item_sell', 'item_sell_auto', 'special_item_sell_auto', 'item_buy', 'special_item_buy', 'trade'])
+            // ->whereIn('type', ['send_coin', 'receive_coin', 'item_sell', 'special_item_sell', 'item_sell_auto', 'special_item_sell_auto', 'item_buy', 'special_item_buy', 'trade'])
                 ->orderBy('notification.created_at', 'DESC')->orderBy('notification.id', 'DESC')->paginate($this->defaultPaginate);
             return ['status' => 1, 'data' => $history];
-        } catch (\Exception $e) {
+        } catch (\Exception$e) {
             return ['status' => 0, 'message' => $e];
         }
-    } 
+    }
 
     //search products
     public function searchProducts(Request $request)
@@ -222,14 +218,14 @@ class SellerApiController extends Controller
             // error_log($this->getUser->id);
 
             $records = $this->getUser->products()->wherePivot('quantity', '>', 0)
-            ->select('product.id', 'product.image', 'product.sort_order', 'product.status', 'product.updated_at', 'product.created_at', 'product.price', 'product.deleted_at')
-            ->with('productDescription:name,id,product_id', 'special:product_id,price,start_date,end_date')
-            ->when(!empty($keyword), function ($q) use ($keyword) {
-                $q->whereHas('productDescription', function ($q) use ($keyword) {
-                    $q->where('name', 'like', "%$keyword%");
-                });
-            })
-            ->get();;
+                ->select('product.id', 'product.image', 'product.sort_order', 'product.status', 'product.updated_at', 'product.created_at', 'product.price', 'product.deleted_at')
+                ->with('productDescription:name,id,product_id', 'special:product_id,price,start_date,end_date')
+                ->when(!empty($keyword), function ($q) use ($keyword) {
+                    $q->whereHas('productDescription', function ($q) use ($keyword) {
+                        $q->where('name', 'like', "%$keyword%");
+                    });
+                })
+                ->get();
             // $records = Product::select('id', 'image', 'price', 'quantity', 'sort_order', 'status', 'sale', 'created_at', 'deleted_at', 'updated_at')
             //     ->where('quantity', '>', 0)
             //     ->where('seller_id', $this->getUser->id)
@@ -243,7 +239,7 @@ class SellerApiController extends Controller
             //     ->get();
 
             return ['status' => 1, 'data' => $records];
-        } catch (\Exception $e) {
+        } catch (\Exception$e) {
             return ['status' => 0, 'message' => 'Error'];
         }
     }
@@ -251,11 +247,12 @@ class SellerApiController extends Controller
     public function getTrades(Request $request)
     {
         // $product_id = Product::where('seller_id', $this->getUser->id)->first();
-        $trade = Trade::select('id', 'quantity', 'min_reward', 'origin_id','max_reward', 'quantity_trade', 'image', 'product_id', 'product_image', 'coin_quantity')->where('quantity', '>', 0)->get();
+        $trade = Trade::select('id', 'quantity', 'min_reward', 'origin_id', 'max_reward', 'quantity_trade', 'image', 'product_id', 'product_image', 'coin_quantity')->where('quantity', '>', 0)->get();
         return ['status' => 1, 'data' => $trade];
     }
 
-    public function trade(Request $request) {   
+    public function trade(Request $request)
+    {
 
         // error_log($request->get('product_id'));
         $product = ProductSellerRelation::where('seller_id', $this->getUser->id)->where('product_id', $request->get('product_id'))->where('quantity', '>', 0)->get();
@@ -263,8 +260,7 @@ class SellerApiController extends Controller
         if (count($product) == 0) {
             return ['status' => 3];
         }
-        if ($product[0]['quantity'] < $request->get('quantity_trade'))
-        {
+        if ($product[0]['quantity'] < $request->get('quantity_trade')) {
             return ['status' => 2];
         }
 
@@ -287,7 +283,7 @@ class SellerApiController extends Controller
                 return ['status' => 4];
             }
             return ['status' => 1];
-        } catch(\Exception $e) {
+        } catch (\Exception$e) {
             error_log($e->getMessage());
             return ['status' => 0, 'error' => $e->getMessage()];
         }
@@ -301,29 +297,28 @@ class SellerApiController extends Controller
             $validator = Validator::make(
                 $request->all(),
                 [
-                    'firstname'          => 'required|regex:/^[\pL\s\-]+$/u',
-                    'telephone'     => 'required|max:11',
+                    'firstname' => 'required|regex:/^[\pL\s\-]+$/u',
+                    'telephone' => 'required|max:11',
                 ]
             );
 
             if ($validator->fails()) {
                 $message = $this->one_validation_message($validator);
-                return  ['status' => 0, 'message' => $message];
+                return ['status' => 0, 'message' => $message];
             }
 
             $update = Seller::where('id', $this->getUser->id)->update($request->all());
             $getNew = Seller::select('firstname', 'lastname', 'email', 'store_name', 'telephone')->findOrFail($this->getUser->id);
-            return  ['status' => 1, 'message' => 'Profile updated successfully!', 'data' => $getNew];
-        } catch (\Exception $e) {
-            return  ['status' => 0, 'message' => 'Error'];
+            return ['status' => 1, 'message' => 'Profile updated successfully!', 'data' => $getNew];
+        } catch (\Exception$e) {
+            return ['status' => 0, 'message' => 'Error'];
         }
     }
 
     public function updateProduct(Request $request, $id)
     {
 
-
-        return  ['status' => 1, 'message' => 'You can not change the price'];
+        return ['status' => 1, 'message' => 'You can not change the price'];
 
         //       $product = Product::whereId($id)->first();
         //       if (!empty($product)) {
@@ -343,12 +338,12 @@ class SellerApiController extends Controller
             $product->sell_date = $sell_date;
             $product->sale = 1;
             $product->save();
-            $notification = new Notification(['product_id' => $request->get('product_id'), 'quantity' => $request->get('quantity'), 'type' => 'item_sell_list', 'seller_id' => $this->getUser->id, 'price' => $request->get('price'),]);
+            $notification = new Notification(['product_id' => $request->get('product_id'), 'quantity' => $request->get('quantity'), 'type' => 'item_sell_list', 'seller_id' => $this->getUser->id, 'price' => $request->get('price')]);
             $notification->save();
-            return  ['status' => 1, 'message' => $notification];
+            return ['status' => 1, 'message' => $notification];
         }
-        return  ['status' => 0, 'message' => 'Product update failed!'];
-        
+        return ['status' => 0, 'message' => 'Product update failed!'];
+
     }
 
     public function changePassword(Request $request)
@@ -358,13 +353,13 @@ class SellerApiController extends Controller
             $validator = Validator::make(
                 $request->all(),
                 [
-                    'current_password'     => 'required',
-                    'new_password'     => 'required',
+                    'current_password' => 'required',
+                    'new_password' => 'required',
                 ]
             );
             if ($validator->fails()) {
                 $message = $this->one_validation_message($validator);
-                return  ['status' => 0, 'message' => $message];
+                return ['status' => 0, 'message' => $message];
             }
 
             $current_password = $this->getUser->password;
@@ -372,28 +367,30 @@ class SellerApiController extends Controller
                 $seller = Seller::find($this->getUser->id);
                 $seller->password = Hash::make($request->new_password);
                 $seller->save();
-                return  ['status' => 1, 'message' => 'Password successfully changed'];
+                return ['status' => 1, 'message' => 'Password successfully changed'];
             } else {
-                return  ['status' => 0, 'message' => 'Current password wrong!'];
+                return ['status' => 0, 'message' => 'Current password wrong!'];
             }
-        } catch (\Exception $e) {
-            return  ['status' => 0, 'message' => 'Error'];
+        } catch (\Exception$e) {
+            return ['status' => 0, 'message' => 'Error'];
         }
     }
 
-    public function payByStripe(Request $request) {
+    public function payByStripe(Request $request)
+    {
         $stripe_key = env('STRIPE_SECURITY_KEY');
-        \Stripe\Stripe::setApiKey( $stripe_key);
+        \Stripe\Stripe::setApiKey($stripe_key);
         $price = CoinPrice::where('id', $request->id)->first();
         $intent = \Stripe\PaymentIntent::create([
-          'amount' => $price->price * 100,
-          'currency' => 'usd',
+            'amount' => $price->price * 100,
+            'currency' => 'usd',
         ]);
         $client_secret = $intent->client_secret;
         return ['status' => 1, 'clientSecret' => $client_secret];
     }
 
-    public function buyCoin(Request $request) {
+    public function buyCoin(Request $request)
+    {
         $seller = Seller::where('id', $this->getUser->id)->first();
         $price = CoinPrice::where('id', $request->id)->first();
         $seller_balance = $seller->balance;
@@ -411,55 +408,59 @@ class SellerApiController extends Controller
         PaymentHistory::create([
             'user_id' => $this->getUser->id,
             'coin' => $price->coin,
-            'price' => $price->price
+            'price' => $price->price,
         ]);
         return [
-            'status' => 1, 'message' => 'Paid Successfully'
+            'status' => 1, 'message' => 'Paid Successfully',
         ];
     }
 
-    public function getMyClans() {
+    public function getMyClans()
+    {
         $total_price = Clan::where('owner_id', $this->getUser->id)->first()->history->where('type', 'clan_joining')->sum('price');
         $total_count = Clan::where('owner_id', $this->getUser->id)->count();
-        $clans = Clan::where('owner_id', $this->getUser->id)->with(['product' => function($query) {
+        $clans = Clan::where('owner_id', $this->getUser->id)->with(['product' => function ($query) {
             $query->with('productDescription');
-        }, 'members'])->withSum(['history' => function($query) {
+        }, 'members'])->withSum(['history' => function ($query) {
             $query->where('type', 'clan_joining');
         }], 'price')->get();
         return [
             'status' => 1, 'clans' => $clans, "total" => [
                 'price' => $total_price,
-                'count' => $total_count
-            ]
+                'count' => $total_count,
+            ],
         ];
     }
 
-    public function getClans() {
-        $clans = Clan::where('owner_id', null)->with(['product' => function($query) {
+    public function getClans()
+    {
+        $clans = Clan::where('owner_id', null)->with(['product' => function ($query) {
             $query->with('productDescription');
         }])->get();
         return [
-            'status' => 1, 'clans' => $clans
+            'status' => 1, 'clans' => $clans,
         ];
     }
 
-    public function getJoinClans() {
-        $clans = Clan::whereNotNull('owner_id')->with(['product' => function($query) {
+    public function getJoinClans()
+    {
+        $clans = Clan::whereNotNull('owner_id')->with(['product' => function ($query) {
             $query->with('productDescription');
-        }, 'owner' => function($query) {
+        }, 'owner' => function ($query) {
             $query->select(['id', 'firstname', 'lastname']);
         }, 'members'])->paginate($this->defaultPaginate);
         return $clans;
     }
 
-    public function joinClan($id) {
+    public function joinClan($id)
+    {
         $clan = Clan::where('id', $id)->first();
         $seller = Seller::where('id', $this->getUser->id)->first();
         $balance = $seller->balance;
         if ($clan->fee > $seller->balance) {
             return [
                 'status' => 0,
-                'messge' => 'No enough balance'
+                'messge' => 'No enough balance',
             ];
         }
         $seller->clan_id = $clan->id;
@@ -494,28 +495,30 @@ class SellerApiController extends Controller
         $new_notification->save();
         return [
             'status' => 1,
-            'message' => 'Join Successful'
+            'message' => 'Join Successful',
         ];
     }
 
-    public function leaveClan() {
+    public function leaveClan()
+    {
         $seller = Seller::where('id', $this->getUser->id)->first();
         $seller->clan_id = null;
         $seller->save();
         return [
             'status' => 1,
-            'message' => 'Leave Successful'
+            'message' => 'Leave Successful',
         ];
     }
 
-    public function buyClan(Request $request) {
+    public function buyClan(Request $request)
+    {
         $seller = Seller::where('id', $this->getUser->id)->first();
         $clan = Clan::where('id', $request->id)->first();
         $balance = $seller->balance;
         if ($clan->price > $seller->balance) {
             return [
                 'status' => 0,
-                'messge' => 'No enough balance'
+                'messge' => 'No enough balance',
             ];
         }
         $clan->owner_id = $seller->id;
@@ -535,18 +538,19 @@ class SellerApiController extends Controller
         $new_notification->save();
         return [
             'status' => 1,
-            'message' => 'successful'
+            'message' => 'successful',
         ];
     }
 
-    public function updateClan(Request $request, $id) {
+    public function updateClan(Request $request, $id)
+    {
         $clan = Clan::where('id', $id)->first();
         $clan->title = $request->title;
         $clan->fee = $request->price;
         $clan->save();
         return [
             'status' => 1,
-            'message' => 'Clan Updated Successfully'
+            'message' => 'Clan Updated Successfully',
         ];
     }
 

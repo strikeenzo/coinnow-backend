@@ -32,8 +32,8 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <form method="post" action="{{ route('comments.reply', $comment->id) }}" enctype="multipart/form-data"
-                            autocomplete="off">
+                        <form method="post" action="{{ route('comments.reply', $comment->id) }}"
+                            enctype="multipart/form-data" autocomplete="off">
                             @csrf
                             @method('post')
                             <h6 class="heading-small text-muted mb-4">{{ __('Reply The Comment') }}</h6>
@@ -41,8 +41,7 @@
                                 <div class="col-md-6 form-group{{ $errors->has('reply') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="input-name">{{ __('Reply') }}</label>
                                     <textarea name="reply" id="reply"
-                                        class="form-control form-control-alternative{{ $errors->has('reply') ? ' is-invalid' : '' }}"
-                                        rows="5"
+                                        class="form-control form-control-alternative{{ $errors->has('reply') ? ' is-invalid' : '' }}" rows="5"
                                         placeholder="{{ __('reply the comment') }}" autofocus>{{ old('reply', $comment->reply) }}</textarea>
                                     @if ($errors->has('reply'))
                                         <span class="invalid-feedback" role="alert">

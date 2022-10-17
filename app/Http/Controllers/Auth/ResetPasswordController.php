@@ -17,7 +17,7 @@ class ResetPasswordController extends Controller
     | and uses a simple Traits to include this behavior. You're free to
     | explore this Traits and override any methods you wish to tweak.
     |
-    */
+     */
 
     use ResetsPasswords;
 
