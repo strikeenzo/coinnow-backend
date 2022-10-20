@@ -111,7 +111,7 @@ class ProductController extends Controller
 
         $this->validateData($request);
 
-        $product = new Product($request->only('model', 'quantity', 'price', 'category_id', 'points', 'min_price', 'max_price', 'amount', 'power', 'change_amount', 'range_quantity'));
+        $product = new Product($request->only('model', 'quantity', 'price', 'category_id', 'points', 'min_price', 'max_price', 'amount', 'power', 'change_amount', 'range_quantity', 'auto_stock_amount'));
 
         //if has main image
         if ($request->hasFile('main_image')) {
@@ -496,6 +496,7 @@ class ProductController extends Controller
             'model' => ['required'],
             'quantity' => ['required'],
             'range_quantity' => ['required'],
+            'auto_stock_amount' => ['required'],
             'price' => ['required'],
             'min_price' => ['required'],
             'max_price' => ['required'],
@@ -517,6 +518,7 @@ class ProductController extends Controller
             'model' => ['required'],
             'quantity' => ['required'],
             'range_quantity' => ['required'],
+            'auto_stock_amount' => ['required'],
             'min_price' => ['required'],
             'max_price' => ['required'],
         ];

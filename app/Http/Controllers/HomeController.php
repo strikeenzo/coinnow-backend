@@ -32,6 +32,9 @@ class HomeController extends Controller
     public function index()
     {
         $user = \Auth::user();
+        if (!$user->hasRole('Admin')) {
+            return redirect(route('comments'));
+        }
 
         //  dd(Hash::make("otrix@2022AP"));
 
