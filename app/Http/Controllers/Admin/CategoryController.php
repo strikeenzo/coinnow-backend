@@ -44,7 +44,8 @@ class CategoryController extends Controller
     {
 
         $this->validate($request, [
-            'name' => ['required', 'string', 'max:255', 'unique:category_description'],
+            // 'name' => ['required', 'string', 'max:255', 'unique:category_description'],
+            'name' => ['required', 'string', 'max:255'],
             'image' => ['required', 'mimes:jpeg,jpg,png'],
         ]);
 
@@ -73,7 +74,8 @@ class CategoryController extends Controller
     {
 
         $this->validate($request, [
-            'name' => ['required', 'string', 'max:255', 'unique:category_description,name,' . $id . ',category_id'],
+            // 'name' => ['required', 'string', 'max:255', 'unique:category_description,name,' . $id . ',category_id'],
+            'name' => ['required', 'string', 'max:255'],
         ]);
 
         //Update Category

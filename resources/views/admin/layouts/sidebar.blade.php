@@ -11,12 +11,14 @@
             <div class="collapse navbar-collapse" id="sidenav-collapse-main">
                 <!-- Nav items -->
                 <ul class="navbar-nav">
-                    <li class="nav-item ">
-                        <a class="nav-link @if (Request::is('admin/dashboard')) active @endif"
-                            href="{{ route('dashboard') }}">
-                            <i class="ni ni-tv-2 text-primary"></i> {{ __('Dashboard') }}
-                        </a>
-                    </li>
+                    @if ($user->hasRole('Admin'))
+                        <li class="nav-item ">
+                            <a class="nav-link @if (Request::is('admin/dashboard')) active @endif"
+                                href="{{ route('dashboard') }}">
+                                <i class="ni ni-tv-2 text-primary"></i> {{ __('Dashboard') }}
+                            </a>
+                        </li>
+                    @endif
 
                     @if ($user->hasRole('Admin'))
                         <li class="nav-item">
@@ -46,15 +48,15 @@
                         </li>
                     @endif
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="#navbar-catelog" data-toggle="collapse" role="button"
-                            aria-expanded="false" aria-controls="navbar-examples">
-                            <i class="fa fa-list-alt fa-lg"></i>
-                            <span class="nav-link-text"> {{ __('Catalog') }} </span>
-                        </a>
-                        <ul class="nav nav-sm flex-column">
-                            <div class="collapse" id="navbar-catelog">
-                                @if ($user->hasRole('Admin'))
+                    @if ($user->hasRole('Admin'))
+                        <li class="nav-item">
+                            <a class="nav-link" href="#navbar-catelog" data-toggle="collapse" role="button"
+                                aria-expanded="false" aria-controls="navbar-examples">
+                                <i class="fa fa-list-alt fa-lg"></i>
+                                <span class="nav-link-text"> {{ __('Catalog') }} </span>
+                            </a>
+                            <ul class="nav nav-sm flex-column">
+                                <div class="collapse" id="navbar-catelog">
                                     <li class="nav-item">
                                         <a class="nav-link" href="#navbar-category" data-toggle="collapse"
                                             role="button" aria-expanded="false" aria-controls="navbar-examples">
@@ -78,42 +80,40 @@
                                             </div>
                                         </ul>
                                     </li>
-                                @endif
 
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#navbar-products" data-toggle="collapse" role="button"
-                                        aria-expanded="false" aria-controls="navbar-examples">
-                                        <i class="fas fa-box fa-lg"></i>
-                                        <span class="nav-link-text">
-                                            {{ __('Products') }}
-                                        </span>
-                                    </a>
-                                    <ul class="nav nav-sm flex-column">
-                                        <div class="collapse" id="navbar-products">
-                                            <li class="nav-item">
-                                                <a class="nav-link" href="{{ route('product.add') }}">
-                                                    <i class="fa fa-plus fa-lg"></i> {{ __('Add') }}
-                                                </a>
-                                            </li>
-                                            <li class="nav-item">
-                                                <a class="nav-link" href="{{ route('product') }}">
-                                                    <i class="fa fa-list-alt fa-lg"></i> {{ __('List') }}
-                                                </a>
-                                            </li>
-                                        </div>
-                                    </ul>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('clan') }}" role="button">
-                                        <i class="fas fa-box fa-lg"></i>
-                                        <span class="nav-link-text">
-                                            {{ __('Clans') }}
-                                        </span>
-                                    </a>
-                                </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="#navbar-products" data-toggle="collapse"
+                                            role="button" aria-expanded="false" aria-controls="navbar-examples">
+                                            <i class="fas fa-box fa-lg"></i>
+                                            <span class="nav-link-text">
+                                                {{ __('Products') }}
+                                            </span>
+                                        </a>
+                                        <ul class="nav nav-sm flex-column">
+                                            <div class="collapse" id="navbar-products">
+                                                <li class="nav-item">
+                                                    <a class="nav-link" href="{{ route('product.add') }}">
+                                                        <i class="fa fa-plus fa-lg"></i> {{ __('Add') }}
+                                                    </a>
+                                                </li>
+                                                <li class="nav-item">
+                                                    <a class="nav-link" href="{{ route('product') }}">
+                                                        <i class="fa fa-list-alt fa-lg"></i> {{ __('List') }}
+                                                    </a>
+                                                </li>
+                                            </div>
+                                        </ul>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('clan') }}" role="button">
+                                            <i class="fas fa-box fa-lg"></i>
+                                            <span class="nav-link-text">
+                                                {{ __('Clans') }}
+                                            </span>
+                                        </a>
+                                    </li>
 
-
-                                <!--                                <li class="nav-item">
+                                    <!--                                <li class="nav-item">
                                     <a class="nav-link" href="#navbar-coupon" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="navbar-examples">
                                       <i class="fas fa-percent"></i>
                                         <span class="nav-link-text" >
@@ -135,7 +135,7 @@
                                         </div>
                                     </ul>
                                 </li>-->
-                                <!--                                <li class="nav-item">
+                                    <!--                                <li class="nav-item">
                                   <a class="nav-link" href="#navbar-product-option" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="navbar-examples">
                                       <i class="fa fa-list-alt fa-lg"></i>
                                       <span class="nav-link-text" style="color: #f4645f;">
@@ -146,8 +146,8 @@
                                       <div class="collapse" id="navbar-product-option">
                                           <li class="nav-item">
                                               <a class="nav-link" href="{{ route('product-option.add') }}">
-                                                  <i class="fa fa-plus fa-lg"></i> {{ __('Add') }}
-                                              </a>
+                                                <i class="fa fa-plus fa-lg"></i> {{ __('Add') }}
+                                            </a>
                                           </li>
                                           <li class="nav-item">
                                               <a class="nav-link" href="{{ route('product-option') }}">
@@ -156,8 +156,8 @@
                                           </li>
                                       </div>
                                   </ul>
-                              </li>-->
-                                <!--                                <li class="nav-item">
+                                </li>-->
+                                    <!--                                <li class="nav-item">
                                     <a class="nav-link" href="#navbar-manufacturer" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="navbar-examples">
                                         <i class="fas fa-industry fa-lg"></i>
                                         <span class="nav-link-text" >
@@ -180,10 +180,10 @@
                                     </ul>
                                 </li>-->
 
-                                <!--                                <li class="nav-item">
+                                    <!--                                <li class="nav-item">
                                     <a class="nav-link" href="#navbar-product-attribute-group" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="navbar-examples">
                                       <i class="fas fa-th fa-lg"></i>
-                                        <span class="nav-link-text" >
+                                      <span class="nav-link-text" >
                                         {{ __('Attribute Group') }}
                                     </span>
                                     </a>
@@ -203,7 +203,7 @@
                                     </ul>
                                 </li>-->
 
-                                <!--                                <li class="nav-item">
+                                    <!--                                <li class="nav-item">
                                     <a class="nav-link" href="#navbar-product-attribute" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="navbar-examples">
                                       <i class="fas fa-th fa-lg"></i>
                                         <span class="nav-link-text" >
@@ -226,7 +226,7 @@
                                     </ul>
                                 </li>-->
 
-                                <!--                                <li class="nav-item">
+                                    <!--                                <li class="nav-item">
                                     <a class="nav-link" href="#navbar-review" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="navbar-examples">
                                     <i class="fas fa-star"></i>
                                         <span class="nav-link-text" >
@@ -243,9 +243,10 @@
                                         </div>
                                     </ul>
                                 </li>-->
-                            </div>
-                        </ul>
-                    </li>
+                                </div>
+                            </ul>
+                        </li>
+                    @endif
 
                     @if ($user->hasRole('Admin'))
                         <li class="nav-item">
@@ -425,30 +426,33 @@
                         </li>
                     @endif
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="#navbar-customer" data-toggle="collapse" role="button"
-                            aria-expanded="false" aria-controls="navbar-examples">
-                            <i class="fas fa-user-tie fa-lg"></i>
-                            <span class="nav-link-text">
-                                {{ __('Customer') }}
-                            </span>
-                        </a>
+                    @if ($user->hasRole('Admin'))
+                        <li class="nav-item">
+                            <a class="nav-link" href="#navbar-customer" data-toggle="collapse" role="button"
+                                aria-expanded="false" aria-controls="navbar-examples">
+                                <i class="fas fa-user-tie fa-lg"></i>
+                                <span class="nav-link-text">
+                                    {{ __('Customer') }}
+                                </span>
+                            </a>
 
-                        <div class="collapse" id="navbar-customer">
-                            <ul class="nav nav-sm flex-column">
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('customer.add') }}">
-                                        <i class="fa fa-plus fa-lg"></i> {{ __('Add') }}
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('customer') }}">
-                                        <i class="fa fa-list-alt fa-lg"></i> {{ __('List') }}
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
+                            <div class="collapse" id="navbar-customer">
+                                <ul class="nav nav-sm flex-column">
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('customer.add') }}">
+                                            <i class="fa fa-plus fa-lg"></i> {{ __('Add') }}
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('customer') }}">
+                                            <i class="fa fa-list-alt fa-lg"></i> {{ __('List') }}
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    @endif
+
 
                     @if ($user->hasRole('Admin'))
                         <li class="nav-item">
@@ -476,36 +480,37 @@
                             </div>
                         </li>
                     @endif
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#navbar-sales" data-toggle="collapse" role="button"
-                            aria-expanded="false" aria-controls="navbar-examples">
-                            <i class="fas fa-sort-amount-up-alt fa-lg"></i>
-                            <span class="nav-link-text"> {{ __('Sales') }} </span>
-                        </a>
-                        <ul class="nav nav-sm flex-column">
-                            <div class="collapse" id="navbar-sales">
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#navbar-order" data-toggle="collapse" role="button"
-                                        aria-expanded="false" aria-controls="navbar-examples">
-                                        <i class="fas fa-chart-area fa-lg"></i>
-                                        <span class="nav-link-text">
-                                            {{ __('Orders') }}
-                                        </span>
-                                    </a>
-                                    <ul class="nav nav-sm flex-column">
-                                        <div class="collapse" id="navbar-order">
-                                            <li class="nav-item">
-                                                <a class="nav-link" href="{{ route('order') }}">
-                                                    <i class="fa fa-list-alt fa-lg"></i> {{ __('List') }}
-                                                </a>
-                                            </li>
-                                        </div>
-                                    </ul>
-                                </li>
-                            </div>
-                        </ul>
-                    </li>
+                    @if ($user->hasRole('Admin'))
+                        <li class="nav-item">
+                            <a class="nav-link" href="#navbar-sales" data-toggle="collapse" role="button"
+                                aria-expanded="false" aria-controls="navbar-examples">
+                                <i class="fas fa-sort-amount-up-alt fa-lg"></i>
+                                <span class="nav-link-text"> {{ __('Sales') }} </span>
+                            </a>
+                            <ul class="nav nav-sm flex-column">
+                                <div class="collapse" id="navbar-sales">
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="#navbar-order" data-toggle="collapse"
+                                            role="button" aria-expanded="false" aria-controls="navbar-examples">
+                                            <i class="fas fa-chart-area fa-lg"></i>
+                                            <span class="nav-link-text">
+                                                {{ __('Orders') }}
+                                            </span>
+                                        </a>
+                                        <ul class="nav nav-sm flex-column">
+                                            <div class="collapse" id="navbar-order">
+                                                <li class="nav-item">
+                                                    <a class="nav-link" href="{{ route('order') }}">
+                                                        <i class="fa fa-list-alt fa-lg"></i> {{ __('List') }}
+                                                    </a>
+                                                </li>
+                                            </div>
+                                        </ul>
+                                    </li>
+                                </div>
+                            </ul>
+                        </li>
+                    @endif
                     @if ($user->hasRole('Admin'))
                         <li class="nav-item">
                             <a class="nav-link" href="#navbar-user" data-toggle="collapse" role="button"
@@ -719,13 +724,11 @@
                         </li>
                     @endif
 
-                    @if ($user->hasRole('Admin'))
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('comments') }}">
-                                <i class="fa fa-box"></i> {{ __('Customer Support Center') }}
-                            </a>
-                        </li>
-                    @endif
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('comments') }}">
+                            <i class="fa fa-box"></i> {{ __('Customer Support Center') }}
+                        </a>
+                    </li>
 
                     @if ($user->hasRole('Admin'))
                         <li class="nav-item">

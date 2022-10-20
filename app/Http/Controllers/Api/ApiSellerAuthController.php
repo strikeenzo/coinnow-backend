@@ -68,7 +68,7 @@ class ApiSellerAuthController extends Controller
                     $cartCount = DB::table("cart")->where('seller_id', $seller->id)->sum('quantity');
                     return ['status' => 1, 'wishlistData' => [], 'cartCount' => $cartCount, 'message' => "Seller successfully login", 'data' => $seller];
                 } else {
-                    return ['status' => 0, 'message' => 'Email/Password Wrong', 'data' => json_decode('{}')];
+                    return ['status' => 0, 'message' => 'Incorrect Information', 'data' => json_decode('{}')];
                 }
             } else {
                 return ['status' => 0, 'message' => 'Seller not found', 'data' => json_decode('{}'), 'code' => '401'];

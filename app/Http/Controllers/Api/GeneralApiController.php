@@ -21,7 +21,6 @@ use App\Models\News;
 use App\Models\Notification;
 use App\Models\Page;
 use App\Models\Product;
-use App\Models\ProductDescription;
 use App\Models\ProductImage;
 use App\Models\ProductPrice;
 use App\Models\ProductRelated;
@@ -79,17 +78,24 @@ class GeneralApiController extends Controller
             $start->started_at = Carbon::now();
             $start->save();
         }
-        $records = Product::where('points', '<', 1)->orWhere('points', null)->select('change_amount', 'id', 'price', 'min_price', 'max_price', 'range_quantity', 'quantity')->get();
+        $records = Product::where('points', '<', 1)->orWhere('points', null)->select('change_amount', 'id', 'price', 'min_price', 'max_price', 'range_quantity', 'quantity', 'auto_stock_amount')->get();
         for ($i = 0; $i < count($records); $i++) {
             if ($records[$i]['price'] - $records[$i]['min_price'] < ($records[$i]['max_price'] - $records[$i]['min_price']) / 5
                 && $records[$i]['quantity'] > ($records[$i]['range_quantity'] ? $records[$i]['range_quantity'] : 0)) {
                 $records[$i]['quantity'] = $records[$i]['range_quantity'] ? $records[$i]['range_quantity'] : 0;
-                $records[$i]->save();
             }
             if ($records[$i]['points'] > 0) {
                 $sum = Special::where('product_id', $records[$i]->id)->sum('quantity');
             } else {
                 $sum = ProductSellerRelation::where([['product_id', $records[$i]->id]])->sum('quantity');
+            }
+            if ($records[$i]['quantity'] == 0 && $sum == 0) {
+                $records[$i]['quantity'] += $records[$i]['auto_stock_amount'] ? $records[$i]['auto_stock_amount'] : 0;
+                $records[$i]['price'] = ($records[$i]['max_price'] - $records[$i]['min_price']) * 0.3 + $records[$i]['min_price'];
+                $records[$i]->save();
+                $today = Carbon::today();
+                $new_price = new ProductPrice(array('product_id' => $records[$i]->id, 'price' => $records[$i]->price, 'date' => $today));
+                $new_price->save();
             }
             $records[$i]['total_quantity'] = $sum;
         }
@@ -114,12 +120,22 @@ class GeneralApiController extends Controller
 
         foreach ($records as $key => $value) {
             if ($value['profit'] == 0) {
-                if ($value['min_price'] > $value['price'] - ($value['change_amount'] ? $value['change_amount'] : 0)) {
-                } else {
-                    $sum2 += $value['profit'];
-                    array_push($arr2, $value);
-                    continue;
+                $rand = rand(1, 2);
+                if ($rand == 1) {
+                    if ($value['min_price'] < $value['price'] - ($value['change_amount'] ? $value['change_amount'] : 0)) {
+                        array_push($arr2, $value);
+                    } else {
+                        array_push($arr1, $value);
+                    }
                 }
+                if ($rand == 2) {
+                    if (($value['max_price'] > $value['price'] + ($value['change_amount'] ? $value['change_amount'] : 0))) {
+                        array_push($arr1, $value);
+                    } else {
+                        array_push($arr2, $value);
+                    }
+                }
+                continue;
             }
             if ($sum2 <= $sum1 + $value['profit']) {
                 if ($value['min_price'] > $value['price'] - ($value['change_amount'] ? $value['change_amount'] : 0)) {
@@ -167,24 +183,24 @@ class GeneralApiController extends Controller
                     'price_change' => -$arr2[$i]['change_amount'],
                     'profit' => -$arr2[$i]['change_amount'] * $arr2[$i]['total_quantity'],
                 ]);
-                $news = News::create([
-                    "content" => "The Price Of " . $record->productDescription->name . " Has Dropped " . ($arr2[$i]['change_amount'] ? $arr2[$i]['change_amount'] : 0) . " Coins",
-                    "type" => "price dropped",
-                ]);
-                broadcast(
-                    new MessageSent('news-sent', $news)
-                )->toOthers();
+                // $news = News::create([
+                //     "content" => "The Price Of " . $record->productDescription->name . " Has Dropped " . ($arr2[$i]['change_amount'] ? $arr2[$i]['change_amount'] : 0) . " Coins",
+                //     "type" => "price dropped",
+                // ]);
+                // broadcast(
+                //     new MessageSent('news-sent', $news)
+                // )->toOthers();
                 $today = Carbon::today();
                 $new_price = new ProductPrice(array('product_id' => $record->id, 'price' => $record->price, 'date' => $today));
                 $new_price->save();
                 $record = $record->setRelation('productPrice', $record->productPrice->take(6));
-                broadcast(
-                    new MessageSent('price update', [
-                        'price' => $record->price,
-                        'productPrice' => $record->productPrice,
-                        'id' => $record->id,
-                    ])
-                )->toOthers();
+                // broadcast(
+                //     new MessageSent('price update', [
+                //         'price' => $record->price,
+                //         'productPrice' => $record->productPrice,
+                //         'id' => $record->id,
+                //     ])
+                // )->toOthers();
             }
         }
         for ($i = 0; $i < count($arr1); $i++) {
@@ -199,28 +215,39 @@ class GeneralApiController extends Controller
                     'price_change' => $arr1[$i]['change_amount'],
                     'profit' => $arr1[$i]['change_amount'] * $arr1[$i]['total_quantity'],
                 ]);
-                $news = News::create([
-                    "content" => "The Price Of " . $record->productDescription->name . " Has Increased " . ($arr1[$i]['change_amount'] ? $arr1[$i]['change_amount'] : 0) . " Coins",
-                    "type" => "price increased",
-                ]);
-                broadcast(
-                    new MessageSent('news-sent', $news)
-                )->toOthers();
+                // $news = News::create([
+                //     "content" => "The Price Of " . $record->productDescription->name . " Has Increased " . ($arr1[$i]['change_amount'] ? $arr1[$i]['change_amount'] : 0) . " Coins",
+                //     "type" => "price increased",
+                // ]);
+                // broadcast(
+                //     new MessageSent('news-sent', $news)
+                // )->toOthers();
                 $today = Carbon::today();
                 $new_price = new ProductPrice(array('product_id' => $record->id, 'price' => $record->price, 'date' => $today));
                 $new_price->save();
                 $record = $record->setRelation('productPrice', $record->productPrice->take(6));
-                broadcast(
-                    new MessageSent('price update', [
-                        'price' => $record->price,
-                        'productPrice' => $record->productPrice,
-                        'id' => $record->id,
-                    ])
-                )->toOthers();
+                // broadcast(
+                //     new MessageSent('price update', [
+                //         'price' => $record->price,
+                //         'productPrice' => $record->productPrice,
+                //         'id' => $record->id,
+                //     ])
+                // )->toOthers();
             }
         }
+        $news = News::create([
+            "content" => "Price Updated Of All Items",
+            "type" => "price updated all",
+        ]);
+        $news->save();
         $records = Product::where('points', 0)->select('change_amount', 'id', 'price', 'max_price', 'min_price')->with('productDescription:name,id')->get();
+        broadcast(
+            new MessageSent('news-sent', $news)
+        )->toOthers();
 
+        broadcast(
+            new MessageSent('price update', ['id' => 'all'])
+        )->toOthers();
         return ['status' => 1, 'distributed' => $sum1, 'collected' => $sum2, $arr1, $arr2];
     }
 

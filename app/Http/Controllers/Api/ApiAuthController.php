@@ -69,7 +69,7 @@ class ApiAuthController extends Controller
                     $cartCount = DB::table("cart")->where('customer_id', $customer->id)->sum('quantity');
                     return ['status' => 1, 'wishlistData' => $wishlistData, 'cartCount' => $cartCount, 'message' => "Customer successfully login", 'data' => $customer];
                 } else {
-                    return ['status' => 0, 'message' => 'Email/Password Wrong', 'data' => json_decode('{}')];
+                    return ['status' => 0, 'message' => 'Incorrect Information', 'data' => json_decode('{}')];
                 }
             } else {
                 return ['status' => 0, 'message' => 'Customer not found', 'data' => json_decode('{}'), 'code' => '401'];
@@ -105,7 +105,7 @@ class ApiAuthController extends Controller
 
                             return ['status' => 1, 'wishlistData' => $wishlistData, 'cartCount' => $cartCount, 'message' => "Customer successfully login", 'data' => $customer, 'new' => 0];
                         } else {
-                            return ['status' => 0, 'message' => 'Email/Password Wrong', 'data' => json_decode('{}'), 'new' => 0];
+                            return ['status' => 0, 'message' => 'Incorrect Information', 'data' => json_decode('{}'), 'new' => 0];
                         }
                     } else {
                         return ['status' => 0, 'message' => 'Customer not found', 'data' => json_decode('{}'), 'code' => '401', 'new' => 0];

@@ -48,7 +48,6 @@ class UserController extends Controller
     {
 
         $this->validateData($request);
-
         $data = new User($request->only('name', 'email', 'mobile', 'status'));
         $data->password = bcrypt($request->password);
         $data->save();
