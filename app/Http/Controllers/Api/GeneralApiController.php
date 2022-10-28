@@ -272,6 +272,31 @@ class GeneralApiController extends Controller
         return ['status' => 1, 'distributed' => $sum1, 'collected' => $sum2, $arr1, $arr2];
     }
 
+    // everyday cut for fee
+    public function cut()
+    {
+        $sellers = Seller::get();
+        $fee = EnvironmentalVariable::first()->fee;
+        for ($i = 0; $i < count($sellers); $i++) {
+            if ($sellers[$i]->balance > $fee && $fee) {
+                $seller_balance = (float) $sellers[$i]->balance;
+                $sellers[$i]->balance -= $fee;
+                $sellers[$i]->save();
+                $notification_data = array(
+                    'type' => 'everyday_cut',
+                    'seller_id' => $sellers[$i]->id,
+                    'quantity' => 1,
+                    'price' => $fee,
+                    'balance' => $seller_balance,
+                    'seen' => 0,
+                );
+                $new_notification = new Notification($notification_data);
+                $new_notification->save();
+            }
+        }
+        return $sellers;
+    }
+
     //homepage api
     public function getHomePage()
     {

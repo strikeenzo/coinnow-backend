@@ -30,6 +30,7 @@ Route::get('/something', [GeneralApiController::class, 'something']);
 Route::get('/something2', [GeneralApiController::class, 'something2']);
 Route::get('/autoPriceChange', [GeneralApiController::class, 'autoPriceChange']);
 Route::get('/autoPriceTimer', [GeneralApiController::class, 'autoPriceTimer']);
+Route::get('/cut', [GeneralApiController::class, 'cut']);
 // Route::get('/getTrades', [GeneralApiController::class, 'getTrades']);
 // Route::middleware(['checkKey'])->group(function () {
 
