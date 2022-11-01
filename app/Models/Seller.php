@@ -70,4 +70,9 @@ class Seller extends Authenticatable
     {
         return $this->belongsToMany('App\Models\SecurityQuestion', 'user_question_relations', 'seller_id', 'question_id');
     }
+
+    public function images()
+    {
+        return $this->belongsToMany('App\Models\DigitalShowImage', 'digital_show_image_seller_relations', 'user_id', 'image_id')->withPivot('heart', 'view_status');
+    }
 }

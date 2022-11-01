@@ -108,6 +108,10 @@ Route::middleware(['checkKey'])->group(function () {
                 Route::get('/clans/{id}/join', 'joinClan');
                 Route::get('/clans/{id}/leave', 'leaveClan');
                 Route::get('/clans/{id}/history', 'getClanHistoryById');
+                Route::post('/image/upload', 'uploadImage');
+                Route::get('/image/getMyImages', 'getMyImages');
+                Route::get('/image/getImages', 'getImages');
+                Route::post('/image/toogleVoteImage', 'toogleVoteImage');
             });
 
             //cart functionality

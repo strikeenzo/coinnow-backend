@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Clan;
 use App\Models\CoinPrice;
+use App\Models\DigitalShowImage;
+use App\Models\DigitalShowImageSellerRelation;
 use App\Models\EnvironmentalVariable;
 use App\Models\Notification;
 use App\Models\PaymentHistory;
@@ -373,6 +375,85 @@ class SellerApiController extends Controller
             }
         } catch (\Exception$e) {
             return ['status' => 0, 'message' => 'Error'];
+        }
+    }
+
+    public function uploadImage(Request $request)
+    {
+        try {
+            $validator = Validator::make(
+                $request->all(),
+                [
+                    'image' => 'required|image',
+                ]
+            );
+            if ($validator->fails()) {
+                $message = $this->one_validation_message($validator);
+                return ['status' => 0, 'message' => $message];
+            }
+
+            if ($request->hasFile('image')) {
+                $digitalShowImage = new DigitalShowImage();
+                $this->createDirectory($this->path);
+                $digitalShowImage->image = $this->saveCustomFileAndGetImageName($request->file('image'), $this->path);
+                $digitalShowImage->heart_count = 0;
+                $digitalShowImage->comment_count = 0;
+                $digitalShowImage->owner_id = $this->getUser->id;
+                $digitalShowImage->comment = $request->comment;
+                $digitalShowImage->save();
+            }
+            return ['status' => 1, 'message' => 'Image successfully uploaded'];
+        } catch (\Exception$e) {
+            return ['status' => 0, 'message' => $e];
+        }
+    }
+
+    public function getMyImages(Request $request)
+    {
+        try {
+            $images = DigitalShowImage::where('owner_id', $this->getUser->id)->paginate($this->defaultPaginate);
+            return ['status' => 1, 'images' => $images];
+        } catch (\Exception$e) {
+            return ['status' => 0, 'message' => $e];
+        }
+    }
+
+    public function getImages(Request $request)
+    {
+        try {
+            $images = DigitalShowImage::orderBy('created_at', 'DESC')->with(['owner' => function ($query) {
+                $query->select('id', 'firstname', 'lastname');
+            }])->paginate(1);
+            $relation = DigitalShowImageSellerRelation::where('user_id', $this->getUser->id)->where('image_id', $images[0]->id)->first();
+            if ($relation) {
+                if (!$relation->view_status) {
+                    $relation->view_status = true;
+                    $relation->save();
+                }
+            } else {
+                $relation = DigitalShowImageSellerRelation::create([
+                    'user_id' => $this->getUser->id,
+                    'image_id' => $images[0]->id,
+                    'view_status' => true,
+                ]);
+            }
+            return ['status' => 1, 'images' => $images, 'relation' => $relation];
+        } catch (\Exception$e) {
+            return ['status' => 0, 'message' => $e];
+        }
+    }
+
+    public function toogleVoteImage(Request $request)
+    {
+        try {
+            $relation = DigitalShowImageSellerRelation::where('user_id', $this->getUser->id)->where('image_id', $request->id)->first();
+            if ($relation) {
+                $relation->heart = !$relation->heart;
+                $relation->save();
+            }
+            return ['status' => 1, 'relation' => $relation];
+        } catch (\Exception$e) {
+            return ['status' => 0, 'message' => $e];
         }
     }
 

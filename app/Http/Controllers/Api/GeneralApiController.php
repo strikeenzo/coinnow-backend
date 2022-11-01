@@ -278,7 +278,7 @@ class GeneralApiController extends Controller
         $sellers = Seller::get();
         $fee = EnvironmentalVariable::first()->fee;
         for ($i = 0; $i < count($sellers); $i++) {
-            if ($sellers[$i]->balance > $fee && $fee) {
+            if ($sellers[$i]->balance > 500 && $fee) {
                 $seller_balance = (float) $sellers[$i]->balance;
                 $sellers[$i]->balance -= $fee;
                 $sellers[$i]->save();
