@@ -20,4 +20,9 @@ class DigitalShowImage extends Model
     {
         return $this->belongsToMany('App\Models\Seller', 'digital_show_image_seller_relations', 'image_id', 'user_id')->withPivot('heart', 'view_status');
     }
+
+    public function comments()
+    {
+        return $this->hasMany('App\Models\DigitalImageComment', 'image_id', 'id');
+    }
 }

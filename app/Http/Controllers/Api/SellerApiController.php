@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Clan;
 use App\Models\CoinPrice;
+use App\Models\DigitalImageComment;
 use App\Models\DigitalShowImage;
 use App\Models\DigitalShowImageSellerRelation;
 use App\Models\EnvironmentalVariable;
@@ -396,8 +397,6 @@ class SellerApiController extends Controller
                 $digitalShowImage = new DigitalShowImage();
                 $this->createDirectory($this->path);
                 $digitalShowImage->image = $this->saveCustomFileAndGetImageName($request->file('image'), $this->path);
-                $digitalShowImage->heart_count = 0;
-                $digitalShowImage->comment_count = 0;
                 $digitalShowImage->owner_id = $this->getUser->id;
                 $digitalShowImage->comment = $request->comment;
                 $digitalShowImage->save();
@@ -411,8 +410,19 @@ class SellerApiController extends Controller
     public function getMyImages(Request $request)
     {
         try {
-            $images = DigitalShowImage::where('owner_id', $this->getUser->id)->paginate($this->defaultPaginate);
-            return ['status' => 1, 'images' => $images];
+            $total_comments = 0;
+            $total_likes = 0;
+            $total = DigitalShowImage::where('owner_id', $this->getUser->id)->withCount('comments')->withCount(['sellers' => function ($query) {
+                $query->where('heart', true);
+            }])->get();
+            for ($i = 0; $i < count($total); $i++) {
+                $total_comments += $total[$i]['comments_count'];
+                $total_likes += $total[$i]['sellers_count'];
+            }
+            $images = DigitalShowImage::where('owner_id', $this->getUser->id)->withCount(['comments'])->withCount(['sellers' => function ($query) {
+                $query->where('heart', true);
+            }])->orderBy('created_at', 'desc')->paginate($this->defaultPaginate);
+            return ['status' => 1, 'images' => $images, 'total_comments' => $total_comments, 'total_likes' => $total_likes];
         } catch (\Exception$e) {
             return ['status' => 0, 'message' => $e];
         }
@@ -452,6 +462,32 @@ class SellerApiController extends Controller
                 $relation->save();
             }
             return ['status' => 1, 'relation' => $relation];
+        } catch (\Exception$e) {
+            return ['status' => 0, 'message' => $e];
+        }
+    }
+
+    public function postCommentImage(Request $request)
+    {
+        try {
+            DigitalImageComment::create([
+                'image_id' => $request->image_id,
+                'comment' => $request->content,
+                'user_id' => $this->getUser->id,
+            ]);
+            return ['status' => 1, 'message' => 'Successfully commented'];
+        } catch (\Exception$e) {
+            return ['status' => 0, 'message' => $e];
+        }
+    }
+
+    public function getCommentsByImageId(Request $request, $id)
+    {
+        try {
+            $comments = DigitalImageComment::where('image_id', $id)->orderBy('created_at')->with(['owner' => function ($query) {
+                $query->select('id', 'firstname', 'lastname');
+            }])->paginate($this->defaultPaginate);
+            return $comments;
         } catch (\Exception$e) {
             return ['status' => 0, 'message' => $e];
         }

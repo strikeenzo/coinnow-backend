@@ -13,13 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('digital_show_images', function (Blueprint $table) {
+        Schema::create('digital_image_comments', function (Blueprint $table) {
             $table->id();
-            $table->string('image');
+            $table->integer('image_id');
+            $table->integer('user_id');
             $table->text('comment');
-            // $table->integer('comment_count');
-            // $table->integer('heart_count');
-            $table->integer('owner_id');
             $table->timestamps();
         });
     }
@@ -31,6 +29,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('digital_show_images');
+        Schema::dropIfExists('digital_image_comments');
     }
 };
