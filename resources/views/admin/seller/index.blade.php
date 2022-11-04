@@ -138,7 +138,7 @@
                     </div>
                     <!-- Card footer -->
                     <div class="card-footer py-4">
-                        {{ $records->appends(['firstname' => request()->name])->links() }}
+                        {{ $records->appends(['keyword' => request()->keyword])->links() }}
                     </div>
                 </div>
             </div>

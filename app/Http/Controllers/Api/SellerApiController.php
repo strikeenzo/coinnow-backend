@@ -398,7 +398,11 @@ class SellerApiController extends Controller
                 $this->createDirectory($this->path);
                 $digitalShowImage->image = $this->saveCustomFileAndGetImageName($request->file('image'), $this->path);
                 $digitalShowImage->owner_id = $this->getUser->id;
-                $digitalShowImage->comment = $request->comment;
+                if ($request->comment) {
+                    $digitalShowImage->comment = $request->comment;
+                } else {
+                    $digitalShowImage->comment = ' ';
+                }
                 $digitalShowImage->save();
             }
             return ['status' => 1, 'message' => 'Image successfully uploaded'];
@@ -407,22 +411,73 @@ class SellerApiController extends Controller
         }
     }
 
+    public function removeImages(Request $request)
+    {
+        $items = json_decode($request->items);
+        if ($items) {
+            $images = DigitalShowImage::whereIn('id', $items)->delete();
+            $comments = DigitalImageComment::whereIn('image_id', $items)->delete();
+            $relations = DigitalShowImageSellerRelation::whereIn('image_id', $items)->delete();
+        }
+        return ['status' => 1, 'message' => 'Images successfully deleted'];
+    }
+
     public function getMyImages(Request $request)
     {
         try {
             $total_comments = 0;
             $total_likes = 0;
+            $total_views = 0;
+            $current_week_comments = 0;
+            $current_week_likes = 0;
+            $current_week_views = 0;
+            $previous_week_comments = 0;
+            $previous_week_likes = 0;
+            $previous_week_views = 0;
+            $now = Carbon::now();
+            $weekStartDate = $now->startOfWeek()->format('Y-m-d');
+            $weekEndDate = $now->endOfWeek()->format('Y-m-d');
+            $startOfLastWeek = $now->startOfWeek()->copy()->subDays(7)->format('Y-m-d');
+            $endOfLastWeek = $now->endOfWeek()->copy()->subDays(7)->format('Y-m-d');
+            $previous = DigitalShowImage::whereBetween('created_at', [$startOfLastWeek, $endOfLastWeek])->where('owner_id', $this->getUser->id)->withCount('comments')->withCount(['sellers' => function ($query) {
+                $query->where('heart', true);
+            }])->withCount('sellers as views_count')->get();
+            for ($i = 0; $i < count($previous); $i++) {
+                $previous_week_comments += $previous[$i]['comments_count'];
+                $previous_week_likes += $previous[$i]['sellers_count'];
+                $previous_week_views += $previous[$i]['views_count'];
+            }
+            $week = DigitalShowImage::whereBetween('created_at', [$weekStartDate, $weekEndDate])->where('owner_id', $this->getUser->id)->withCount('comments')->withCount(['sellers' => function ($query) {
+                $query->where('heart', true);
+            }])->withCount('sellers as views_count')->get();
+            for ($i = 0; $i < count($week); $i++) {
+                $current_week_comments += $week[$i]['comments_count'];
+                $current_week_likes += $week[$i]['sellers_count'];
+                $current_week_views += $week[$i]['views_count'];
+            }
             $total = DigitalShowImage::where('owner_id', $this->getUser->id)->withCount('comments')->withCount(['sellers' => function ($query) {
                 $query->where('heart', true);
-            }])->get();
+            }])->withCount('sellers as views_count')->get();
             for ($i = 0; $i < count($total); $i++) {
                 $total_comments += $total[$i]['comments_count'];
                 $total_likes += $total[$i]['sellers_count'];
+                $total_views += $total[$i]['views_count'];
             }
             $images = DigitalShowImage::where('owner_id', $this->getUser->id)->withCount(['comments'])->withCount(['sellers' => function ($query) {
                 $query->where('heart', true);
-            }])->orderBy('created_at', 'desc')->paginate($this->defaultPaginate);
-            return ['status' => 1, 'images' => $images, 'total_comments' => $total_comments, 'total_likes' => $total_likes];
+            }])->withCount('sellers as views_count')->orderBy('created_at', 'desc')->paginate($this->defaultPaginate);
+            return [
+                'status' => 1, 'images' => $images,
+                'total_comments' => $total_comments,
+                'total_likes' => $total_likes,
+                'total_views' => $total_views,
+                'current_week_comments' => $current_week_comments,
+                'current_week_likes' => $current_week_likes,
+                'current_week_views' => $current_week_views,
+                'previous_week_comments' => $previous_week_comments,
+                'previous_week_likes' => $previous_week_likes,
+                'previous_week_views' => $previous_week_views,
+            ];
         } catch (\Exception$e) {
             return ['status' => 0, 'message' => $e];
         }
@@ -431,23 +486,29 @@ class SellerApiController extends Controller
     public function getImages(Request $request)
     {
         try {
-            $images = DigitalShowImage::orderBy('created_at', 'DESC')->with(['owner' => function ($query) {
+            $images = DigitalShowImage::orderBy('created_at', 'DESC')->whereDoesntHave('sellers', function ($query) {
+                $query->where('seller.id', $this->getUser->id);
+            })->with(['owner' => function ($query) {
                 $query->select('id', 'firstname', 'lastname');
-            }])->paginate(1);
-            $relation = DigitalShowImageSellerRelation::where('user_id', $this->getUser->id)->where('image_id', $images[0]->id)->first();
-            if ($relation) {
-                if (!$relation->view_status) {
-                    $relation->view_status = true;
-                    $relation->save();
+            }])->with(['sellers' => function ($query) {
+                $query->where('seller.id', $this->getUser->id);
+            }])->withCount('sellers as views_count')->paginate(6);
+            for ($i = 0; $i < count($images); $i++) {
+                $relation = DigitalShowImageSellerRelation::where('user_id', $this->getUser->id)->where('image_id', $images[$i]->id)->first();
+                if ($relation) {
+                    if (!$relation->view_status) {
+                        $relation->view_status = true;
+                        $relation->save();
+                    }
+                } else {
+                    $relation = DigitalShowImageSellerRelation::create([
+                        'user_id' => $this->getUser->id,
+                        'image_id' => $images[$i]->id,
+                        'view_status' => true,
+                    ]);
                 }
-            } else {
-                $relation = DigitalShowImageSellerRelation::create([
-                    'user_id' => $this->getUser->id,
-                    'image_id' => $images[0]->id,
-                    'view_status' => true,
-                ]);
             }
-            return ['status' => 1, 'images' => $images, 'relation' => $relation];
+            return ['status' => 1, 'images' => $images];
         } catch (\Exception$e) {
             return ['status' => 0, 'message' => $e];
         }

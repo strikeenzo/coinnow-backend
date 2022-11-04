@@ -109,6 +109,7 @@ Route::middleware(['checkKey'])->group(function () {
                 Route::get('/clans/{id}/leave', 'leaveClan');
                 Route::get('/clans/{id}/history', 'getClanHistoryById');
                 Route::post('/image/upload', 'uploadImage');
+                Route::post('/image/delete', 'removeImages');
                 Route::get('/image/getMyImages', 'getMyImages');
                 Route::get('/image/getImages', 'getImages');
                 Route::post('/image/toogleVoteImage', 'toogleVoteImage');
