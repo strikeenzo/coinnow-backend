@@ -679,8 +679,9 @@ class GeneralApiController extends Controller
                 });
         }])
             ->where(function ($query) {
-                $query->where('sale', 1)
-                    ->orWhere('sale_date', '<=', Carbon::parse('-2 hours'));
+                $query->where('sale', 1);
+                // $query->where('sale', 1)
+                //     ->orWhere('sale_date', '<=', Carbon::parse('-2 hours'));
             })
             ->where('quantity', '>', 0)
             ->orderBy('created_at', 'ASC')
@@ -964,15 +965,15 @@ class GeneralApiController extends Controller
     public function something(Request $request)
     { // terrible naming change later.
         $env = EnvironmentalVariable::first();
-        $old_products = ProductSellerRelation::where('sale', 0)
-            ->Where('updated_at', '<=', Carbon::parse('-2 hours'))->get();
-        foreach ($old_products as $product) {
-            $seconds = rand($env->min_time, $env->max_time);
-            $sell_date = Carbon::now()->addSeconds($seconds);
-            $product->sell_date = $sell_date;
-            $product->sale = 1;
-            $product->save();
-        }
+        // $old_products = ProductSellerRelation::where('sale', 0)
+        //     ->Where('updated_at', '<=', Carbon::parse('-2 hours'))->get();
+        // foreach ($old_products as $product) {
+        //     $seconds = rand($env->min_time, $env->max_time);
+        //     $sell_date = Carbon::now()->addSeconds($seconds);
+        //     $product->sell_date = $sell_date;
+        //     $product->sale = 1;
+        //     $product->save();
+        // }
         $products = ProductSellerRelation::where('sell_date', '<', Carbon::now())
             ->with('product')
             ->whereNotNull('sell_date')

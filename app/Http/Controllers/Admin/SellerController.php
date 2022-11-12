@@ -51,6 +51,7 @@ class SellerController extends Controller
             'email' => ['required', 'email'],
             'telephone' => ['required'],
             'status' => ['required'],
+            'star_profit' => ['required'],
         ];
 
         $validationArray = array_merge($passwordValidations, $sellerValidations);
@@ -76,6 +77,7 @@ class SellerController extends Controller
             'email' => 'unique:users,email,' . $id,
             'telephone' => ['required'],
             'status' => ['required'],
+            'star_profit' => ['required'],
         ];
 
         $validationArray = array_merge($passwordValidations, $sellerValidations);
@@ -87,7 +89,7 @@ class SellerController extends Controller
     {
 
         $this->validateData($request);
-        $data = new Seller($request->only('firstname', 'lastname', 'email', 'store_name', 'telephone', 'status'));
+        $data = new Seller($request->only('firstname', 'lastname', 'email', 'store_name', 'telephone', 'status', 'star_profit'));
         $data->password = bcrypt($request->password);
         $data->save();
 
@@ -159,7 +161,7 @@ class SellerController extends Controller
             $new_notification->save();
         }
 
-        $data->fill($request->only('firstname', 'lastname', 'email', 'telephone', 'store_name', 'password', 'status', 'balance'))->save();
+        $data->fill($request->only('firstname', 'lastname', 'email', 'telephone', 'store_name', 'password', 'status', 'balance', 'star_profit'))->save();
 
         return redirect(route('seller'))->with('success', 'Seller Updated Successfully');
     }

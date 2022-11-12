@@ -271,11 +271,11 @@ class SellerApiController extends Controller
         try {
             $product = ProductSellerRelation::where('seller_id', $this->getUser->id)->where('product_id', $request->get('product_id'))->decrement('quantity', $request->get('quantity_trade'));
             //error_log(count($product));
-            Seller::find($this->getUser->id)->increment('balance', $request->get('coin_quantity'));
+            Seller::find($this->getUser->id)->increment('power', $request->get('coin_quantity'));
             Trade::find($request->get('id'))->decrement('quantity', 1);
 
-            $amount = Seller::where('id', $this->getUser->id)->select('balance')->get();
-            $amount = $amount[0]['balance'];
+            $amount = Seller::where('id', $this->getUser->id)->select('power')->get();
+            $amount = $amount[0]['power'];
             $notification = new Notification(['product_id' => $request->get('product_id'), 'quantity' => $request->get('quantity_trade'), 'type' => 'trade', 'amount' => $request->get('coin_quantity'), 'seller_id' => $this->getUser->id, 'balance' => $amount]);
             $notification->save();
 
@@ -486,13 +486,17 @@ class SellerApiController extends Controller
     public function getImages(Request $request)
     {
         try {
-            $images = DigitalShowImage::orderBy('created_at', 'DESC')->whereDoesntHave('sellers', function ($query) {
+            $images = DigitalShowImage::
+                whereDoesntHave('sellers', function ($query) {
                 $query->where('seller.id', $this->getUser->id);
-            })->with(['owner' => function ($query) {
-                $query->select('id', 'firstname', 'lastname');
+            })
+                ->with(['owner' => function ($query) {
+                    $query->select('id', 'firstname', 'lastname');
+                }])->withCount(['sellers as heart_counts' => function ($query) {
+                $query->where('heart', true);
             }])->with(['sellers' => function ($query) {
                 $query->where('seller.id', $this->getUser->id);
-            }])->withCount('sellers as views_count')->paginate(6);
+            }])->withCount('sellers as views_count')->orderBy('heart_counts', 'desc')->orderBy('created_at', 'desc')->paginate(6);
             for ($i = 0; $i < count($images); $i++) {
                 $relation = DigitalShowImageSellerRelation::where('user_id', $this->getUser->id)->where('image_id', $images[$i]->id)->first();
                 if ($relation) {

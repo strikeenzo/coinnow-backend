@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\DigitalShowImageSellerRelation;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
@@ -9,11 +10,12 @@ class Seller extends Authenticatable
 {
     use SoftDeletes;
     protected $table = 'seller';
-    protected $fillable = ['user_id', 'firstname', 'lastname', 'email', 'telephone', 'password', 'store_name', 'balance', 'power', 'status'];
+    protected $fillable = ['user_id', 'firstname', 'lastname', 'email', 'telephone', 'password', 'store_name', 'balance', 'power', 'status', 'star_profit'];
     protected $casts = [
         'balance' => 'float',
         'power' => 'integer',
     ];
+    protected $appends = ['view_counts'];
     const ACTIVE = 1;
 
     public static function getActivePluck()
@@ -74,5 +76,15 @@ class Seller extends Authenticatable
     public function images()
     {
         return $this->belongsToMany('App\Models\DigitalShowImage', 'digital_show_image_seller_relations', 'user_id', 'image_id')->withPivot('heart', 'view_status');
+    }
+
+    public function contests()
+    {
+        return $this->belongsToMany('App\Models\Contest', 'contest_star_relations', 'star_id', 'contest_id')->withPivot('investment');
+    }
+
+    public function getViewCountsAttribute()
+    {
+        return DigitalShowImageSellerRelation::where('user_id', $this->id)->count();
     }
 }
