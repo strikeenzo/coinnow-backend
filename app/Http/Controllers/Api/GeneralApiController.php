@@ -166,6 +166,7 @@ class GeneralApiController extends Controller
             }
             if (($value['max_price'] < $value['price'] + ($value['change_amount'] ? $value['change_amount'] : 0))) {
                 $sum -= $value['profit'];
+                array_push($arr1, $value);
                 continue;
             }
             array_push($arr1, $value);
