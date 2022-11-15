@@ -190,16 +190,9 @@ class GeneralApiController extends Controller
             'collected' => $sum2,
             'distributed' => $sum1,
         ]);
-        $product_ids = [];
         for ($i = 0; $i < count($arr2); $i++) {
             $record = Product::where('id', $arr2[$i]['id'])->first();
             if (($arr2[$i]['min_price'] <= $arr2[$i]['price'] - ($arr2[$i]['change_amount'] ? $arr2[$i]['change_amount'] : 0))) {
-
-                $id_index = array_search($arr2[$i]['id'], $product_ids);
-                if ($id_index != FALSE) {
-                    continue;
-                }
-                array_push($product_ids, $arr2[$i]['id']);
 
                 $arr2[$i]['price'] = $arr2[$i]['price'] - ($arr2[$i]['change_amount'] ? $arr2[$i]['change_amount'] : 0);
                 $record->price = $arr2[$i]['price'];
@@ -233,12 +226,6 @@ class GeneralApiController extends Controller
         }
         for ($i = 0; $i < count($arr1); $i++) {
             if (($arr1[$i]['max_price'] >= $arr1[$i]['price'] + ($arr1[$i]['change_amount'] ? $arr1[$i]['change_amount'] : 0))) {
-                
-                $id_index = array_search($arr2[$i]['id'], $product_ids);
-                if ($id_index != FALSE) {
-                    continue;
-                }
-                array_push($product_ids, $arr2[$i]['id']);
 
                 $arr1[$i]['price'] = $arr1[$i]['price'] + ($arr1[$i]['change_amount'] ? $arr1[$i]['change_amount'] : 0);
                 $record = Product::where('id', $arr1[$i]['id'])->first();
