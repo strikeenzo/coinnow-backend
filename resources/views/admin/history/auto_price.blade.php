@@ -15,6 +15,9 @@
                             </ol>
                         </nav>
                     </div>
+                    <div class="col-lg-6 col-5 d-flex justify-content-end pr-4">
+                        <a href="/api/autoPriceChange" target="blank" class="btn btn-primary">Auto Change</a>
+                    </div>
                 </div>
             </div>
         </div>
