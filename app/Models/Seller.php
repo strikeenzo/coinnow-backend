@@ -78,10 +78,10 @@ class Seller extends Authenticatable
         return $this->belongsToMany('App\Models\DigitalShowImage', 'digital_show_image_seller_relations', 'user_id', 'image_id')->withPivot('heart', 'view_status');
     }
 
-    public function contests()
-    {
-        return $this->belongsToMany('App\Models\Contest', 'contest_star_relations', 'star_id', 'contest_id')->withPivot('investment');
-    }
+    // public function contests()
+    // {
+    //     return $this->belongsToMany('App\Models\Contest', 'contest_star_relations', 'star_id', 'contest_id')->withPivot('investment');
+    // }
 
     public function getViewCountsAttribute()
     {

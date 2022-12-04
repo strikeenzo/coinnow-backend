@@ -30,11 +30,10 @@ class ContestController extends Controller
     {
         $now = Carbon::now();
         $contests = Contest::where('status', 1)->where('ended_at', '<', $now)->get();
-        // $contests = Contest::where('status', 1)->get();
         for ($i = 0; $i < count($contests); $i++) {
             $contests[$i]->status = 2;
             $contests[$i]->save();
-            $relations = ContestStarRelation::where('contest_id', $contests[$i]->id)->with('star')->get()->sortBy('star.view_counts');
+            $relations = ContestStarRelation::where('contest_id', $contests[$i]->id)->with('digital')->get()->sortBy('digital.view_counts');
             $j = 0;
             foreach ($relations as $relation) {
                 if ($j < 4) {
@@ -42,7 +41,7 @@ class ContestController extends Controller
                         'type' => 'investor_lost',
                         'contest_id' => $relation->contest_id,
                         'seller_id' => $relation->investor_id,
-                        'receiver_id' => $relation->star_id,
+                        'receiver_id' => $relation->digital_id,
                         'price' => $this->investment,
                         'balance' => $relation->investor->balance,
                         'seen' => 0,
@@ -52,21 +51,23 @@ class ContestController extends Controller
                     $notification_data = array(
                         'type' => 'star_lost',
                         'contest_id' => $relation->contest_id,
-                        'seller_id' => $relation->star_id,
+                        'seller_id' => $relation->digital_id,
                         'receiver_id' => $relation->investor_id,
                         'price' => $this->investment,
-                        'balance' => $relation->star->balance,
+                        'balance' => $relation->digital->owner->balance,
                         'seen' => 0,
                     );
                     $new_notification = new Notification($notification_data);
                     $new_notification->save();
                 } else {
+                    $relation->digital->winning_counts = $relation->digital->winning_counts ? $relation->digital->winning_counts : 0 + 1;
+                    $relation->digital->save();
                     $notification_data = array(
                         'type' => 'investor_win',
                         'contest_id' => $relation->contest_id,
                         'seller_id' => $relation->investor_id,
-                        'receiver_id' => $relation->star_id,
-                        'price' => $this->investment * (1.9 - $relation->star->star_profit / 100),
+                        'receiver_id' => $relation->digital_id,
+                        'price' => $this->investment * (1.9 - $relation->digital->owner->star_profit / 100),
                         'balance' => $relation->investor->balance,
                         'seen' => 0,
                     );
@@ -77,16 +78,16 @@ class ContestController extends Controller
                         'contest_id' => $relation->contest_id,
                         'seller_id' => $relation->star_id,
                         'receiver_id' => $relation->investor_id,
-                        'price' => $this->investment * $relation->star->star_profit / 100,
-                        'balance' => $relation->star->balance,
+                        'price' => $this->investment * $relation->digital->owner->star_profit / 100,
+                        'balance' => $relation->digital->owner->balance,
                         'seen' => 0,
                     );
                     $new_notification = new Notification($notification_data);
                     $new_notification->save();
-                    $relation->investor->balance += $this->investment * (1.9 - $relation->star->star_profit / 100);
+                    $relation->investor->balance += $this->investment * (1.9 - $relation->digital->owner->star_profit / 100);
                     $relation->investor->save();
-                    $relation->star->balance += $this->investment * $relation->star->star_profit / 100;
-                    $relation->star->save();
+                    $relation->digital->owner->balance += $this->investment * $relation->digital->owner->star_profit / 100;
+                    $relation->digital->owner->save();
 
                 }
                 $j++;
@@ -98,21 +99,23 @@ class ContestController extends Controller
     public function index()
     {
         // started contests list
-        $contests = Contest::orderBy('created_at', 'desc')->with(['stars'])->paginate($this->defaultPaginate);
+        $contests = Contest::orderBy('created_at', 'desc')->with(['digitals' => function ($query) {
+            $query->withCount('sellers as views_counts');
+        }])->paginate($this->defaultPaginate);
         return ['status' => 1, 'contests' => $contests];
     }
 
     public function invest(Request $request)
     {
-        $star_id = $request->star_id;
+        $digital_id = $request->digital_id;
         $investor_id = $this->getUser->id;
-        if ($this->getUser->power >= $this->investment) {
+        if ($this->getUser->balance >= $this->investment) {
             $contest = Contest::where('status', 0)->first();
             $now = Carbon::now();
-            $ended = Carbon::now()->addDays(7);
+            $ended = Carbon::now()->addDays(1);
             if ($contest) {
-                if (count($contest->stars) < 8) {
-                    if (count($contest->stars) == 7) {
+                if (count($contest->digitals) < 8) {
+                    if (count($contest->digitals) == 7) {
                         $contest->status = 1;
                         $contest->started_at = $now;
                         $contest->ended_at = $ended;
@@ -127,7 +130,7 @@ class ContestController extends Controller
                 ]);
             }
             ContestStarRelation::create([
-                'star_id' => $star_id,
+                'digital_id' => $digital_id,
                 'investor_id' => $investor_id,
                 'investment' => $this->investment,
                 'contest_id' => $contest->id,
@@ -136,22 +139,30 @@ class ContestController extends Controller
                 'type' => 'invest',
                 'contest_id' => $contest->id,
                 'seller_id' => $this->getUser->id,
-                'receiver_id' => $request->star_id,
+                'receiver_id' => $request->digital_id,
                 'price' => $this->investment,
                 'balance' => $this->getUser->balance,
                 'seen' => 0,
             );
             $new_notification = new Notification($notification_data);
             $new_notification->save();
-            $this->getUser->power -= $this->investment;
+            $this->getUser->balance -= $this->investment;
             $this->getUser->save();
             return ['status' => 1, 'message' => 'Successfully invested'];
         } else {
             return [
                 'status' => 0,
-                'message' => 'No enough diamonds',
+                'message' => 'No enough balance',
             ];
         }
+    }
+
+    public function getInvestedImages()
+    {
+        $images = ContestStarRelation::where('investor_id', $this->getUser->id)->whereHas('digital')->with('digital')->with('contest')->whereHas('contest', function ($query) {
+            $query->whereIn('status', [0, 1]);
+        })->get();
+        return $images;
     }
 
     public function getStars(Request $request)

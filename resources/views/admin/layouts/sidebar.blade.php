@@ -729,11 +729,13 @@
                             <i class="fa fa-box"></i> {{ __('Customer Support Center') }}
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('digital') }}">
-                            <i class="fa fa-image"></i> {{ __('Digital Show') }}
-                        </a>
-                    </li>
+                    @if ($user->hasRole('Admin'))
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('digital') }}">
+                                <i class="fa fa-image"></i> {{ __('Digital Show') }}
+                            </a>
+                        </li>
+                    @endif
                     @if ($user->hasRole('Admin'))
                         <li class="nav-item">
                             <a class="nav-link" href="#navbar-history" data-toggle="collapse" role="button"

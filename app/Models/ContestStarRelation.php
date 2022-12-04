@@ -25,4 +25,9 @@ class ContestStarRelation extends Model
     {
         return $this->belongsTo('App\Models\Seller', 'investor_id', 'id');
     }
+
+    public function digital()
+    {
+        return $this->belongsTo('App\Models\DigitalShowImage', 'digital_id', 'id');
+    }
 }

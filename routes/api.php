@@ -142,6 +142,7 @@ Route::middleware(['checkKey'])->group(function () {
                     Route::post('/invest', 'invest');
                     Route::get('/stars', 'getStars');
                     Route::get('/contest', 'index');
+                    Route::get('/investedImages', 'getInvestedImages');
                 }
             );
 

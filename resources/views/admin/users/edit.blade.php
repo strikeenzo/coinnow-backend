@@ -16,11 +16,13 @@
                             </ol>
                         </nav>
                     </div>
-                    <div class="col-lg-6 col-5 text-right">
-                        <a href="{{ route('user.add') }}" class="btn btn-lg btn-neutral fade-class"><i
-                                class="fas fa-plus fa-lg"></i> New</a>
-                        {{--                        <a href="#" class="btn btn-sm btn-neutral">Filters</a> --}}
-                    </div>
+                    @if (Auth::user()->hasRole('Admin'))
+                        <div class="col-lg-6 col-5 text-right">
+                            <a href="{{ route('user.add') }}" class="btn btn-lg btn-neutral fade-class"><i
+                                    class="fas fa-plus fa-lg"></i> New</a>
+                            {{--                        <a href="#" class="btn btn-sm btn-neutral">Filters</a> --}}
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -106,24 +108,26 @@
                                 {{--                                        </span> --}}
                                 {{--                                    @endif --}}
                                 {{--                                </div> --}}
+                                @if (Auth::user()->hasRole('Admin'))
+                                    <div class="col-md-4 form-group{{ $errors->has('role') ? ' has-danger' : '' }}">
+                                        <label class="form-control-label" for="role">{{ __('Role') }}</label>
 
-                                <div class="col-md-4 form-group{{ $errors->has('role') ? ' has-danger' : '' }}">
-                                    <label class="form-control-label" for="role">{{ __('Role') }}</label>
+                                        <select class="form-control" name="role">
+                                            <option value=""> </option>
 
-                                    <select class="form-control" name="role">
-                                        <option value=""> </option>
-
-                                        @foreach ($roles as $key => $value)
-                                            <option value="{{ $value }}" {{ $role == $value ? 'selected' : '' }}>
-                                                {{ $value }}</option>
-                                        @endforeach
-                                    </select>
-                                    @if ($errors->has('role'))
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $errors->first('role') }}</strong>
-                                        </span>
-                                    @endif
-                                </div>
+                                            @foreach ($roles as $key => $value)
+                                                <option value="{{ $value }}"
+                                                    {{ $role == $value ? 'selected' : '' }}>
+                                                    {{ $value }}</option>
+                                            @endforeach
+                                        </select>
+                                        @if ($errors->has('role'))
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $errors->first('role') }}</strong>
+                                            </span>
+                                        @endif
+                                    </div>
+                                @endif
                                 <div class="col-md-4 form-group{{ $errors->has('status') ? ' has-danger' : '' }}">
                                     <label class="form-control-label" for="status">{{ __('Status') }}</label>
                                     <select class="form-control" name="status">

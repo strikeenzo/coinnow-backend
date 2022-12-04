@@ -26,9 +26,9 @@ class Contest extends Model
         return $this->status == 2;
     }
 
-    public function stars()
+    public function digitals()
     {
-        return $this->belongsToMany('App\Models\Seller', 'contest_star_relations', 'contest_id', 'star_id')->withPivot('investment');
+        return $this->belongsToMany('App\Models\DigitalShowImage', 'contest_star_relations', 'contest_id', 'digital_id')->withPivot('investment');
     }
 
     public function investors()

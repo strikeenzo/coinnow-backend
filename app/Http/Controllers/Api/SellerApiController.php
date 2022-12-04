@@ -385,7 +385,7 @@ class SellerApiController extends Controller
             $validator = Validator::make(
                 $request->all(),
                 [
-                    'image' => 'required|image',
+                    'image' => 'required',
                 ]
             );
             if ($validator->fails()) {
@@ -393,18 +393,16 @@ class SellerApiController extends Controller
                 return ['status' => 0, 'message' => $message];
             }
 
-            if ($request->hasFile('image')) {
-                $digitalShowImage = new DigitalShowImage();
-                $this->createDirectory($this->path);
-                $digitalShowImage->image = $this->saveCustomFileAndGetImageName($request->file('image'), $this->path);
-                $digitalShowImage->owner_id = $this->getUser->id;
-                if ($request->comment) {
-                    $digitalShowImage->comment = $request->comment;
-                } else {
-                    $digitalShowImage->comment = ' ';
-                }
-                $digitalShowImage->save();
+            $digitalShowImage = new DigitalShowImage();
+            // $this->createDirectory($this->path);
+            $digitalShowImage->image = $request->image;
+            $digitalShowImage->owner_id = $this->getUser->id;
+            if ($request->comment) {
+                $digitalShowImage->comment = $request->comment;
+            } else {
+                $digitalShowImage->comment = ' ';
             }
+            $digitalShowImage->save();
             return ['status' => 1, 'message' => 'Image successfully uploaded'];
         } catch (\Exception$e) {
             return ['status' => 0, 'message' => $e];
@@ -486,17 +484,17 @@ class SellerApiController extends Controller
     public function getImages(Request $request)
     {
         try {
-            $images = DigitalShowImage::
-                whereDoesntHave('sellers', function ($query) {
+            $images = DigitalShowImage::whereDoesntHave('sellers', function ($query) {
                 $query->where('seller.id', $this->getUser->id);
-            })
-                ->with(['owner' => function ($query) {
-                    $query->select('id', 'firstname', 'lastname');
-                }])->withCount(['sellers as heart_counts' => function ($query) {
+            })->with(['owner' => function ($query) {
+                $query->select('id', 'firstname', 'lastname');
+            }])->with(['contests' => function ($query) {
+                $query->whereIn('status', [0, 1]);
+            }])->withCount(['sellers as heart_counts' => function ($query) {
                 $query->where('heart', true);
             }])->with(['sellers' => function ($query) {
                 $query->where('seller.id', $this->getUser->id);
-            }])->withCount('sellers as views_count')->orderBy('heart_counts', 'desc')->orderBy('created_at', 'desc')->paginate(6);
+            }])->withCount('sellers as views_count')->orderBy('heart_counts', 'desc')->orderBy('created_at', 'desc')->paginate(3);
             for ($i = 0; $i < count($images); $i++) {
                 $relation = DigitalShowImageSellerRelation::where('user_id', $this->getUser->id)->where('image_id', $images[$i]->id)->first();
                 if ($relation) {

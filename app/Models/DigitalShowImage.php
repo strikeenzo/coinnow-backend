@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\DigitalShowImageSellerRelation;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -10,7 +11,7 @@ class DigitalShowImage extends Model
     use HasFactory;
 
     protected $guarded = [];
-
+    protected $appends = ['view_counts'];
     public function owner()
     {
         return $this->belongsTo('App\Models\Seller', 'owner_id', 'id');
@@ -24,5 +25,15 @@ class DigitalShowImage extends Model
     public function comments()
     {
         return $this->hasMany('App\Models\DigitalImageComment', 'image_id', 'id');
+    }
+
+    public function contests()
+    {
+        return $this->belongsToMany('App\Models\Contest', 'contest_star_relations', 'digital_id', 'contest_id')->withPivot('investment');
+    }
+
+    public function getViewCountsAttribute()
+    {
+        return DigitalShowImageSellerRelation::where('image_id', $this->id)->count();
     }
 }

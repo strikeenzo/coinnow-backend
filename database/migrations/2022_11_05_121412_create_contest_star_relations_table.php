@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('contest_star_relations', function (Blueprint $table) {
             $table->id();
             $table->integer('contest_id');
-            $table->integer('star_id');
+            $table->integer('digital_id');
             $table->integer('investor_id');
             $table->integer('investment');
             $table->timestamps();
