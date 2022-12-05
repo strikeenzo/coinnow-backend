@@ -163,7 +163,21 @@
                                     @endif
                                 </div>
 
+                                <div class="col-md-4 form-group{{ $errors->has('star_profit') ? ' has-danger' : '' }}">
+                                    <label class="form-control-label" for="star_profit">{{ __('Star Profit') }}</label>
+                                    <input type="number" name="star_profit" id="star_profit"
+                                        class="form-control form-control-alternative{{ $errors->has('star_profit') ? ' is-invalid' : '' }}"
+                                        placeholder="{{ __('Star Profit') }}"
+                                        value="{{ old('star_profit', $data->star_profit) }}" autofocus>
+
+                                    @if ($errors->has('star_profit'))
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $errors->first('star_profit') }}</strong>
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
+
 
                             <div class="pl-lg-4 row">
 

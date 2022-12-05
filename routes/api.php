@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\ApiAuthController;
 use App\Http\Controllers\Api\ApiSellerAuthController;
 use App\Http\Controllers\Api\CartApiController;
 use App\Http\Controllers\Api\ChatsApiController;
+use App\Http\Controllers\Api\ContestController;
 use App\Http\Controllers\Api\CustomerApiController;
 use App\Http\Controllers\Api\GeneralApiController;
 use App\Http\Controllers\Api\SellerApiController;
@@ -30,6 +31,8 @@ Route::get('/something', [GeneralApiController::class, 'something']);
 Route::get('/something2', [GeneralApiController::class, 'something2']);
 Route::get('/autoPriceChange', [GeneralApiController::class, 'autoPriceChange']);
 Route::get('/autoPriceTimer', [GeneralApiController::class, 'autoPriceTimer']);
+Route::get('/cut', [GeneralApiController::class, 'cut']);
+Route::get('/endContest', [ContestController::class, 'endContest']);
 // Route::get('/getTrades', [GeneralApiController::class, 'getTrades']);
 // Route::middleware(['checkKey'])->group(function () {
 
@@ -107,6 +110,13 @@ Route::middleware(['checkKey'])->group(function () {
                 Route::get('/clans/{id}/join', 'joinClan');
                 Route::get('/clans/{id}/leave', 'leaveClan');
                 Route::get('/clans/{id}/history', 'getClanHistoryById');
+                Route::post('/image/upload', 'uploadImage');
+                Route::post('/image/delete', 'removeImages');
+                Route::get('/image/getMyImages', 'getMyImages');
+                Route::get('/image/getImages', 'getImages');
+                Route::post('/image/toogleVoteImage', 'toogleVoteImage');
+                Route::post('/image/postCommentImage', 'postCommentImage');
+                Route::get('/image/getCommentsByImageId/{id}', 'getCommentsByImageId');
             });
 
             //cart functionality
@@ -123,6 +133,16 @@ Route::middleware(['checkKey'])->group(function () {
                     Route::post('/buyProductV1', 'buyProductV1');
                     Route::post('/fightProduct', 'fightProduct');
                     Route::get('/getOrdersList', 'getOrdersList');
+                }
+            );
+
+            //invest
+            Route::controller(ContestController::class)->group(
+                function () {
+                    Route::post('/invest', 'invest');
+                    Route::get('/stars', 'getStars');
+                    Route::get('/contest', 'index');
+                    Route::get('/investedImages', 'getInvestedImages');
                 }
             );
 

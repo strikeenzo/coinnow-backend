@@ -15,6 +15,8 @@ use App\Models\CronJobTimer;
 use App\Models\CustomerComment;
 use App\Models\DOD;
 use App\Models\EnvironmentalVariable;
+use App\Models\EveryDayFee;
+use App\Models\GiftHistory;
 use App\Models\Guide;
 use App\Models\Manufacturer;
 use App\Models\News;
@@ -78,7 +80,9 @@ class GeneralApiController extends Controller
             $start->started_at = Carbon::now();
             $start->save();
         }
-        $records = Product::where('points', '<', 1)->orWhere('points', null)->select('change_amount', 'id', 'price', 'min_price', 'max_price', 'range_quantity', 'quantity', 'auto_stock_amount')->get();
+        $records = Product::where('image_profit', null)->where(function ($query) {
+            $query->where('points', '<', 1)->orWhere('points', null);
+        })->select('change_amount', 'id', 'price', 'min_price', 'max_price', 'range_quantity', 'quantity', 'auto_stock_amount', 'image_profit')->get();
         for ($i = 0; $i < count($records); $i++) {
             if ($records[$i]['price'] - $records[$i]['min_price'] < ($records[$i]['max_price'] - $records[$i]['min_price']) / 5
                 && $records[$i]['quantity'] > ($records[$i]['range_quantity'] ? $records[$i]['range_quantity'] : 0)) {
@@ -156,6 +160,11 @@ class GeneralApiController extends Controller
             // }
             // array_push($arr2, $value);
             // $sum2 += $value['profit'];
+            if ($value['max_price'] < $value['price'] + ($value['change_amount'] ? $value['change_amount'] : 0)) {
+                $sum2 += $value['profit'];
+                array_push($arr2, $value);
+                continue;
+            }
             if ($sum2 <= $sum1 + $value['profit']) {
                 if ($value['min_price'] > $value['price'] - ($value['change_amount'] ? $value['change_amount'] : 0)) {
                 } else {
@@ -164,15 +173,15 @@ class GeneralApiController extends Controller
                     continue;
                 }
             }
-            if (($value['max_price'] < $value['price'] + ($value['change_amount'] ? $value['change_amount'] : 0))) {
-                $sum -= $value['profit'];
-                continue;
-            }
+            // if (($value['max_price'] < $value['price'] + ($value['change_amount'] ? $value['change_amount'] : 0))) {
+            //     $sum -= $value['profit'];
+            //     continue;
+            // }
             array_push($arr1, $value);
             $sum1 += $value['profit'];
         }
 
-        // return [$sum2, $arr2, $sum1, $arr1];
+        // return [count($records), count($arr1), count($arr2)];
 
         // $sum1 = $sum2 = 0;
         // foreach ($records as $key => $value) {
@@ -274,6 +283,36 @@ class GeneralApiController extends Controller
         return ['status' => 1, 'distributed' => $sum1, 'collected' => $sum2, $arr1, $arr2];
     }
 
+    // everyday cut for fee
+    public function cut()
+    {
+        $sellers = Seller::get();
+        $fee = EnvironmentalVariable::first()->fee;
+        $total = 0;
+        for ($i = 0; $i < count($sellers); $i++) {
+            if ($sellers[$i]->balance > 500 && $fee) {
+                $total += $fee;
+                $seller_balance = (float) $sellers[$i]->balance;
+                $sellers[$i]->balance -= $fee;
+                $sellers[$i]->save();
+                $notification_data = array(
+                    'type' => 'everyday_cut',
+                    'seller_id' => $sellers[$i]->id,
+                    'quantity' => 1,
+                    'price' => $fee,
+                    'balance' => $seller_balance,
+                    'seen' => 0,
+                );
+                $new_notification = new Notification($notification_data);
+                $new_notification->save();
+            }
+        }
+        EveryDayFee::create([
+            'total_fee' => $total,
+        ]);
+        return $sellers;
+    }
+
     //homepage api
     public function getHomePage()
     {
@@ -370,13 +409,14 @@ class GeneralApiController extends Controller
     public function getNewProducts()
     {
         try {
-            $data = Product::select('id', 'image', 'category_id', 'model', 'price', 'manufacturer_id', 'quantity', 'sort_order', 'status', 'date_available', 'min_price', 'change_amount')
+            $data = Product::select('id', 'image', 'category_id', 'model', 'price', 'manufacturer_id', 'quantity', 'sort_order', 'status', 'date_available', 'min_price', 'change_amount', 'image_profit')
                 ->with('productDescription:name,id,product_id', 'special:product_id,price,start_date,end_date')
                 ->withCount(['productReview as review_avg' => function ($query) {
                     $query->select(DB::raw('avg(rating)'));
                 }])
                 ->with('productManufacturer')
                 ->orderBy('created_at', 'DESC')
+                ->where('image_profit', null)
                 ->where('date_available', '<=', date('Y-m-d'))
                 ->where('status', '1')
                 ->where(function ($query) {
@@ -399,7 +439,7 @@ class GeneralApiController extends Controller
     public function getNewProductsV1()
     {
         // try {
-        $data = Product::select('id', 'image', 'category_id', 'manufacturer_id', 'model', 'price', 'quantity', 'sort_order', 'status', 'date_available', 'created_at', 'power', 'min_price', 'change_amount')
+        $data = Product::select('id', 'image', 'category_id', 'manufacturer_id', 'model', 'price', 'quantity', 'sort_order', 'status', 'date_available', 'created_at', 'power', 'min_price', 'change_amount', 'image_profit')
             ->with('productDescription:name,id,product_id,description', 'special:product_id,price,start_date,end_date')
             ->withCount(['sellers' => function ($query) {
                 $query->where('quantity', '>', 0);
@@ -408,8 +448,9 @@ class GeneralApiController extends Controller
                 $query->select(DB::raw('avg(rating)'));
             }])
             ->with('productManufacturer')
-            ->orderBy('created_at', 'DESC')
+            ->where('image_profit', null)
             ->where('date_available', '<=', date('Y-m-d'))
+            ->orderBy('created_at', 'DESC')
             ->where(function ($query) {
                 $query->where('points', '<', 1)->orWhere('points', null);
             })
@@ -635,7 +676,7 @@ class GeneralApiController extends Controller
         $keyword = $request->get('q', '');
         $seller_id = $request->seller_id;
         $records = ProductSellerRelation::has('product')->with(['product' => function ($query) use ($keyword) {
-            $query->select('id', 'image', 'price', 'quantity', 'sort_order', 'status', 'deleted_at', 'manufacturer_id')
+            $query->select('id', 'image', 'price', 'quantity', 'sort_order', 'status', 'deleted_at', 'manufacturer_id', 'image_profit')
                 ->with('productDescription:name,id,product_id', 'special:product_id,price,start_date,end_date', 'seller:id,firstname,lastname,power')
                 ->with('productManufacturer')
                 ->when(!empty($keyword), function ($q) use ($keyword) {
@@ -645,8 +686,9 @@ class GeneralApiController extends Controller
                 });
         }])
             ->where(function ($query) {
-                $query->where('sale', 1)
-                    ->orWhere('sale_date', '<=', Carbon::parse('-2 hours'));
+                $query->where('sale', 1);
+                // $query->where('sale', 1)
+                //     ->orWhere('sale_date', '<=', Carbon::parse('-2 hours'));
             })
             ->where('quantity', '>', 0)
             ->orderBy('created_at', 'ASC')
@@ -789,7 +831,7 @@ class GeneralApiController extends Controller
                     ->withCount(['productReview as review_avg' => function ($query) {
                         $query->select(DB::raw('avg(rating)'));
                     }])
-                    ->select('id', 'image', 'category_id', 'model', 'price', 'quantity', 'sort_order', 'status', 'date_available', 'manufacturer_id', 'points')
+                    ->select('id', 'image', 'category_id', 'model', 'price', 'quantity', 'sort_order', 'status', 'date_available', 'manufacturer_id', 'points', 'image_profit')
                     ->withCount(['sellers' => function ($query) {
                         $query->where('quantity', '>', 0);
                     }])
@@ -811,7 +853,7 @@ class GeneralApiController extends Controller
                     ->withCount(['productReview as review_avg' => function ($query) {
                         $query->select(DB::raw('avg(rating)'));
                     }])
-                    ->select('id', 'image', 'category_id', 'model', 'price', 'quantity', 'sort_order', 'status', 'date_available', 'manufacturer_id', 'points')
+                    ->select('id', 'image', 'category_id', 'model', 'price', 'quantity', 'sort_order', 'status', 'date_available', 'manufacturer_id', 'points', 'image_profit')
                     ->withCount(['sellers' => function ($query) {
                         $query->where('quantity', '>', 0);
                     }])
@@ -930,15 +972,15 @@ class GeneralApiController extends Controller
     public function something(Request $request)
     { // terrible naming change later.
         $env = EnvironmentalVariable::first();
-        $old_products = ProductSellerRelation::where('sale', 0)
-            ->Where('updated_at', '<=', Carbon::parse('-2 hours'))->get();
-        foreach ($old_products as $product) {
-            $seconds = rand($env->min_time, $env->max_time);
-            $sell_date = Carbon::now()->addSeconds($seconds);
-            $product->sell_date = $sell_date;
-            $product->sale = 1;
-            $product->save();
-        }
+        // $old_products = ProductSellerRelation::where('sale', 0)
+        //     ->Where('updated_at', '<=', Carbon::parse('-2 hours'))->get();
+        // foreach ($old_products as $product) {
+        //     $seconds = rand($env->min_time, $env->max_time);
+        //     $sell_date = Carbon::now()->addSeconds($seconds);
+        //     $product->sell_date = $sell_date;
+        //     $product->sale = 1;
+        //     $product->save();
+        // }
         $products = ProductSellerRelation::where('sell_date', '<', Carbon::now())
             ->with('product')
             ->whereNotNull('sell_date')
@@ -946,8 +988,18 @@ class GeneralApiController extends Controller
 
         foreach ($products as $product) {
             if ($product->product) {
-                $amount = (float) $product->product->price * (int) $product->quantity;
+                $amount = 0;
                 $seller = Seller::find($product->seller_id);
+                if ($product->product->image_profit) {
+                    $amount = (float) ($product->product->price + $product->product->image_profit) * (int) $product->quantity;
+                    GiftHistory::create([
+                        'seller_id' => $seller->id,
+                        'product_id' => $product->product->id,
+                        'amount' => $product->product->image_profit * (int) $product->quantity,
+                    ]);
+                } else {
+                    $amount = (float) $product->product->price * (int) $product->quantity;
+                }
                 if ($seller) {
                     $seller_balance = (float) $seller->balance;
                     if (!empty($seller)) {
@@ -959,7 +1011,7 @@ class GeneralApiController extends Controller
                         'product_id' => $product->product->id,
                         'seller_id' => $product->seller->id ?? null,
                         'quantity' => $product->quantity,
-                        'price' => $product->product->price,
+                        'price' => $product->product->price + ($product->product->image_profit ? $product->product->image_profit : 0),
                         'balance' => $seller_balance,
                         'seen' => 0,
                     );

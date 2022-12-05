@@ -11,7 +11,7 @@ class Notification extends Model
     use CustomFileTrait, SoftDeletes;
     protected $table = 'notification';
 
-    protected $fillable = ['type', 'product_id', 'quantity', 'price', 'seller_id', 'receiver_id', 'sender_id', 'balance', 'amount', 'seen', 'clan_id'];
+    protected $fillable = ['type', 'product_id', 'quantity', 'price', 'seller_id', 'receiver_id', 'sender_id', 'balance', 'amount', 'seen', 'clan_id', 'contest_id'];
 
     protected $casts = [
         'price' => 'float',
