@@ -729,7 +729,13 @@
                             <i class="fa fa-box"></i> {{ __('Customer Support Center') }}
                         </a>
                     </li>
-
+                    @if ($user->hasRole('Admin'))
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('digital') }}">
+                                <i class="fa fa-image"></i> {{ __('Digital Show') }}
+                            </a>
+                        </li>
+                    @endif
                     @if ($user->hasRole('Admin'))
                         <li class="nav-item">
                             <a class="nav-link" href="#navbar-history" data-toggle="collapse" role="button"
@@ -752,6 +758,16 @@
                                     <li class="nav-item">
                                         <a class="nav-link" href="{{ route('auto_price_history') }}">
                                             <i class="fa fa-list fa-lg"></i> {{ __('Auto Price') }}
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('fee') }}">
+                                            <i class="fa fa-money-bill"></i> {{ __('Everyday Fee') }}
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('gift') }}">
+                                            <i class="fa fa-money-bill"></i> {{ __('Gift') }}
                                         </a>
                                     </li>
                                 </ul>

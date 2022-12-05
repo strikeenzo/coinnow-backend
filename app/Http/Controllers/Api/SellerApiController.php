@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Clan;
 use App\Models\CoinPrice;
+use App\Models\DigitalImageComment;
+use App\Models\DigitalShowImage;
+use App\Models\DigitalShowImageSellerRelation;
 use App\Models\EnvironmentalVariable;
 use App\Models\Notification;
 use App\Models\PaymentHistory;
@@ -268,11 +271,11 @@ class SellerApiController extends Controller
         try {
             $product = ProductSellerRelation::where('seller_id', $this->getUser->id)->where('product_id', $request->get('product_id'))->decrement('quantity', $request->get('quantity_trade'));
             //error_log(count($product));
-            Seller::find($this->getUser->id)->increment('balance', $request->get('coin_quantity'));
+            Seller::find($this->getUser->id)->increment('power', $request->get('coin_quantity'));
             Trade::find($request->get('id'))->decrement('quantity', 1);
 
-            $amount = Seller::where('id', $this->getUser->id)->select('balance')->get();
-            $amount = $amount[0]['balance'];
+            $amount = Seller::where('id', $this->getUser->id)->select('power')->get();
+            $amount = $amount[0]['power'];
             $notification = new Notification(['product_id' => $request->get('product_id'), 'quantity' => $request->get('quantity_trade'), 'type' => 'trade', 'amount' => $request->get('coin_quantity'), 'seller_id' => $this->getUser->id, 'balance' => $amount]);
             $notification->save();
 
@@ -373,6 +376,183 @@ class SellerApiController extends Controller
             }
         } catch (\Exception$e) {
             return ['status' => 0, 'message' => 'Error'];
+        }
+    }
+
+    public function uploadImage(Request $request)
+    {
+        try {
+            $validator = Validator::make(
+                $request->all(),
+                [
+                    'image' => 'required',
+                ]
+            );
+            if ($validator->fails()) {
+                $message = $this->one_validation_message($validator);
+                return ['status' => 0, 'message' => $message];
+            }
+
+            $digitalShowImage = new DigitalShowImage();
+            // $this->createDirectory($this->path);
+            $digitalShowImage->image = $request->image;
+            $digitalShowImage->owner_id = $this->getUser->id;
+            if ($request->comment) {
+                $digitalShowImage->comment = $request->comment;
+            } else {
+                $digitalShowImage->comment = ' ';
+            }
+            $digitalShowImage->save();
+            return ['status' => 1, 'message' => 'Image successfully uploaded'];
+        } catch (\Exception$e) {
+            return ['status' => 0, 'message' => $e];
+        }
+    }
+
+    public function removeImages(Request $request)
+    {
+        $items = json_decode($request->items);
+        if ($items) {
+            $images = DigitalShowImage::whereIn('id', $items)->delete();
+            $comments = DigitalImageComment::whereIn('image_id', $items)->delete();
+            $relations = DigitalShowImageSellerRelation::whereIn('image_id', $items)->delete();
+        }
+        return ['status' => 1, 'message' => 'Images successfully deleted'];
+    }
+
+    public function getMyImages(Request $request)
+    {
+        try {
+            $total_comments = 0;
+            $total_likes = 0;
+            $total_views = 0;
+            $current_week_comments = 0;
+            $current_week_likes = 0;
+            $current_week_views = 0;
+            $previous_week_comments = 0;
+            $previous_week_likes = 0;
+            $previous_week_views = 0;
+            $now = Carbon::now();
+            $weekStartDate = $now->startOfWeek()->format('Y-m-d');
+            $weekEndDate = $now->endOfWeek()->format('Y-m-d');
+            $startOfLastWeek = $now->startOfWeek()->copy()->subDays(7)->format('Y-m-d');
+            $endOfLastWeek = $now->endOfWeek()->copy()->subDays(7)->format('Y-m-d');
+            $previous = DigitalShowImage::whereBetween('created_at', [$startOfLastWeek, $endOfLastWeek])->where('owner_id', $this->getUser->id)->withCount('comments')->withCount(['sellers' => function ($query) {
+                $query->where('heart', true);
+            }])->withCount('sellers as views_count')->get();
+            for ($i = 0; $i < count($previous); $i++) {
+                $previous_week_comments += $previous[$i]['comments_count'];
+                $previous_week_likes += $previous[$i]['sellers_count'];
+                $previous_week_views += $previous[$i]['views_count'];
+            }
+            $week = DigitalShowImage::whereBetween('created_at', [$weekStartDate, $weekEndDate])->where('owner_id', $this->getUser->id)->withCount('comments')->withCount(['sellers' => function ($query) {
+                $query->where('heart', true);
+            }])->withCount('sellers as views_count')->get();
+            for ($i = 0; $i < count($week); $i++) {
+                $current_week_comments += $week[$i]['comments_count'];
+                $current_week_likes += $week[$i]['sellers_count'];
+                $current_week_views += $week[$i]['views_count'];
+            }
+            $total = DigitalShowImage::where('owner_id', $this->getUser->id)->withCount('comments')->withCount(['sellers' => function ($query) {
+                $query->where('heart', true);
+            }])->withCount('sellers as views_count')->get();
+            for ($i = 0; $i < count($total); $i++) {
+                $total_comments += $total[$i]['comments_count'];
+                $total_likes += $total[$i]['sellers_count'];
+                $total_views += $total[$i]['views_count'];
+            }
+            $images = DigitalShowImage::where('owner_id', $this->getUser->id)->withCount(['comments'])->withCount(['sellers' => function ($query) {
+                $query->where('heart', true);
+            }])->withCount('sellers as views_count')->orderBy('created_at', 'desc')->paginate($this->defaultPaginate);
+            return [
+                'status' => 1, 'images' => $images,
+                'total_comments' => $total_comments,
+                'total_likes' => $total_likes,
+                'total_views' => $total_views,
+                'current_week_comments' => $current_week_comments,
+                'current_week_likes' => $current_week_likes,
+                'current_week_views' => $current_week_views,
+                'previous_week_comments' => $previous_week_comments,
+                'previous_week_likes' => $previous_week_likes,
+                'previous_week_views' => $previous_week_views,
+            ];
+        } catch (\Exception$e) {
+            return ['status' => 0, 'message' => $e];
+        }
+    }
+
+    public function getImages(Request $request)
+    {
+        try {
+            $images = DigitalShowImage::whereDoesntHave('sellers', function ($query) {
+                $query->where('seller.id', $this->getUser->id);
+            })->with(['owner' => function ($query) {
+                $query->select('id', 'firstname', 'lastname');
+            }])->with(['contests' => function ($query) {
+                $query->whereIn('status', [0, 1]);
+            }])->withCount(['sellers as heart_counts' => function ($query) {
+                $query->where('heart', true);
+            }])->with(['sellers' => function ($query) {
+                $query->where('seller.id', $this->getUser->id);
+            }])->withCount('sellers as views_count')->orderBy('heart_counts', 'desc')->orderBy('created_at', 'desc')->paginate(3);
+            for ($i = 0; $i < count($images); $i++) {
+                $relation = DigitalShowImageSellerRelation::where('user_id', $this->getUser->id)->where('image_id', $images[$i]->id)->first();
+                if ($relation) {
+                    if (!$relation->view_status) {
+                        $relation->view_status = true;
+                        $relation->save();
+                    }
+                } else {
+                    $relation = DigitalShowImageSellerRelation::create([
+                        'user_id' => $this->getUser->id,
+                        'image_id' => $images[$i]->id,
+                        'view_status' => true,
+                    ]);
+                }
+            }
+            return ['status' => 1, 'images' => $images];
+        } catch (\Exception$e) {
+            return ['status' => 0, 'message' => $e];
+        }
+    }
+
+    public function toogleVoteImage(Request $request)
+    {
+        try {
+            $relation = DigitalShowImageSellerRelation::where('user_id', $this->getUser->id)->where('image_id', $request->id)->first();
+            if ($relation) {
+                $relation->heart = !$relation->heart;
+                $relation->save();
+            }
+            return ['status' => 1, 'relation' => $relation];
+        } catch (\Exception$e) {
+            return ['status' => 0, 'message' => $e];
+        }
+    }
+
+    public function postCommentImage(Request $request)
+    {
+        try {
+            DigitalImageComment::create([
+                'image_id' => $request->image_id,
+                'comment' => $request->content,
+                'user_id' => $this->getUser->id,
+            ]);
+            return ['status' => 1, 'message' => 'Successfully commented'];
+        } catch (\Exception$e) {
+            return ['status' => 0, 'message' => $e];
+        }
+    }
+
+    public function getCommentsByImageId(Request $request, $id)
+    {
+        try {
+            $comments = DigitalImageComment::where('image_id', $id)->orderBy('created_at')->with(['owner' => function ($query) {
+                $query->select('id', 'firstname', 'lastname');
+            }])->paginate($this->defaultPaginate);
+            return $comments;
+        } catch (\Exception$e) {
+            return ['status' => 0, 'message' => $e];
         }
     }
 

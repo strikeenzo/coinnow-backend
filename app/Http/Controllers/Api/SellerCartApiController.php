@@ -822,9 +822,9 @@ class SellerCartApiController extends Controller
             $product = Product::where('id', $request->id)->with('seller')->first();
             $quantity = $request->quantity;
             $discount = 0;
-            if ($this->getUser->clan_id && $this->getUser->clan->product->id == $request->id) {
-                $discount = $this->getUser->clan->discount;
-            }
+            // if ($this->getUser->clan_id && $this->getUser->clan->product->id == $request->id) {
+            //     $discount = $this->getUser->clan->discount;
+            // }
             $balance = $this->getUser->balance;
             if ($balance < ($product->price - $discount) * $quantity) {
                 return ['status' => 0, 'message' => 'No enough balance'];

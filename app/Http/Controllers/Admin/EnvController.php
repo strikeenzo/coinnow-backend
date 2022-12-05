@@ -15,9 +15,10 @@ class EnvController extends Controller
             $env = EnvironmentalVariable::create([
                 'min_time' => 10800,
                 'max_time' => 21600,
+                'fee' => 2,
             ]);
         }
-        return view('admin.env_setting.index', ['min_time' => $env->min_time, 'max_time' => $env->max_time]);
+        return view('admin.env_setting.index', ['min_time' => $env->min_time, 'max_time' => $env->max_time, 'fee' => $env->fee]);
     }
 
     public function update(Request $request)
@@ -25,6 +26,7 @@ class EnvController extends Controller
         $env = EnvironmentalVariable::first();
         $env->min_time = $request->min_time;
         $env->max_time = $request->max_time;
+        $env->fee = $request->fee;
         $env->save();
         return redirect(route('env'))->with('success', 'Environmental Variables Updated Successfully.');
     }

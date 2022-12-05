@@ -34,11 +34,11 @@
                             @csrf
                             @method('post')
 
-                            <h6 class="heading-small text-muted mb-4">{{ __('Edit Auto Sell Time') }}</h6>
+                            <h6 class="heading-small text-muted mb-4">{{ __('Edit Environment Variables') }}</h6>
 
                             <div class="pl-lg-4 row">
                                 <div class="col-md-4 form-group{{ $errors->has('min_time') ? ' has-danger' : '' }}">
-                                    <label class="form-control-label" for="min_time">{{ __('Min Time') }}</label>
+                                    <label class="form-control-label" for="min_time">{{ __('Min Time(auto sell)') }}</label>
                                     <input type="text" name="min_time" id="min_time" class="form-control"
                                         value="{{ $min_time }}" autofocus>
 
@@ -50,13 +50,26 @@
                                 </div>
 
                                 <div class="col-md-4 form-group{{ $errors->has('max_time') ? ' has-danger' : '' }}">
-                                    <label class="form-control-label" for="max_time">{{ __('Max Time') }}</label>
+                                    <label class="form-control-label"
+                                        for="max_time">{{ __('Max Time(auto sell)') }}</label>
                                     <input type="text" name="max_time" id="max_time" class="form-control"
                                         value="{{ $max_time }}" autofocus>
 
                                     @if ($errors->has('max_time'))
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $errors->first('max_time') }}</strong>
+                                        </span>
+                                    @endif
+                                </div>
+
+                                <div class="col-md-4 form-group{{ $errors->has('fee') ? ' has-danger' : '' }}">
+                                    <label class="form-control-label" for="fee">{{ __('Everyday Fee') }}</label>
+                                    <input type="text" name="fee" id="fee" class="form-control"
+                                        value="{{ $fee }}" autofocus>
+
+                                    @if ($errors->has('fee'))
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $errors->first('fee') }}</strong>
                                         </span>
                                     @endif
                                 </div>

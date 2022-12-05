@@ -6,17 +6,15 @@
             <div class="header-body">
                 <div class="row align-items-center py-4">
                     <div class="col-lg-6 col-7">
-                        <h6 class="h2 text-black d-inline-block mb-0">Auto Price Change history</h6>
+                        <h6 class="h2 text-black d-inline-block mb-0">Everyday Fee</h6>
                         <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
                             <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
                                 <li class="breadcrumb-item"><a href={{ route('dashboard') }}><i class="fas fa-home"></i></a>
                                 </li>
-                                <li class="breadcrumb-item">Price Change</li>
+                                <li class="breadcrumb-item"><a href="{{ route('fee') }}">Fee</a></li>
+                                <li class="breadcrumb-item">list</li>
                             </ol>
                         </nav>
-                    </div>
-                    <div class="col-lg-6 col-5 d-flex justify-content-end pr-4">
-                        <a href="/api/autoPriceChange" target="blank" class="btn btn-primary">Auto Change</a>
                     </div>
                 </div>
             </div>
@@ -32,28 +30,15 @@
                             <table class="table align-items-center table-flush">
                                 <thead class="thead-dark">
                                     <tr>
-                                        <th scope="col" class="sort" data-sort="name">Total</th>
-                                        <th scope="col" class="sort" data-sort="name">50% of total</th>
-                                        <th scope="col" class="sort" data-sort="name">amount collected</th>
-                                        <th scope="col" class="sort" data-sort="name">amount distributed</th>
-                                        <th scope="col" class="sort" data-sort="name">Remaining balance</th>
-                                        <th scope="col" class="sort" data-sort="name">Detail</th>
-                                        <th scope="col" class="sort" data-sort="name">created at</th>
+                                        <th>Collected Amounts</th>
+                                        <th>Collected_at</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @forelse($records as $key => $value)
                                         <tr>
-                                            <td>{{ $value->total }}</td>
-                                            <td>{{ $value->total / 2 }}</td>
-                                            <td>{{ $value->collected }}</td>
-                                            <td>{{ $value->distributed }}</td>
-                                            <td>{{ $value->collected - $value->distributed }}</td>
-                                            <td>
-                                                <a class="btn btn-sm btn-success"
-                                                    href="{{ route('auto_price_detail_history', $value->id) }}">
-                                                    Detail
-                                                </a>
+                                            <td class="budget">
+                                                {{ $value->total_fee }}
                                             </td>
                                             <td>{{ $value->created_at }}</td>
                                         </tr>
@@ -79,4 +64,13 @@
 @endsection
 
 @push('js')
+    <script>
+        $(document).on('click', '.deleteData', function() {
+            console.error('here')
+            let alertMessage = "Are You Sure,You want to delete it?"
+            let routeUrl = $(this).data('url')
+            console.error(routeUrl)
+            deleteData(alertMessage, routeUrl)
+        })
+    </script>
 @endpush

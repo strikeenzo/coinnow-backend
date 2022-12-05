@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Role;
 
@@ -58,17 +59,27 @@ class UserController extends Controller
 
     public function update(Request $request, $id)
     {
-
-        $this->validateData($request);
+        if (Auth::user()->hasRole('Admin')) {
+            $this->validateData($request);
+        } else {
+            $this->validateDataForCustomers($request);
+        }
 
         $data = User::findOrFail($id);
         //dd($request->role);
-        $data->assignRole($request->role);
-        $data->syncRoles($request->role);
+        if ($request->role) {
+            $data->assignRole($request->role);
+            $data->syncRoles($request->role);
+        }
 
         $data->fill($request->only('name', 'email', 'mobile', 'status'))->save();
 
-        return redirect(route('user'))->with('success', 'User Updated Successfully');
+        if (Auth::user()->hasRole('Admin')) {
+            return redirect(route('user'))->with('success', 'User Updated Successfully');
+        } else {
+            return redirect(route('dashboard'))->with('success', 'User Updated Successfully');
+        }
+
     }
 
     protected function validateData($request)
@@ -87,6 +98,28 @@ class UserController extends Controller
             'mobile' => ['required'],
             'status' => ['required'],
             'role' => ['required'],
+        ];
+
+        $validationArray = array_merge($passwordValidations, $validations);
+
+        $this->validate($request, $validationArray);
+    }
+
+    protected function validateDataForCustomers($request)
+    {
+
+        $passwordValidations = [];
+        if (Route::currentRouteName() == 'user.store') {
+            $passwordValidations = ['password' => ['required', 'min:6'],
+                'confirmed' => ['required', 'same:password'],
+            ];
+        }
+
+        $validations = [
+            'name' => ['required', 'string', 'max:32'],
+            'email' => ['required', 'email'],
+            'mobile' => ['required'],
+            'status' => ['required'],
         ];
 
         $validationArray = array_merge($passwordValidations, $validations);

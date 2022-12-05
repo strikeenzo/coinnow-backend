@@ -52,6 +52,9 @@ Route::middleware(['check_permission'])->group(function () {
     include ('ClanRoutes.php');
     include ('ButtonImageRoutes.php');
     include ('SecurityQuestionRoutes.php');
+    include ('DigitalShowRoutes.php');
+    include ('EverydayFeeRoutes.php');
+    include ('GiftHistoryRoutes.php');
 
     Route::get('upgrade', function () {return view('pages.upgrade');})->name('upgrade');
 });
