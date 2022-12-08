@@ -72,7 +72,8 @@ function getOffset($result)
     return $offset;
 }
 
-function getOriginSum($result) {
+function getOriginSum($result)
+{
     $origin_sum = 0;
     for ($i = 0; $i < count($result); $i++) {
         $origin_sum += $result[$i]["origin_total"];
@@ -80,7 +81,8 @@ function getOriginSum($result) {
     return $origin_sum;
 }
 
-function getNextSum($result) {
+function getNextSum($result)
+{
     $next_sum = 0;
     for ($i = 0; $i < count($result); $i++) {
         $next_sum += $result[$i]["next_total_amount"];
@@ -117,7 +119,8 @@ function afterProcessing($predicted_res)
         $next_price = $result[$i]["next_price"] - $k;
 
         if ($next_price < $result[$i]["min_price"]) {
-            $next_price = $result[$i]["min_price"];
+            $up_value = rand(0, $result[$i]["change_amount"]);
+            $next_price = $result[$i]["min_price"] + $up_value;
         }
 
         $next_change_amount = $result[$i]["next_price"] - $next_price;
@@ -188,10 +191,25 @@ class GeneralApiController extends Controller
             $start->started_at = Carbon::now();
             $start->save();
         }
+
+        //auto_stock
+        $records = Product::where('image_profit', null)->where(function ($query) {
+            $query->where('points', '<', 1)->orWhere('points', null);
+        })->select('change_amount', 'id', 'price', 'min_price', 'max_price', 'range_quantity', 'quantity', 'auto_stock_amount', 'image_profit')->get();
+        for ($i = 0; $i < count($records); $i++) {
+            if ($records[$i]['points'] > 0) {
+                $sum = Special::where('product_id', $records[$i]->id)->sum('quantity');
+            } else {
+                $sum = ProductSellerRelation::where([['product_id', $records[$i]->id]])->sum('quantity');
+            }
+
+            if ($records[$i]['quantity'] == 0 && $sum < ($records[$i]['auto_stock_amount'] ? $records[$i]['auto_stock_amount'] : 0)) {
+                $records[$i]['quantity'] = ($records[$i]['auto_stock_amount'] ? $records[$i]['auto_stock_amount'] : 0) - $sum;
+                $records[$i]->save();
+            }
+        }
+
         //preprocessing
-        $start_time = Carbon::createFromFormat('d/m/Y H:i:s', '06/12/2022 23:00:00');
-        $end_time = Carbon::createFromFormat('d/m/Y H:i:s', '06/12/2022 23:00:00');
-        $end_time->addMinutes(30);
 
         $product_ids = ProductSellerRelation::where("quantity", ">", 0)
         // ->where("origin_price", ">", 0)
@@ -275,13 +293,12 @@ class GeneralApiController extends Controller
             ]);
         }
 
+        //save database
         $history = AutoPriceChangeHistory::create([
             'total' => getOffset($final_res),
-            'collected' => 0,
-            'distributed' => 0,
+            'collected' => getOriginSum($final_res),
+            'distributed' => getNextSum($final_res),
         ]);
-
-        //save database
         for ($i = 0; $i < count($total_res); $i++) {
             $product = Product::where('id', $total_res[$i]["product_id"])->first();
             $offset_price = $product->price - $total_res[$i]["next_price"];
@@ -322,6 +339,14 @@ class GeneralApiController extends Controller
             "type" => "price updated all",
         ]);
         $news->save();
+        $records = Product::where('points', 0)->select('change_amount', 'id', 'price', 'max_price', 'min_price')->with('productDescription:name,id')->get();
+        broadcast(
+            new MessageSent('news-sent', $news)
+        )->toOthers();
+
+        broadcast(
+            new MessageSent('price update', ['id' => 'all'])
+        )->toOthers();
         return [getOriginSum($final_res), getNextSum($final_res), getOffset($final_res), count($products_all), count($total_res), count($final_res), $total_res, $final_res];
     }
 
@@ -450,14 +475,14 @@ class GeneralApiController extends Controller
         //     $sum2 += $value['profit'];
         //   }
         // }
-        if ($sum2 < $sum1) {
-            $temp = $sum2;
-            $sum2 = $sum1;
-            $sum1 = $temp;
-            $arr_temp = $arr2;
-            $arr2 = $arr1;
-            $arr1 = $arr_temp;
-        }
+        // if ($sum2 < $sum1) {
+        //     $temp = $sum2;
+        //     $sum2 = $sum1;
+        //     $sum1 = $temp;
+        //     $arr_temp = $arr2;
+        //     $arr2 = $arr1;
+        //     $arr1 = $arr_temp;
+        // }
         $history = AutoPriceChangeHistory::create([
             'total' => $sum,
             'collected' => $sum2,

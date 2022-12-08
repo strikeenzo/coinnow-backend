@@ -16,7 +16,7 @@
                         </nav>
                     </div>
                     <div class="col-lg-6 col-5 d-flex justify-content-end pr-4">
-                        <a href="/api/autoPriceChangeNew" target="blank" class="btn btn-primary">Auto Change</a>
+                        <a href="/api/autoPriceChange" target="blank" class="btn btn-primary">Auto Change</a>
                     </div>
                 </div>
             </div>
@@ -32,10 +32,8 @@
                             <table class="table align-items-center table-flush">
                                 <thead class="thead-dark">
                                     <tr>
-                                        <th scope="col" class="sort" data-sort="name">Total</th>
-                                        <th scope="col" class="sort" data-sort="name">50% of total</th>
-                                        <th scope="col" class="sort" data-sort="name">amount collected</th>
-                                        <th scope="col" class="sort" data-sort="name">amount distributed</th>
+                                        <th scope="col" class="sort" data-sort="name">Before amount</th>
+                                        <th scope="col" class="sort" data-sort="name">Next amount</th>
                                         <th scope="col" class="sort" data-sort="name">Remaining balance</th>
                                         <th scope="col" class="sort" data-sort="name">Detail</th>
                                         <th scope="col" class="sort" data-sort="name">created at</th>
@@ -44,8 +42,6 @@
                                 <tbody>
                                     @forelse($records as $key => $value)
                                         <tr>
-                                            <td>{{ $value->total }}</td>
-                                            <td>{{ $value->total / 2 }}</td>
                                             <td>{{ $value->collected }}</td>
                                             <td>{{ $value->distributed }}</td>
                                             <td>{{ $value->collected - $value->distributed }}</td>
