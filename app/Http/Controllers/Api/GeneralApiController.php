@@ -42,20 +42,19 @@ use Illuminate\Http\Request;
 
 function generateOffset($change_amount_min, $change_amount_max, $total_res)
 {
-  if ($total_res > 0) {
-    $change_amount_min += $total_res;
-    if ($change_amount_min > 0) {
-      $change_amount_min = -100;
+    if ($total_res > 0) {
+        $change_amount_min += $total_res;
+        if ($change_amount_min > 0) {
+            $change_amount_min = -100;
+        }
+    } else if ($total_res < 0) {
+        $change_amount_max += $total_res;
+        if ($change_amount_max < 0) {
+            $change_amount_max = 100;
+        }
     }
-  }
-  else if ($total_res < 0) {
-    $change_amount_max += $total_res;
-    if ($change_amount_max < 0) {
-      $change_amount_max = 100;
-    }
-  }
-  
-  return [$change_amount_min, $change_amount_max];
+
+    return [$change_amount_min, $change_amount_max];
 }
 
 function generateRandomAmount($total, $change_amount, $total_res)
@@ -64,9 +63,10 @@ function generateRandomAmount($total, $change_amount, $total_res)
     return $total + rand($generated_change_amount[0], $generated_change_amount[1]);
 }
 
-function getOffset($result) {
+function getOffset($result)
+{
     $offset = 0;
-    for($i = 0; $i < count($result); $i ++) {
+    for ($i = 0; $i < count($result); $i++) {
         $offset += $result[$i]["origin_total"] - $result[$i]["next_total_amount"];
     }
     return $offset;
@@ -77,10 +77,10 @@ function predict($marketplace)
     $total_res = 0;
     $quantity_sum = 0;
 
-    for($i = 0; $i < count($marketplace) ; $i ++) {
+    for ($i = 0; $i < count($marketplace); $i++) {
         $next_total_amount = generateRandomAmount($marketplace[$i]["total"], $marketplace[$i]["total_change_amount"], $total_res);
-        
-        $next_price = (int)($next_total_amount / $marketplace[$i]["quantity"]);
+
+        $next_price = (int) ($next_total_amount / $marketplace[$i]["quantity"]);
         $marketplace[$i]["next_price"] = $next_price;
         $marketplace[$i]["next_total_amount"] = $next_price * $marketplace[$i]["quantity"];
         $total_res += $marketplace[$i]["origin_total"] - $marketplace[$i]["next_total_amount"];
@@ -91,15 +91,16 @@ function predict($marketplace)
     return [$total_res, $marketplace, $quantity_sum];
 }
 
-function afterProcessing($predicted_res) {
+function afterProcessing($predicted_res)
+{
     $result = $predicted_res[1];
     $quantity_sum = $predicted_res[2];
-    $k = (int)((20 - $predicted_res[0]) / $quantity_sum);
+    $k = (int) ((20 - $predicted_res[0]) / $quantity_sum);
 
-    for($i = 0 ; $i < count($result); $i ++) {
+    for ($i = 0; $i < count($result); $i++) {
         $next_price = $result[$i]["next_price"] - $k;
 
-        if($next_price < $result[$i]["min_price"]) {
+        if ($next_price < $result[$i]["min_price"]) {
             $next_price = $result[$i]["min_price"];
         }
 
@@ -111,8 +112,8 @@ function afterProcessing($predicted_res) {
     $offset = getOffset($result);
     $offset_index = 0;
 
-    while($offset < 10) {
-        if($result[$offset_index]["next_price"] > $result[$offset_index]["min_price"]) {
+    while ($offset < 10) {
+        if ($result[$offset_index]["next_price"] > $result[$offset_index]["min_price"]) {
             $result[$offset_index]["next_price"] -= 1;
             $result[$offset_index]["next_total_amount"] -= $result[$offset_index]["quantity"];
         }
@@ -153,48 +154,70 @@ class GeneralApiController extends Controller
         }
     }
 
-    public function autoPriceChange()
+    public function autoPriceChangeNew()
     {
+        $start = CronJobTimer::first();
+        if (!$start) {
+            CronJobTimer::create([
+                'started_at' => Carbon::now(),
+            ]);
+        } else {
+            $start->started_at = Carbon::now();
+            $start->save();
+        }
         //preprocessing
-        $start_time = Carbon::createFromFormat('d/m/Y H:i:s',  '06/12/2022 23:00:00');
-        $end_time = Carbon::createFromFormat('d/m/Y H:i:s',  '06/12/2022 23:00:00');
+        $start_time = Carbon::createFromFormat('d/m/Y H:i:s', '06/12/2022 23:00:00');
+        $end_time = Carbon::createFromFormat('d/m/Y H:i:s', '06/12/2022 23:00:00');
         $end_time->addMinutes(30);
 
-        $product_ids = ProductSellerRelation::where("sell_date", ">", $start_time)
-            ->where("sell_date", "<", $end_time)
+        $product_ids = ProductSellerRelation::where("quantity", ">", 0)
+        // ->where("sell_date", ">", $start_time)
+        // ->where("sell_date", "<", $end_time)
             ->select("product_id")
             ->groupBy("product_id")
             ->get();
-        
+
+        // $non_related_product_ids = ProductSellerRelation::where("sell_date", null)
+        //     ->where("quantity", ">", 0)
+        //     ->select("product_id")
+        //     ->groupBy("product_id")
+        //     ->get();
+
         $records = [];
         $product_ids_arr = [];
 
-        for($i = 0 ; $i < count($product_ids); $i++) {
+        for ($i = 0; $i < count($product_ids); $i++) {
             array_push($product_ids_arr, $product_ids[$i]->product_id);
 
-            $products = ProductSellerRelation::where("sell_date", ">", $start_time)
-            ->where("sell_date", "<", $end_time)
-            ->where("product_id", $product_ids[$i]->product_id)
-            ->with("product")
-            ->get();
-            $sum = 0; $quantity = 0;
-            for ($j = 0; $j < count($products); $j ++) {
-                $sum += $products[$j]->origin_price * $products[$j]->origin_quantity;
-                $quantity += $products[$j]->origin_quantity;
+            $products = ProductSellerRelation::where("quantity", ">", 0)
+            // ->where("sell_date", ">", $start_time)
+            // ->where("sell_date", "<", $end_time)
+                ->where("product_id", $product_ids[$i]->product_id)
+                ->with("product")
+                ->get();
+            $sum = 0;
+            $quantity = 0;
+            for ($j = 0; $j < count($products); $j++) {
+                $sum += $products[$j]->origin_price * $products[$j]->quantity;
+                $quantity += $products[$j]->quantity;
             }
-            array_push($records, [
-                "product_id" => $product_ids[$i],
-                "origin_total" => $sum,
-                "quantity" => $quantity,
-                "price" => $products[0]->product->price,
-                "change_amount" => $products[0]->product->change_amount,
-                "total" => $products[0]->product->price * $quantity,
-                "total_change_amount" => $products[0]->product->change_amount * $quantity,
-                "min_price" => $products[0]->product->min_price,
-                "max_price" => $products[0]->product->max_price,
-                "next_price" => 0,
-                "next_total_amount" => 0
-            ]);
+
+            if ($products[0]->product) {
+                array_push($records, [
+                    "product_id" => $product_ids[$i],
+                    "origin_total" => $sum,
+                    "quantity" => $quantity,
+                    "price" => $products[0]->product->price,
+                    "change_amount" => $products[0]->product->change_amount,
+                    "total" => $products[0]->product->price * $quantity,
+                    "total_change_amount" => $products[0]->product->change_amount * $quantity,
+                    "min_price" => $products[0]->product->min_price,
+                    "max_price" => $products[0]->product->max_price,
+                    "next_price" => 0,
+                    "next_total_amount" => 0,
+                ]);
+            }
+
         }
         // return $records;
 
@@ -209,7 +232,7 @@ class GeneralApiController extends Controller
 
         $products_all = Product::all();
 
-        for($i = 0; $i < count($products_all); $i ++) {
+        for ($i = 0; $i < count($products_all); $i++) {
             if (in_array($products_all[$i]['id'], $product_ids_arr)) {
                 continue;
             }
@@ -220,16 +243,61 @@ class GeneralApiController extends Controller
                 "change_amount" => $products_all[$i]['change_amount'],
                 "min_price" => $products_all[$i]['min_price'],
                 "max_price" => $products_all[$i]['max_price'],
-                "next_price" => generateRandomAmount($products_all[$i]['price'], $products_all[$i]['change_amount'], 0)
+                "next_price" => generateRandomAmount($products_all[$i]['price'], $products_all[$i]['change_amount'], 0),
             ]);
         }
 
-        return [count($products_all), count($total_res), count($final_res), $total_res, $final_res];
+        $history = AutoPriceChangeHistory::create([
+            'total' => getOffset($final_res),
+            'collected' => 0,
+            'distributed' => 0,
+        ]);
 
         //save database
+        for ($i = 0; $i < count($total_res); $i++) {
+            $product = Product::where('id', $total_res[$i]["product_id"])->first();
+            $offset_price = $product->price - $total_res[$i]["next_price"];
+            $product->price = $total_res[$i]["next_price"];
+            $product->save();
+            AutoPriceChangeDetail::create([
+                'product_id' => $product->id,
+                'auto_price_history_id' => $history->id,
+                'price_change' => $offset_price,
+                'profit' => 0,
+                'price' => $product->price,
+            ]);
+            $today = Carbon::today();
+            $new_price = new ProductPrice(array('product_id' => $product->id, 'price' => $product->price, 'date' => $today));
+            $new_price->save();
+            $product = $product->setRelation('productPrice', $product->productPrice->take(6));
+        }
+
+        for ($i = 0; $i < count($final_res); $i++) {
+            $product = Product::where('id', $final_res[$i]["product_id"]["product_id"])->first();
+            $offset_price = $product->price - $final_res[$i]["next_price"];
+            $product->price = $final_res[$i]["next_price"];
+            $product->save();
+            AutoPriceChangeDetail::create([
+                'product_id' => $product->id,
+                'auto_price_history_id' => $history->id,
+                'price_change' => $offset_price,
+                'profit' => $final_res[$i]["origin_total"] - $final_res[$i]["next_total_amount"],
+                'price' => $product->price,
+            ]);
+            $today = Carbon::today();
+            $new_price = new ProductPrice(array('product_id' => $product->id, 'price' => $product->price, 'date' => $today));
+            $new_price->save();
+            $product = $product->setRelation('productPrice', $product->productPrice->take(6));
+        }
+        $news = News::create([
+            "content" => "Price Updated Of All Items",
+            "type" => "price updated all",
+        ]);
+        $news->save();
+        return [getOffset($final_res), count($products_all), count($total_res), count($final_res), $total_res, $final_res];
     }
 
-    public function autoPriceChangeOld()
+    public function autoPriceChange()
     {
         $start = CronJobTimer::first();
         if (!$start) {
