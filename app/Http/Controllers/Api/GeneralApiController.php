@@ -60,7 +60,11 @@ function generateOffset($change_amount_min, $change_amount_max, $total_res)
 function generateRandomAmount($total, $change_amount, $total_res)
 {
     $generated_change_amount = generateOffset(-$change_amount, $change_amount, $total_res);
-    return $total + rand($generated_change_amount[0], $generated_change_amount[1]);
+    $k = rand($generated_change_amount[0], $generated_change_amount[1]);
+    while ($k == 0) {
+        $k = rand($generated_change_amount[0], $generated_change_amount[1]);
+    }
+    return $total + $k;
 }
 
 function getOffset($result)
@@ -113,15 +117,23 @@ function afterProcessing($predicted_res)
 {
     $result = $predicted_res[1];
     $quantity_sum = $predicted_res[2];
-    $k = (int) ((20 - $predicted_res[0]) / $quantity_sum);
+    $k = (int) ((150 - $predicted_res[0]) / $quantity_sum) + 1;
 
     for ($i = 0; $i < count($result); $i++) {
         $next_price = $result[$i]["next_price"] - $k;
 
-        if ($next_price < $result[$i]["min_price"]) {
-            $up_value = rand(0, $result[$i]["change_amount"]);
-            $next_price = $result[$i]["min_price"] + $up_value;
+        if ($next_price < $result[$i]['price'] - $result[$i]['change_amount']) {
+            $next_price = $result[$i]['price'] - $result[$i]['change_amount'];
         }
+
+        if ($next_price > $result[$i]['price'] + $result[$i]['change_amount']) {
+            $next_price = $result[$i]['price'] + $result[$i]['change_amount'];
+        }
+
+        // if ($next_price < $result[$i]["min_price"]) {
+        //     $up_value = rand(0, $result[$i]["change_amount"]);
+        //     $next_price = $result[$i]["min_price"] + $up_value;
+        // }
 
         $next_change_amount = $result[$i]["next_price"] - $next_price;
         $result[$i]["next_price"] = $result[$i]["next_price"] - $next_change_amount;
@@ -132,12 +144,37 @@ function afterProcessing($predicted_res)
     $offset_index = 0;
     $break_point = 0;
 
-    while ($offset < 10) {
-        if ($result[$offset_index]["next_price"] > $result[$offset_index]["min_price"]) {
-            $result[$offset_index]["next_price"] -= 1;
-            $result[$offset_index]["next_total_amount"] -= $result[$offset_index]["quantity"];
-            $offset += $result[$offset_index]["quantity"];
-            $break_point = 0;
+    while ($offset < 100 || $offset > 150) {
+        if ($offset < 100) {
+            if ($result[$offset_index]["next_price"] > $result[$offset_index]['price'] - $result[$offset_index]["change_amount"]) {
+                $result[$offset_index]["next_price"] -= 1;
+                $result[$offset_index]["next_total_amount"] -= $result[$offset_index]["quantity"];
+                $offset += $result[$offset_index]["quantity"];
+                $break_point = 0;
+            }
+
+            if ($result[$offset_index]["next_price"] == $result[$offset_index]['price']) {
+                $result[$offset_index]["next_price"] -= 1;
+                $result[$offset_index]["next_total_amount"] -= $result[$offset_index]["quantity"];
+                $offset += $result[$offset_index]["quantity"];
+                $break_point = 0;
+            }
+        }
+
+        else if ($offset > 150) {
+            if ($result[$offset_index]["next_price"] < $result[$offset_index]['price'] + $result[$offset_index]["change_amount"]) {
+                $result[$offset_index]["next_price"] += 1;
+                $result[$offset_index]["next_total_amount"] += $result[$offset_index]["quantity"];
+                $offset -= $result[$offset_index]["quantity"];
+                $break_point = 0;
+            }
+
+            if ($result[$offset_index]["next_price"] == $result[$offset_index]['price']) {
+                $result[$offset_index]["next_price"] += 1;
+                $result[$offset_index]["next_total_amount"] += $result[$offset_index]["quantity"];
+                $offset -= $result[$offset_index]["quantity"];
+                $break_point = 0;
+            }
         }
 
         $break_point += 1;
@@ -347,7 +384,7 @@ class GeneralApiController extends Controller
         broadcast(
             new MessageSent('price update', ['id' => 'all'])
         )->toOthers();
-        return [getOriginSum($final_res), getNextSum($final_res), getOffset($final_res), count($products_all), count($total_res), count($final_res), $total_res, $final_res];
+        return [getOriginSum($final_res), getNextSum($final_res), getOffset($final_res), $predicted_res[2], count($products_all), count($total_res), count($final_res), $total_res, $final_res];
     }
 
     public function autoPriceChange()
