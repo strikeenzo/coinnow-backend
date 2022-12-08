@@ -40,6 +40,90 @@ use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
 
+function generateOffset($change_amount_min, $change_amount_max, $total_res)
+{
+  if ($total_res > 0) {
+    $change_amount_min += $total_res;
+    if ($change_amount_min > 0) {
+      $change_amount_min = -100;
+    }
+  }
+  else if ($total_res < 0) {
+    $change_amount_max += $total_res;
+    if ($change_amount_max < 0) {
+      $change_amount_max = 100;
+    }
+  }
+  
+  return [$change_amount_min, $change_amount_max];
+}
+
+function generateRandomAmount($total, $change_amount, $total_res)
+{
+    $generated_change_amount = generateOffset(-$change_amount, $change_amount, $total_res);
+    return $total + rand($generated_change_amount[0], $generated_change_amount[1]);
+}
+
+function getOffset($result) {
+    $offset = 0;
+    for($i = 0; $i < count($result); $i ++) {
+        $offset += $result[$i]["origin_total"] - $result[$i]["next_total_amount"];
+    }
+    return $offset;
+}
+
+function predict($marketplace)
+{
+    $total_res = 0;
+    $quantity_sum = 0;
+
+    for($i = 0; $i < count($marketplace) ; $i ++) {
+        $next_total_amount = generateRandomAmount($marketplace[$i]["total"], $marketplace[$i]["total_change_amount"], $total_res);
+        
+        $next_price = (int)($next_total_amount / $marketplace[$i]["quantity"]);
+        $marketplace[$i]["next_price"] = $next_price;
+        $marketplace[$i]["next_total_amount"] = $next_price * $marketplace[$i]["quantity"];
+        $total_res += $marketplace[$i]["origin_total"] - $marketplace[$i]["next_total_amount"];
+
+        $quantity_sum += $marketplace[$i]["quantity"];
+    }
+
+    return [$total_res, $marketplace, $quantity_sum];
+}
+
+function afterProcessing($predicted_res) {
+    $result = $predicted_res[1];
+    $quantity_sum = $predicted_res[2];
+    $k = (int)((20 - $predicted_res[0]) / $quantity_sum);
+
+    for($i = 0 ; $i < count($result); $i ++) {
+        $next_price = $result[$i]["next_price"] - $k;
+
+        if($next_price < $result[$i]["min_price"]) {
+            $next_price = $result[$i]["min_price"];
+        }
+
+        $next_change_amount = $result[$i]["next_price"] - $next_price;
+        $result[$i]["next_price"] = $result[$i]["next_price"] - $next_change_amount;
+        $result[$i]["next_total_amount"] -= $next_change_amount * $result[$i]["quantity"];
+    }
+
+    $offset = getOffset($result);
+    $offset_index = 0;
+
+    while($offset < 10) {
+        if($result[$offset_index]["next_price"] > $result[$offset_index]["min_price"]) {
+            $result[$offset_index]["next_price"] -= 1;
+            $result[$offset_index]["next_total_amount"] -= $result[$offset_index]["quantity"];
+        }
+
+        $offset_index = ($offset_index + 1) % count($result);
+        $offset += $result[$offset_index]["quantity"];
+    }
+
+    return $result;
+}
+
 class GeneralApiController extends Controller
 {
 
@@ -70,6 +154,82 @@ class GeneralApiController extends Controller
     }
 
     public function autoPriceChange()
+    {
+        //preprocessing
+        $start_time = Carbon::createFromFormat('d/m/Y H:i:s',  '06/12/2022 23:00:00');
+        $end_time = Carbon::createFromFormat('d/m/Y H:i:s',  '06/12/2022 23:00:00');
+        $end_time->addMinutes(30);
+
+        $product_ids = ProductSellerRelation::where("sell_date", ">", $start_time)
+            ->where("sell_date", "<", $end_time)
+            ->select("product_id")
+            ->groupBy("product_id")
+            ->get();
+        
+        $records = [];
+        $product_ids_arr = [];
+
+        for($i = 0 ; $i < count($product_ids); $i++) {
+            array_push($product_ids_arr, $product_ids[$i]->product_id);
+
+            $products = ProductSellerRelation::where("sell_date", ">", $start_time)
+            ->where("sell_date", "<", $end_time)
+            ->where("product_id", $product_ids[$i]->product_id)
+            ->with("product")
+            ->get();
+            $sum = 0; $quantity = 0;
+            for ($j = 0; $j < count($products); $j ++) {
+                $sum += $products[$j]->origin_price * $products[$j]->origin_quantity;
+                $quantity += $products[$j]->origin_quantity;
+            }
+            array_push($records, [
+                "product_id" => $product_ids[$i],
+                "origin_total" => $sum,
+                "quantity" => $quantity,
+                "price" => $products[0]->product->price,
+                "change_amount" => $products[0]->product->change_amount,
+                "total" => $products[0]->product->price * $quantity,
+                "total_change_amount" => $products[0]->product->change_amount * $quantity,
+                "min_price" => $products[0]->product->min_price,
+                "max_price" => $products[0]->product->max_price,
+                "next_price" => 0,
+                "next_total_amount" => 0
+            ]);
+        }
+        // return $records;
+
+        //algorithm
+
+        $predicted_res = predict($records);
+        $final_res = afterProcessing($predicted_res);
+        // return [getOffset($final_res), $final_res];
+
+        //calcualted unrelated products price
+        $total_res = [];
+
+        $products_all = Product::all();
+
+        for($i = 0; $i < count($products_all); $i ++) {
+            if (in_array($products_all[$i]['id'], $product_ids_arr)) {
+                continue;
+            }
+
+            array_push($total_res, [
+                "product_id" => $products_all[$i]['id'],
+                "price" => $products_all[$i]['price'],
+                "change_amount" => $products_all[$i]['change_amount'],
+                "min_price" => $products_all[$i]['min_price'],
+                "max_price" => $products_all[$i]['max_price'],
+                "next_price" => generateRandomAmount($products_all[$i]['price'], $products_all[$i]['change_amount'], 0)
+            ]);
+        }
+
+        return [count($products_all), count($total_res), count($final_res), $total_res, $final_res];
+
+        //save database
+    }
+
+    public function autoPriceChangeOld()
     {
         $start = CronJobTimer::first();
         if (!$start) {
@@ -210,6 +370,7 @@ class GeneralApiController extends Controller
         for ($i = 0; $i < count($arr2); $i++) {
             $record = Product::where('id', $arr2[$i]['id'])->first();
             if (($arr2[$i]['min_price'] <= $arr2[$i]['price'] - ($arr2[$i]['change_amount'] ? $arr2[$i]['change_amount'] : 0))) {
+
                 $arr2[$i]['price'] = $arr2[$i]['price'] - ($arr2[$i]['change_amount'] ? $arr2[$i]['change_amount'] : 0);
                 $record->price = $arr2[$i]['price'];
                 $record->quantity = $arr2[$i]['quantity'];
@@ -243,6 +404,7 @@ class GeneralApiController extends Controller
         }
         for ($i = 0; $i < count($arr1); $i++) {
             if (($arr1[$i]['max_price'] >= $arr1[$i]['price'] + ($arr1[$i]['change_amount'] ? $arr1[$i]['change_amount'] : 0))) {
+
                 $arr1[$i]['price'] = $arr1[$i]['price'] + ($arr1[$i]['change_amount'] ? $arr1[$i]['change_amount'] : 0);
                 $record = Product::where('id', $arr1[$i]['id'])->first();
                 $record->price = $arr1[$i]['price'];
