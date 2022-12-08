@@ -72,6 +72,22 @@ function getOffset($result)
     return $offset;
 }
 
+function getOriginSum($result) {
+    $origin_sum = 0;
+    for ($i = 0; $i < count($result); $i++) {
+        $origin_sum += $result[$i]["origin_total"];
+    }
+    return $origin_sum;
+}
+
+function getNextSum($result) {
+    $next_sum = 0;
+    for ($i = 0; $i < count($result); $i++) {
+        $next_sum += $result[$i]["next_total_amount"];
+    }
+    return $next_sum;
+}
+
 function predict($marketplace)
 {
     $total_res = 0;
@@ -111,15 +127,22 @@ function afterProcessing($predicted_res)
 
     $offset = getOffset($result);
     $offset_index = 0;
+    $break_point = 0;
 
     while ($offset < 10) {
         if ($result[$offset_index]["next_price"] > $result[$offset_index]["min_price"]) {
             $result[$offset_index]["next_price"] -= 1;
             $result[$offset_index]["next_total_amount"] -= $result[$offset_index]["quantity"];
+            $offset += $result[$offset_index]["quantity"];
+            $break_point = 0;
         }
 
+        $break_point += 1;
         $offset_index = ($offset_index + 1) % count($result);
-        $offset += $result[$offset_index]["quantity"];
+
+        if ($break_point == count($result)) {
+            break;
+        }
     }
 
     return $result;
@@ -171,6 +194,7 @@ class GeneralApiController extends Controller
         $end_time->addMinutes(30);
 
         $product_ids = ProductSellerRelation::where("quantity", ">", 0)
+        // ->where("origin_price", ">", 0)
         // ->where("sell_date", ">", $start_time)
         // ->where("sell_date", "<", $end_time)
             ->select("product_id")
@@ -190,6 +214,7 @@ class GeneralApiController extends Controller
             array_push($product_ids_arr, $product_ids[$i]->product_id);
 
             $products = ProductSellerRelation::where("quantity", ">", 0)
+            // ->where("origin_price", ">", 0)
             // ->where("sell_date", ">", $start_time)
             // ->where("sell_date", "<", $end_time)
                 ->where("product_id", $product_ids[$i]->product_id)
@@ -198,6 +223,9 @@ class GeneralApiController extends Controller
             $sum = 0;
             $quantity = 0;
             for ($j = 0; $j < count($products); $j++) {
+                if ($products[0]->product) {
+                    $products[$j]->origin_price = $products[0]->product->price;
+                }
                 $sum += $products[$j]->origin_price * $products[$j]->quantity;
                 $quantity += $products[$j]->quantity;
             }
@@ -294,7 +322,7 @@ class GeneralApiController extends Controller
             "type" => "price updated all",
         ]);
         $news->save();
-        return [getOffset($final_res), count($products_all), count($total_res), count($final_res), $total_res, $final_res];
+        return [getOriginSum($final_res), getNextSum($final_res), getOffset($final_res), count($products_all), count($total_res), count($final_res), $total_res, $final_res];
     }
 
     public function autoPriceChange()
