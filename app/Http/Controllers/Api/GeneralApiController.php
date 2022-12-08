@@ -93,11 +93,11 @@ class GeneralApiController extends Controller
             } else {
                 $sum = ProductSellerRelation::where([['product_id', $records[$i]->id]])->sum('quantity');
             }
-            if ($records[$i]['quantity'] == 0 && $sum == 0) {
-                $records[$i]['quantity'] += $records[$i]['auto_stock_amount'] ? $records[$i]['auto_stock_amount'] : 0;
-                if ($records[$i]['price'] < ($records[$i]['max_price'] - $records[$i]['min_price']) * 0.3 + $records[$i]['min_price']) {
-                    $records[$i]['price'] = ($records[$i]['max_price'] - $records[$i]['min_price']) * 0.3 + $records[$i]['min_price'];
-                }
+            if ($records[$i]['quantity'] == 0 && $sum < ($records[$i]['auto_stock_amount'] ? $records[$i]['auto_stock_amount'] : 0)) {
+                $records[$i]['quantity'] = ($records[$i]['auto_stock_amount'] ? $records[$i]['auto_stock_amount'] : 0) - $sum;
+                // if ($records[$i]['price'] < ($records[$i]['max_price'] - $records[$i]['min_price']) * 0.3 + $records[$i]['min_price']) {
+                //     $records[$i]['price'] = ($records[$i]['max_price'] - $records[$i]['min_price']) * 0.3 + $records[$i]['min_price'];
+                // }
                 // $records[$i]->save();
                 // $today = Carbon::today();
                 // $new_price = new ProductPrice(array('product_id' => $records[$i]->id, 'price' => $records[$i]->price, 'date' => $today));
@@ -194,6 +194,14 @@ class GeneralApiController extends Controller
         //     $sum2 += $value['profit'];
         //   }
         // }
+        if ($sum2 < $sum1) {
+            $temp = $sum2;
+            $sum2 = $sum1;
+            $sum1 = $temp;
+            $arr_temp = $arr2;
+            $arr2 = $arr1;
+            $arr1 = $arr_temp;
+        }
         $history = AutoPriceChangeHistory::create([
             'total' => $sum,
             'collected' => $sum2,
@@ -211,6 +219,7 @@ class GeneralApiController extends Controller
                     'auto_price_history_id' => $history->id,
                     'price_change' => -$arr2[$i]['change_amount'],
                     'profit' => -$arr2[$i]['change_amount'] * $arr2[$i]['total_quantity'],
+                    'price' => $record->price,
                 ]);
                 // $news = News::create([
                 //     "content" => "The Price Of " . $record->productDescription->name . " Has Dropped " . ($arr2[$i]['change_amount'] ? $arr2[$i]['change_amount'] : 0) . " Coins",
@@ -244,6 +253,7 @@ class GeneralApiController extends Controller
                     'auto_price_history_id' => $history->id,
                     'price_change' => $arr1[$i]['change_amount'],
                     'profit' => $arr1[$i]['change_amount'] * $arr1[$i]['total_quantity'],
+                    'price' => $record->price,
                 ]);
                 // $news = News::create([
                 //     "content" => "The Price Of " . $record->productDescription->name . " Has Increased " . ($arr1[$i]['change_amount'] ? $arr1[$i]['change_amount'] : 0) . " Coins",

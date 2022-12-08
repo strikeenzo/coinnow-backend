@@ -635,6 +635,7 @@ class SellerCartApiController extends Controller
                     $existing_relation = ProductSellerRelation::where('product_id', $product->id)->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
                     if (!empty($existing_relation)) {
                         $existing_relation->quantity += $value['quantity'];
+                        $existing_relation->origin_quantity = $existing_relation->quantity;
                         $existing_relation->sale_date = Carbon::now();
                         $existing_relation->sale = 0;
                         $existing_relation->save();
@@ -644,6 +645,7 @@ class SellerCartApiController extends Controller
                             'product_id' => $product->id,
                             'sale' => 0,
                             'quantity' => $value['quantity'],
+                            'origin_quantity' => $quantity,
                         ]);
                     }
                     //  $existing_product = Product::where('origin_id', $value['origin_id'] ?? $value['id'])->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
@@ -784,6 +786,8 @@ class SellerCartApiController extends Controller
             'product_id' => $relation->product_id,
             'sale' => 0,
             'quantity' => $quantity,
+            'origin_price' => $price,
+            'origin_quantity' => $quantity,
         ]);
         $notification_data = array(
             'type' => 'item_buy',
@@ -892,6 +896,7 @@ class SellerCartApiController extends Controller
                     $existing_relation = ProductSellerRelation::where('product_id', $product->id)->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
                     if (!empty($existing_relation)) {
                         $existing_relation->quantity += $quantity;
+                        $existing_relation->origin_quantity = $existing_relation->quantity;
                         $existing_relation->sale_date = Carbon::now();
                         $existing_relation->sale = 0;
                         $existing_relation->save();
@@ -901,6 +906,8 @@ class SellerCartApiController extends Controller
                             'product_id' => $product->id,
                             'sale' => 0,
                             'quantity' => $quantity,
+                            'origin_price' => $product->price,
+                            'origin_quantity' => $quantity,
                         ]);
                     }
                     $notification_data = array(
@@ -993,6 +1000,7 @@ class SellerCartApiController extends Controller
                 $existing_relation = ProductSellerRelation::where('product_id', $product->id)->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
                 if (!empty($existing_relation)) {
                     $existing_relation->quantity += 1;
+                    $existing_relation->origin_quantity = $existing_relation->quantity;
                     $existing_relation->sale_date = Carbon::now();
                     $existing_relation->sale = 0;
                     $existing_relation->save();
@@ -1002,6 +1010,7 @@ class SellerCartApiController extends Controller
                         'product_id' => $product->id,
                         'sale' => 0,
                         'quantity' => 1,
+                        'origin_quantity' => 1,
                     ]);
                 }
                 // $existing_product = Product::where('origin_id', $product->origin_id ?? $product->id)->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
