@@ -29,8 +29,8 @@ Route::middleware('auth:api')->get('/users', function (Request $request) {
 
 Route::get('/something', [GeneralApiController::class, 'something']);
 Route::get('/something2', [GeneralApiController::class, 'something2']);
-Route::get('/autoPriceChange', [GeneralApiController::class, 'autoPriceChange']);
-// Route::get('/autoPriceChange', [GeneralApiController::class, 'autoPriceChangeNew']);
+// Route::get('/autoPriceChange', [GeneralApiController::class, 'autoPriceChange']);
+Route::get('/autoPriceChange', [GeneralApiController::class, 'autoPriceChangeNew']);
 Route::get('/autoPriceTimer', [GeneralApiController::class, 'autoPriceTimer']);
 Route::get('/cut', [GeneralApiController::class, 'cut']);
 Route::get('/endContest', [ContestController::class, 'endContest']);

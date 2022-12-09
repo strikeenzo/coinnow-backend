@@ -441,11 +441,11 @@ class GeneralApiController extends Controller
             // }
             // array_push($arr2, $value);
             // $sum2 += $value['profit'];
-            if ($value['max_price'] < $value['price'] + ($value['change_amount'] ? $value['change_amount'] : 0)) {
-                $sum2 += $value['profit'];
-                array_push($arr2, $value);
-                continue;
-            }
+            // if ($value['max_price'] < $value['price'] + ($value['change_amount'] ? $value['change_amount'] : 0)) {
+            //     $sum2 += $value['profit'];
+            //     array_push($arr2, $value);
+            //     continue;
+            // }
             if ($sum2 <= $sum1 + $value['profit']) {
                 if ($value['min_price'] > $value['price'] - ($value['change_amount'] ? $value['change_amount'] : 0)) {
                 } else {
@@ -454,10 +454,10 @@ class GeneralApiController extends Controller
                     continue;
                 }
             }
-            // if (($value['max_price'] < $value['price'] + ($value['change_amount'] ? $value['change_amount'] : 0))) {
-            //     $sum -= $value['profit'];
-            //     continue;
-            // }
+            if (($value['max_price'] < $value['price'] + ($value['change_amount'] ? $value['change_amount'] : 0))) {
+                $sum -= $value['profit'];
+                continue;
+            }
             array_push($arr1, $value);
             $sum1 += $value['profit'];
         }
