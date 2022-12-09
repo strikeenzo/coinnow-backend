@@ -332,6 +332,7 @@ class GeneralApiController extends Controller
                     "origin_total" => $sum,
                     "quantity" => $quantity,
                     "price" => $products[0]->product->price,
+                    "origin_price" => $products[0]->product->origin_price,
                     "change_amount" => $products[0]->product->change_amount,
                     "total" => $products[0]->product->price * $quantity,
                     "total_change_amount" => $products[0]->product->change_amount * $quantity,
@@ -367,7 +368,7 @@ class GeneralApiController extends Controller
                 "change_amount" => $products_all[$i]['change_amount'],
                 "min_price" => $products_all[$i]['min_price'],
                 "max_price" => $products_all[$i]['max_price'],
-                "next_price" => $products_all[$i]['price'] + $products_all[$i]['change_amount'] * getRandom(5, 5),
+                "next_price" => $products_all[$i]['price'] + $products_all[$i]['change_amount'] * getRandom(-8, 2),
             ]);
         }
 
