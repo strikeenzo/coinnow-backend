@@ -94,9 +94,10 @@ function getNextSum($result)
     return $next_sum;
 }
 
-function getRandom($negative, $positive) {
+function getRandom($negative, $positive)
+{
     $k = rand($negative, $positive);
-    while($k ==0) {
+    while ($k == 0) {
         $k = rand($negative, $positive);
     }
     return $k / abs($k);
@@ -109,7 +110,7 @@ function predict($marketplace)
 
     for ($i = 0; $i < count($marketplace); $i++) {
         // $next_total_amount = generateRandomAmount($marketplace[$i]["total"], $marketplace[$i]["total_change_amount"], $total_res);
-        $next_change_amount = getRandom(-5,5) * $marketplace[$i]["total_change_amount"];
+        $next_change_amount = getRandom(rand(-10, -1), rand(1, 10)) * $marketplace[$i]["total_change_amount"];
         $next_total_amount = $marketplace[$i]["total"] + $next_change_amount;
 
         $next_price = (int) ($next_total_amount / $marketplace[$i]["quantity"]);
@@ -155,6 +156,10 @@ function afterProcessing($predicted_res)
     $break_point = 0;
 
     while ($offset < 0 || $break_point < count($result)) {
+        if (rand(0, 100) < rand(30, 80)) {
+            $offset_index = ($offset_index + 1) % count($result);
+            continue;
+        }
         if ($offset < 0) {
             if ($result[$offset_index]['next_price'] > $result[$offset_index]['price']) {
                 $result[$offset_index]['next_price'] = $result[$offset_index]['price'] - $result[$offset_index]['change_amount'];
@@ -162,14 +167,13 @@ function afterProcessing($predicted_res)
                 $offset += $result[$offset_index]["total_change_amount"] * 2;
                 $break_point = 0;
             }
-        }
-        else if ($offset > 0) {
+        } else if ($offset > 0) {
             if ($result[$offset_index]['next_price'] < $result[$offset_index]['price']) {
-                if ($offset - $result[$offset_index]["total_change_amount"] * 2 > 0 ) {
+                if ($offset - $result[$offset_index]["total_change_amount"] * 2 > 0) {
                     $result[$offset_index]['next_price'] = $result[$offset_index]['price'] + $result[$offset_index]['change_amount'];
                     $result[$offset_index]['next_total_amount'] = $result[$offset_index]['total'] + $result[$offset_index]["total_change_amount"];
                     $offset -= $result[$offset_index]["total_change_amount"] * 2;
-                    $break_point =0;
+                    $break_point = 0;
                 }
             }
         }
@@ -363,7 +367,7 @@ class GeneralApiController extends Controller
                 "change_amount" => $products_all[$i]['change_amount'],
                 "min_price" => $products_all[$i]['min_price'],
                 "max_price" => $products_all[$i]['max_price'],
-                "next_price" => generateRandomAmount($products_all[$i]['price'], $products_all[$i]['change_amount'], 0),
+                "next_price" => $products_all[$i]['price'] + $products_all[$i]['change_amount'] * getRandom(5, 5),
             ]);
         }
 
@@ -804,7 +808,7 @@ class GeneralApiController extends Controller
     public function getNewProductsV1()
     {
         // try {
-        $data = Product::select('id', 'image', 'category_id', 'manufacturer_id', 'model', 'price', 'quantity', 'sort_order', 'status', 'date_available', 'created_at', 'power', 'min_price', 'change_amount', 'image_profit')
+        $data = Product::select('id', 'image', 'category_id', 'manufacturer_id', 'model', 'price', 'quantity', 'sort_order', 'status', 'date_available', 'created_at', 'power', 'change_amount', 'image_profit')
             ->with('productDescription:name,id,product_id,description', 'special:product_id,price,start_date,end_date')
             ->withCount(['sellers' => function ($query) {
                 $query->where('quantity', '>', 0);
