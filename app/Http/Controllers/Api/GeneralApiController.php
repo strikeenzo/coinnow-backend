@@ -384,7 +384,7 @@ class GeneralApiController extends Controller
                 "change_amount" => $products_all[$i]['change_amount'],
                 "min_price" => $products_all[$i]['min_price'],
                 "max_price" => $products_all[$i]['max_price'],
-                "next_price" => $products_all[$i]['price'] + $products_all[$i]['change_amount'] * getRandom(-5, 5),
+                "next_price" => $products_all[$i]['price'] + $products_all[$i]['change_amount'] * getRandom(-8, 2),
             ]);
         }
 
