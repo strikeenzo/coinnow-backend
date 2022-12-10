@@ -123,7 +123,7 @@ function predict($marketplace)
         $next_price = (int) ($next_total_amount / $marketplace[$i]["quantity"]);
         $marketplace[$i]["next_price"] = $next_price;
         $marketplace[$i]["next_total_amount"] = $next_price * $marketplace[$i]["quantity"];
-        $total_res += $marketplace[$i]["origin_total"] - $marketplace[$i]["next_total_amount"];
+        $total_res += $marketplace[$i]["total"] - $marketplace[$i]["next_total_amount"];
 
         $quantity_sum += $marketplace[$i]["quantity"];
     }
@@ -160,47 +160,60 @@ function afterProcessing($predicted_res)
 
     $offset = getOffset($result);
     $offset_index = 0;
+    $sorted_index = 0;
+    $first = 0; $second = 0; $third = 0;
     $break_point = 0;
 
-    while ($offset < 0) {
-        if (rand(0, 100) < rand(30, 80)) {
-            $offset_index = ($offset_index + 1) % count($result);
-            continue;
-        }
+    usort($result, function($a, $b) { return $a["total_change_amount"] < $b["total_change_amount"];});
 
-        $break_point += 1;
-        if ($break_point == count($result)) {
-            break;
-        }
-
-        if ($result[$offset_index]["origin_price"] > $result[$offset_index]["price"] * rand(30, 35) / 20) {
-            $offset_index = ($offset_index + 1) % count($result);
-            continue;
-        } else if ($result[$offset_index]["origin_price"] * rand(30, 35) / 20 < $result[$offset_index]["price"]) {
-            $offset_index = ($offset_index + 1) % count($result);
-            continue;
-        }
-
+    while ($offset < 0 || $break_point < count($result)) {
         if ($offset < 0) {
+            $offset_index = rand(0, count($result) - 1);
+            if (rand(0, 100) < rand(30, 80)) {
+                continue;
+            }
+            if ($result[$offset_index]["origin_price"] > $result[$offset_index]["price"] * rand(30, 35) / 20) {
+                $third += 1;
+                if (rand(0, $third) < 7)
+                    continue;
+            }
             if ($result[$offset_index]['next_price'] > $result[$offset_index]['price']) {
                 $result[$offset_index]['next_price'] = $result[$offset_index]['price'] - $result[$offset_index]['change_amount'];
                 $result[$offset_index]['next_total_amount'] = $result[$offset_index]['total'] - $result[$offset_index]["total_change_amount"];
                 $offset += $result[$offset_index]["total_change_amount"] * 2;
                 $break_point = 0;
             }
-        } else if ($offset > 0) {
-            if ($result[$offset_index]['next_price'] < $result[$offset_index]['price']) {
-                if ($offset - $result[$offset_index]["total_change_amount"] * 2 > 0) {
-                    $result[$offset_index]['next_price'] = $result[$offset_index]['price'] + $result[$offset_index]['change_amount'];
-                    $result[$offset_index]['next_total_amount'] = $result[$offset_index]['total'] + $result[$offset_index]["total_change_amount"];
-                    $offset -= $result[$offset_index]["total_change_amount"] * 2;
+        }
+
+        else if ($offset < 20) {
+            break;
+        }
+
+        else if ($offset > 0) {
+            if ($result[$sorted_index]['next_price'] < $result[$sorted_index]['price']) {
+                if ($offset - $result[$sorted_index]["total_change_amount"] * 2 > 0) {
                     $break_point = 0;
+                    if (rand($first, $first + 10) < 10) {
+                        $result[$sorted_index]['next_price'] = $result[$sorted_index]['price'] + $result[$sorted_index]['change_amount'];
+                        $result[$sorted_index]['next_total_amount'] = $result[$sorted_index]['total'] + $result[$sorted_index]["total_change_amount"];
+                        $offset -= $result[$sorted_index]["total_change_amount"] * 2;
+                        $first += 8 - $second;
+                        $second += min(5, $second + 1);
+                    } else {
+                        $first = max($first-6, 0);
+                    }
                 }
             }
+            $sorted_index = ($sorted_index + 1) % count($result);
+            $break_point += 1;
         }
-        $offset_index = ($offset_index + 1) % count($result);
+
+        if ($break_point == count($result)) {
+            break;
+        }
     }
 
+    return $result;
     // while ($offset < 100 || $offset > 150) {
     //     if ($offset < 100) {
     //         if ($result[$offset_index]["next_price"] > $result[$offset_index]['price'] - $result[$offset_index]["change_amount"]) {
@@ -241,8 +254,6 @@ function afterProcessing($predicted_res)
     //         break;
     //     }
     // }
-
-    return $result;
 }
 
 class GeneralApiController extends Controller
@@ -283,7 +294,6 @@ class GeneralApiController extends Controller
             ]);
         } else {
             $start->started_at = Carbon::now();
-            $start->save();
         }
 
         //auto_stock
