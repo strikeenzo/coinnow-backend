@@ -103,6 +103,22 @@ function getRandom($negative, $positive)
     return $k / abs($k);
 }
 
+function getTendency($origin_price, $price, $min = 0.33, $max = 0.5)
+{
+
+    if ($origin_price * (1 - $min) >= $price) {
+        return 1;
+    } else if ($origin_price * (1 + $max) <= $price) {
+        return -1;
+    } else if ($origin_price > $price) {
+        $x = (int) (($price - $origin_price + $min * $origin_price) * ($price - $origin_price + $min * $origin_price) / ($min * $origin_price * $min * $origin_price) * -10) - 1;
+        return getRandom($x, 10);
+    } else {
+        $x = (int) (($price - $origin_price - $max * $origin_price) * ($price - $origin_price - $max * $origin_price) / ($max * $origin_price * $max * $origin_price) * 10) + 1;
+        return getRandom(-10, $x);
+    }
+}
+
 function predict($marketplace)
 {
     $total_res = 0;
@@ -110,7 +126,7 @@ function predict($marketplace)
 
     for ($i = 0; $i < count($marketplace); $i++) {
         // $next_total_amount = generateRandomAmount($marketplace[$i]["total"], $marketplace[$i]["total_change_amount"], $total_res);
-        $next_change_amount = getRandom(rand(-10, -1), rand(1, 10)) * $marketplace[$i]["total_change_amount"];
+        $next_change_amount = getTendency($marketplace[$i]["origin_price"], $marketplace[$i]["price"]) * $marketplace[$i]["total_change_amount"];
 
         if ($marketplace[$i]["origin_price"] > $marketplace[$i]["price"] * rand(30, 35) / 20) {
             $next_change_amount = $marketplace[$i]["total_change_amount"];
