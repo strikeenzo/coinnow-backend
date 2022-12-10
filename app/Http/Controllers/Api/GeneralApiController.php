@@ -161,10 +161,12 @@ function afterProcessing($predicted_res)
     $offset = getOffset($result);
     $offset_index = 0;
     $sorted_index = 0;
-    $first = 0; $second = 0; $third = 0;
+    $first = 0;
+    $second = 0;
+    $third = 0;
     $break_point = 0;
 
-    usort($result, function($a, $b) { return $a["total_change_amount"] < $b["total_change_amount"];});
+    usort($result, function ($a, $b) {return $a["total_change_amount"] < $b["total_change_amount"];});
 
     while ($offset < 0 || $break_point < count($result)) {
         if ($offset < 0) {
@@ -174,8 +176,10 @@ function afterProcessing($predicted_res)
             }
             if ($result[$offset_index]["origin_price"] > $result[$offset_index]["price"] * rand(30, 35) / 20) {
                 $third += 1;
-                if (rand(0, $third) < 7)
+                if (rand(0, $third) < 7) {
                     continue;
+                }
+
             }
             if ($result[$offset_index]['next_price'] > $result[$offset_index]['price']) {
                 $result[$offset_index]['next_price'] = $result[$offset_index]['price'] - $result[$offset_index]['change_amount'];
@@ -183,13 +187,9 @@ function afterProcessing($predicted_res)
                 $offset += $result[$offset_index]["total_change_amount"] * 2;
                 $break_point = 0;
             }
-        }
-
-        else if ($offset < 20) {
+        } else if ($offset < 200) {
             break;
-        }
-
-        else if ($offset > 0) {
+        } else if ($offset > 0) {
             if ($result[$sorted_index]['next_price'] < $result[$sorted_index]['price']) {
                 if ($offset - $result[$sorted_index]["total_change_amount"] * 2 > 0) {
                     $break_point = 0;
@@ -200,7 +200,7 @@ function afterProcessing($predicted_res)
                         $first += 8 - $second;
                         $second += min(5, $second + 1);
                     } else {
-                        $first = max($first-6, 0);
+                        $first = max($first - 6, 0);
                     }
                 }
             }
