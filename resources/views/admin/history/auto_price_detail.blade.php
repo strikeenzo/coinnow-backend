@@ -33,6 +33,7 @@
                                         <th scope="col" class="sort" data-sort="name">Product</th>
                                         <th scope="col" class="sort" data-sort="name">Price Change</th>
                                         <th scope="col" class="sort" data-sort="name">Price</th>
+                                        <th scope="col" class="sort" data-sort="name">Origin Price</th>
                                         <th scope="col" class="sort" data-sort="name">Profit/Loss</th>
                                         <th scope="col" class="sort" data-sort="name">created at</th>
                                     </tr>
@@ -43,6 +44,7 @@
                                             <td>{{ $value->product ? $value->product->productDescription->name : '' }}</td>
                                             <td>{{ $value->price_change }}</td>
                                             <td>{{ $value->price ?? $value->product->price }}</td>
+                                            <td>{{ $value->origin_price ?? $value->product->origin_price }}</td>
                                             <td>{{ $value->profit }}</td>
                                             <td>{{ $value->created_at }}</td>
                                         </tr>

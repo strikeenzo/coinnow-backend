@@ -112,9 +112,9 @@ function predict($marketplace)
         // $next_total_amount = generateRandomAmount($marketplace[$i]["total"], $marketplace[$i]["total_change_amount"], $total_res);
         $next_change_amount = getRandom(rand(-10, -1), rand(1, 10)) * $marketplace[$i]["total_change_amount"];
 
-        if ($marketplace[$i]["origin_price"] > $marketplace[$i]["price"] * 1.5) {
+        if ($marketplace[$i]["origin_price"] > $marketplace[$i]["price"] * rand(30, 35) / 20) {
             $next_change_amount = $marketplace[$i]["total_change_amount"];
-        } else if ($marketplace[$i]["origin_price"] * 1.5 < $marketplace[$i]["price"]) {
+        } else if ($marketplace[$i]["origin_price"] * rand(30, 35) / 20 < $marketplace[$i]["price"]) {
             $next_change_amount = -$marketplace[$i]["total_change_amount"];
         }
 
@@ -173,10 +173,10 @@ function afterProcessing($predicted_res)
             break;
         }
 
-        if ($result[$offset_index]["origin_price"] > $result[$offset_index]["price"] * 1.5) {
+        if ($result[$offset_index]["origin_price"] > $result[$offset_index]["price"] * rand(30, 35) / 20) {
             $offset_index = ($offset_index + 1) % count($result);
             continue;
-        } else if ($result[$offset_index]["origin_price"] * 1.5 < $result[$offset_index]["price"]) {
+        } else if ($result[$offset_index]["origin_price"] * rand(30, 35) / 20 < $result[$offset_index]["price"]) {
             $offset_index = ($offset_index + 1) % count($result);
             continue;
         }
@@ -378,13 +378,23 @@ class GeneralApiController extends Controller
                 continue;
             }
 
+            $ttt = -1;
+
+            if ($products_all[$i]['price'] < $products_all[$i]['origin_price'] * 1.5 && $products_all[$i]['price'] * 1.5 > $products_all[$i]['origin_price']) {
+                $ttt = getRandom(-5, 5);
+            } else if ($products_all[$i]['price'] > $products_all[$i]['origin_price'] * 1.5) {
+                $ttt = -1;
+            } else {
+                $ttt = 1;
+            }
+
             array_push($total_res, [
                 "product_id" => $products_all[$i]['id'],
                 "price" => $products_all[$i]['price'],
                 "change_amount" => $products_all[$i]['change_amount'],
                 "min_price" => $products_all[$i]['min_price'],
                 "max_price" => $products_all[$i]['max_price'],
-                "next_price" => $products_all[$i]['price'] + $products_all[$i]['change_amount'] * getRandom(-8, 2),
+                "next_price" => $products_all[$i]['price'] + $products_all[$i]['change_amount'] * $ttt,
             ]);
         }
 
@@ -396,7 +406,7 @@ class GeneralApiController extends Controller
         ]);
         for ($i = 0; $i < count($total_res); $i++) {
             $product = Product::where('id', $total_res[$i]["product_id"])->first();
-            $offset_price = $product->price - $total_res[$i]["next_price"];
+            $offset_price = $total_res[$i]["next_price"] - $product->price;
             $product->price = $total_res[$i]["next_price"];
             $product->save();
             AutoPriceChangeDetail::create([
@@ -414,14 +424,14 @@ class GeneralApiController extends Controller
 
         for ($i = 0; $i < count($final_res); $i++) {
             $product = Product::where('id', $final_res[$i]["product_id"]["product_id"])->first();
-            $offset_price = $product->price - $final_res[$i]["next_price"];
+            $offset_price = $final_res[$i]["next_price"] - $product->price;
             $product->price = $final_res[$i]["next_price"];
             $product->save();
             AutoPriceChangeDetail::create([
                 'product_id' => $product->id,
                 'auto_price_history_id' => $history->id,
                 'price_change' => $offset_price,
-                'profit' => $final_res[$i]["origin_total"] - $final_res[$i]["next_total_amount"],
+                'profit' => $final_res[$i]["next_total_amount"] - $final_res[$i]["origin_total"],
                 'price' => $product->price,
             ]);
             $today = Carbon::today();
