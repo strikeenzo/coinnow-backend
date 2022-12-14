@@ -149,6 +149,8 @@ function predict($marketplace)
 
 function afterProcessing($predicted_res)
 {
+    $min_offset = -300;
+    $max_offset = 100;
     $result = $predicted_res[1];
     $quantity_sum = $predicted_res[2];
     // $k = (int) ((150 - $predicted_res[0]) / $quantity_sum) + 1;
@@ -184,8 +186,8 @@ function afterProcessing($predicted_res)
 
     usort($result, function ($a, $b) {return $a["total_change_amount"] < $b["total_change_amount"];});
 
-    while ($offset < 0 || $break_point < count($result)) {
-        if ($offset < 0) {
+    while ($offset < $min_offset || $break_point < count($result)) {
+        if ($offset < $min_offset) {
             $offset_index = rand(0, count($result) - 1);
             if (rand(0, 100) < rand(30, 80)) {
                 continue;
@@ -201,13 +203,13 @@ function afterProcessing($predicted_res)
                 $result[$offset_index]['next_price'] = $result[$offset_index]['price'] - $result[$offset_index]['change_amount'];
                 $result[$offset_index]['next_total_amount'] = $result[$offset_index]['total'] - $result[$offset_index]["total_change_amount"];
                 $offset += $result[$offset_index]["total_change_amount"] * 2;
-                $break_point = 0;
             }
-        } else if ($offset < 200) {
+            $break_point = 0;
+        } else if ($offset < $max_offset) {
             break;
         } else if ($offset > 0) {
             if ($result[$sorted_index]['next_price'] < $result[$sorted_index]['price']) {
-                if ($offset - $result[$sorted_index]["total_change_amount"] * 2 > 0) {
+                if ($offset - $result[$sorted_index]["total_change_amount"] * 2 - $min_offset > 0) {
                     $break_point = 0;
                     if (rand($first, $first + 10) < 10) {
                         $result[$sorted_index]['next_price'] = $result[$sorted_index]['price'] + $result[$sorted_index]['change_amount'];
