@@ -98,6 +98,8 @@
                                         Members</th>
                                     <th style="font-size: 10px" scope="col" class="sort" style="min-width: 150px;"
                                         data-sort="quantity">Price</th>
+                                    <th style="font-size: 10px" scope="col" class="sort" style="min-width: 150px;"
+                                        data-sort="quantity">Origin Price</th>
                                     <th style="font-size: 10px" scope="col" class="sort" data-sort="quantity">price
                                         change</th>
                                     <th style="font-size: 10px" scope="col" class="sort" data-sort="sort_order">
@@ -140,13 +142,16 @@
                                         <td class="budget "> <span
                                                 class="@if ($value->clan_members < 5) badge badge-danger btn-small @else badge badge-success btn-small @endif"
                                                 style="font-size:12px;">{{ $value->clan_members }}</span></td>
+                                        <td class="budget">
+                                            {{ $value->price }}
+                                        </td>
                                         <td class="budget" style="min-width: 120px;">
                                             <form action="{{ route('product.updatePrice', ['id' => $value->id]) }}"
                                                 method="POST">
                                                 @csrf
                                                 @method('post')
                                                 <input type="number" name="price" class="form-control"
-                                                    value="{{ $value->price }}">
+                                                    value="{{ $value->origin_price }}">
                                             </form>
                                         </td>
                                         <td class="budget ">

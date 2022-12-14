@@ -55,7 +55,7 @@ class Seller extends Authenticatable
 
     public function products()
     {
-        return $this->belongsToMany('App\Models\Product', 'product_seller_relations', 'seller_id', 'product_id')->withPivot('sale_date', 'sell_date', 'sale', 'quantity', 'id', 'updated_at', 'created_at');
+        return $this->belongsToMany('App\Models\Product', 'product_seller_relations', 'seller_id', 'product_id')->withPivot('sale_date', 'sell_date', 'sale', 'quantity', 'id', 'updated_at', 'created_at', 'sell_price', 'origin_price');
     }
 
     public function clans()

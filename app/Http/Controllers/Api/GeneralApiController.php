@@ -128,11 +128,11 @@ function predict($marketplace)
         // $next_total_amount = generateRandomAmount($marketplace[$i]["total"], $marketplace[$i]["total_change_amount"], $total_res);
         $next_change_amount = getTendency($marketplace[$i]["origin_price"], $marketplace[$i]["price"]) * $marketplace[$i]["total_change_amount"];
 
-        if ($marketplace[$i]["origin_price"] > $marketplace[$i]["price"] * rand(30, 35) / 20) {
-            $next_change_amount = $marketplace[$i]["total_change_amount"];
-        } else if ($marketplace[$i]["origin_price"] * rand(30, 35) / 20 < $marketplace[$i]["price"]) {
-            $next_change_amount = -$marketplace[$i]["total_change_amount"];
-        }
+        // if ($marketplace[$i]["origin_price"] > $marketplace[$i]["price"] * rand(30, 35) / 20) {
+        //     $next_change_amount = $marketplace[$i]["total_change_amount"];
+        // } else if ($marketplace[$i]["origin_price"] * rand(30, 35) / 20 < $marketplace[$i]["price"]) {
+        //     $next_change_amount = -$marketplace[$i]["total_change_amount"];
+        // }
 
         $next_total_amount = $marketplace[$i]["total"] + $next_change_amount;
 
@@ -404,15 +404,7 @@ class GeneralApiController extends Controller
                 continue;
             }
 
-            $ttt = -1;
-
-            if ($products_all[$i]['price'] < $products_all[$i]['origin_price'] * 1.5 && $products_all[$i]['price'] * 1.5 > $products_all[$i]['origin_price']) {
-                $ttt = getRandom(-5, 5);
-            } else if ($products_all[$i]['price'] > $products_all[$i]['origin_price'] * 1.5) {
-                $ttt = -1;
-            } else {
-                $ttt = 1;
-            }
+            $ttt = getTendency($products_all[$i]['origin_price'], $products_all[$i]['price']);
 
             array_push($total_res, [
                 "product_id" => $products_all[$i]['id'],
@@ -432,6 +424,9 @@ class GeneralApiController extends Controller
         ]);
         for ($i = 0; $i < count($total_res); $i++) {
             $product = Product::where('id', $total_res[$i]["product_id"])->first();
+            if ($product->price < $product->origin_price && $product->quantity > $product->range_quantity) {
+                $product->quantity = $product->range_quantity;
+            }
             $offset_price = $total_res[$i]["next_price"] - $product->price;
             $product->price = $total_res[$i]["next_price"];
             $product->save();
@@ -450,6 +445,9 @@ class GeneralApiController extends Controller
 
         for ($i = 0; $i < count($final_res); $i++) {
             $product = Product::where('id', $final_res[$i]["product_id"]["product_id"])->first();
+            if ($product->price < $product->origin_price && $product->quantity > $product->range_quantity) {
+                $product->quantity = $product->range_quantity;
+            }
             $offset_price = $final_res[$i]["next_price"] - $product->price;
             $product->price = $final_res[$i]["next_price"];
             $product->save();
@@ -858,7 +856,7 @@ class GeneralApiController extends Controller
     }
 
     //new products v1
-    public function getNewProductsV1()
+    public function getNewProductsV1(Request $request)
     {
         // try {
         $data = Product::select('id', 'image', 'category_id', 'manufacturer_id', 'model', 'price', 'quantity', 'sort_order', 'status', 'date_available', 'created_at', 'power', 'change_amount', 'image_profit')
@@ -1441,6 +1439,7 @@ class GeneralApiController extends Controller
                     $new_notification->save();
                 }
                 $product->quantity = 0;
+                $product->sell_price = $product->product->price;
                 $product->save();
             }
         }

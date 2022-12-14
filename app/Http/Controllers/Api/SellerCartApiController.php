@@ -788,6 +788,7 @@ class SellerCartApiController extends Controller
             'quantity' => $quantity,
             'origin_price' => $price,
             'origin_quantity' => $quantity,
+            'sell_price' => 0,
         ]);
         $notification_data = array(
             'type' => 'item_buy',
@@ -822,139 +823,142 @@ class SellerCartApiController extends Controller
 
     public function buyProduct(Request $request)
     {
-        try {
-            $product = Product::where('id', $request->id)->with('seller')->first();
-            $quantity = $request->quantity;
-            $discount = 0;
-            // if ($this->getUser->clan_id && $this->getUser->clan->product->id == $request->id) {
-            //     $discount = $this->getUser->clan->discount;
-            // }
-            $balance = $this->getUser->balance;
-            if ($balance < ($product->price - $discount) * $quantity) {
-                return ['status' => 0, 'message' => 'No enough balance'];
-            }
-            if ($product->quantity < $quantity) {
-                return ['status' => 0, 'message' => '0 items in stock'];
-            }
-            if ($product->power && $product->power > $this->getUser->power) {
-                return ['status' => 0, 'message' => 'Not enough power'];
-            }
-            if ($product->amount && $product->amount < $quantity) {
-                $news = News::create([
-                    "content" => $this->getUser->firstname . " " . $this->getUser->lastname . " Bought " . $quantity . " " . $product->model,
-                    "type" => "seller",
-                ]);
-                broadcast(
-                    new MessageSent('news-sent', $news)
-                )->toOthers();
-            }
-            if (!empty($product)) {
-                if ($product->points > 0) {
-                    $power = $this->getUser->power ?? 0;
-                    $power += $product->points;
-                    $this->getUser->update(['power' => $power]);
-                    $notification_data = array(
-                        'type' => 'special_item_buy',
+        $product = Product::where('id', $request->id)->with('seller')->first();
+        $quantity = $request->quantity;
+        $discount = 0;
+        // if ($this->getUser->clan_id && $this->getUser->clan->product->id == $request->id) {
+        //     $discount = $this->getUser->clan->discount;
+        // }
+        $balance = $this->getUser->balance;
+        if ($balance < ($product->price - $discount) * $quantity) {
+            return ['status' => 0, 'message' => 'No enough balance'];
+        }
+        if ($product->quantity < $quantity) {
+            return ['status' => 0, 'message' => '0 items in stock'];
+        }
+        if ($product->power && $product->power > $this->getUser->power) {
+            return ['status' => 0, 'message' => 'Not enough power'];
+        }
+        if ($product->amount && $product->amount < $quantity) {
+            $news = News::create([
+                "content" => $this->getUser->firstname . " " . $this->getUser->lastname . " Bought " . $quantity . " " . $product->model,
+                "type" => "seller",
+            ]);
+            broadcast(
+                new MessageSent('news-sent', $news)
+            )->toOthers();
+        }
+        if (!empty($product)) {
+            if ($product->points > 0) {
+                $power = $this->getUser->power ?? 0;
+                $power += $product->points;
+                $this->getUser->update(['power' => $power]);
+                $notification_data = array(
+                    'type' => 'special_item_buy',
+                    'product_id' => $product->id,
+                    'seller_id' => $this->getUser->id,
+                    'quantity' => $quantity,
+                    'price' => ($product->price - $discount),
+                    'balance' => $balance,
+                    'seen' => 0,
+                );
+                $new_notification = new Notification($notification_data);
+                $new_notification->save();
+
+                $origin_special = Special::where('product_id', $product->origin_id ?? $product->id)->where('seller_id', $this->getUser->id)->first();
+                if (!empty($origin_special)) {
+                    $origin_special->quantity = $origin_special->quantity + $quantity;
+                    $origin_special->save();
+                } else {
+                    $new_special_data = array(
                         'product_id' => $product->id,
                         'seller_id' => $this->getUser->id,
                         'quantity' => $quantity,
+                    );
+                    $new_special = new Special($new_special_data);
+                    $new_special->save();
+                }
+                if (!empty($product->seller)) {
+                    $notification_data = array(
+                        'type' => 'special_item_sell',
+                        'product_id' => $product->id,
+                        'seller_id' => $product->seller->id,
+                        'quantity' => $quantity,
+                        'balance' => $product->seller->balance,
                         'price' => ($product->price - $discount),
-                        'balance' => $balance,
                         'seen' => 0,
                     );
                     $new_notification = new Notification($notification_data);
                     $new_notification->save();
+                }
 
-                    $origin_special = Special::where('product_id', $product->origin_id ?? $product->id)->where('seller_id', $this->getUser->id)->first();
-                    if (!empty($origin_special)) {
-                        $origin_special->quantity = $origin_special->quantity + $quantity;
-                        $origin_special->save();
-                    } else {
-                        $new_special_data = array(
-                            'product_id' => $product->id,
-                            'seller_id' => $this->getUser->id,
-                            'quantity' => $quantity,
-                        );
-                        $new_special = new Special($new_special_data);
-                        $new_special->save();
-                    }
-                    if (!empty($product->seller)) {
-                        $notification_data = array(
-                            'type' => 'special_item_sell',
-                            'product_id' => $product->id,
-                            'seller_id' => $product->seller->id,
-                            'quantity' => $quantity,
-                            'balance' => $product->seller->balance,
-                            'price' => ($product->price - $discount),
-                            'seen' => 0,
-                        );
-                        $new_notification = new Notification($notification_data);
-                        $new_notification->save();
-                    }
-
-                } else {
-                    $existing_relation = ProductSellerRelation::where('product_id', $product->id)->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
-                    if (!empty($existing_relation)) {
-                        $existing_relation->quantity += $quantity;
-                        $existing_relation->origin_quantity = $existing_relation->quantity;
-                        $existing_relation->sale_date = Carbon::now();
-                        $existing_relation->sale = 0;
-                        $existing_relation->save();
-                    } else {
-                        ProductSellerRelation::create([
-                            'seller_id' => $this->getUser->id,
-                            'product_id' => $product->id,
-                            'sale' => 0,
-                            'quantity' => $quantity,
-                            'origin_price' => $product->price,
-                            'origin_quantity' => $quantity,
-                        ]);
-                    }
+            } else {
+                // $existing_relation = ProductSellerRelation::where('product_id', $product->id)->where('seller_id', $this->getUser->id)->where('sale', 0)->first();
+                // if (!empty($existing_relation)) {
+                //     $existing_relation->quantity += $quantity;
+                //     $existing_relation->origin_quantity = $existing_relation->quantity;
+                //     $existing_relation->sale_date = Carbon::now();
+                //     $existing_relation->sale = 0;
+                //     $existing_relation->save();
+                // } else {
+                $currentUser = $this->getUser->id;
+                DB::transaction(function () use ($currentUser, $product, $quantity, $balance) {
+                    ProductSellerRelation::create([
+                        'seller_id' => $currentUser,
+                        'product_id' => $product->id,
+                        'sale' => 0,
+                        'quantity' => $quantity,
+                        'origin_price' => $product->price,
+                        'origin_quantity' => $quantity,
+                        'sell_price' => 0,
+                    ]);
+                    // }
                     $notification_data = array(
                         'type' => 'item_buy',
                         'product_id' => $product->id,
-                        'seller_id' => $this->getUser->id,
+                        'seller_id' => $currentUser,
                         'quantity' => $quantity,
-                        'price' => ($product->price - $discount),
+                        'price' => ($product->price),
                         'balance' => $balance,
                         'seen' => 0,
                     );
                     $new_notification = new Notification($notification_data);
                     $new_notification->save();
-                    if (!empty($product->seller)) {
-                        $notification_data = array(
-                            'type' => 'item_sell',
-                            'product_id' => $product->id,
-                            'seller_id' => $product->seller->id,
-                            'quantity' => $quantity,
-                            'price' => ($product->price - $discount),
-                            'balance' => $product->seller->balance,
-                            'seen' => 0,
-                        );
-                        $new_notification = new Notification($notification_data);
-                        $new_notification->save();
-                    }
-                }
+                });
                 if (!empty($product->seller)) {
-                    $seller = Seller::where('id', $product->seller->id)->first();
-                    $newProfit = $seller->profit + ($product->price - $discount) * $quantity;
-                    $newBalance = $seller->balance + ($product->price - $discount) * $quantity;
-                    $seller->profit = $newProfit;
-                    $seller->balance = $newBalance;
-                    $seller->save();
+                    $notification_data = array(
+                        'type' => 'item_sell',
+                        'product_id' => $product->id,
+                        'seller_id' => $product->seller->id,
+                        'quantity' => $quantity,
+                        'price' => ($product->price),
+                        'balance' => $product->seller->balance,
+                        'seen' => 0,
+                    );
+                    $new_notification = new Notification($notification_data);
+                    $new_notification->save();
                 }
-                $this->getUser->update(['balance' => $balance - ($product->price - $discount) * $quantity]);
-                $product->quantity = $product->quantity - $quantity;
-                $product->save();
             }
-
-            return ['status' => 1, 'message' => 'successful!'];
-            //
-        } catch (\Exception$e) {
-            Log::info(json_encode($e));
-
-            return ['status' => 0, 'message' => $e];
+            if (!empty($product->seller)) {
+                $seller = Seller::where('id', $product->seller->id)->first();
+                $newProfit = $seller->profit + ($product->price - $discount) * $quantity;
+                $newBalance = $seller->balance + ($product->price - $discount) * $quantity;
+                $seller->profit = $newProfit;
+                $seller->balance = $newBalance;
+                $seller->save();
+            }
+            $this->getUser->update(['balance' => $balance - ($product->price - $discount) * $quantity]);
+            $product->quantity = $product->quantity - $quantity;
+            $product->save();
         }
+
+        return ['status' => 1, 'message' => 'successful!'];
+        //
+        // } catch (\Exception$e) {
+        //     Log::info(json_encode($e));
+
+        //     return ['status' => 0, 'message' => $e];
+        // }
 
     }
 
@@ -1011,6 +1015,7 @@ class SellerCartApiController extends Controller
                         'sale' => 0,
                         'quantity' => 1,
                         'origin_quantity' => 1,
+                        'sell_price' => 0,
                     ]);
                 }
                 // $existing_product = Product::where('origin_id', $product->origin_id ?? $product->id)->where('seller_id', $this->getUser->id)->where('sale', 0)->first();

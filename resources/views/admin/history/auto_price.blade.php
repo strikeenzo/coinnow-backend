@@ -34,6 +34,8 @@
                                     <tr>
                                         <th scope="col" class="sort" data-sort="name">Before amount</th>
                                         <th scope="col" class="sort" data-sort="name">Next amount</th>
+                                        <th scope="col" class="sort" data-sort="name">Collected</th>
+                                        <th scope="col" class="sort" data-sort="name">Distributed</th>
                                         <th scope="col" class="sort" data-sort="name">Remaining balance</th>
                                         <th scope="col" class="sort" data-sort="name">Detail</th>
                                         <th scope="col" class="sort" data-sort="name">created at</th>
@@ -44,6 +46,8 @@
                                         <tr>
                                             <td>{{ $value->collected }}</td>
                                             <td>{{ $value->distributed }}</td>
+                                            <td>{{ $value->collected1 }}</td>
+                                            <td>{{ $value->distributed1 }}</td>
                                             <td>{{ $value->collected - $value->distributed }}</td>
                                             <td>
                                                 <a class="btn btn-sm btn-success"
