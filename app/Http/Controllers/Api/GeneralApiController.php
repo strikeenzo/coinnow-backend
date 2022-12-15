@@ -151,6 +151,13 @@ function afterProcessing($predicted_res)
 {
     $min_offset = -300;
     $max_offset = 100;
+
+    
+    $plus_random = rand(-10, 3);
+    if ($plus_random > 0) {
+        $min_offset = 0;
+    }
+
     $result = $predicted_res[1];
     $quantity_sum = $predicted_res[2];
     // $k = (int) ((150 - $predicted_res[0]) / $quantity_sum) + 1;
