@@ -103,7 +103,7 @@ function getRandom($negative, $positive)
     return $k / abs($k);
 }
 
-function getTendency($origin_price, $price, $min = 0.33, $max = 0.5)
+function getTendency($origin_price, $price, $min = 0.2, $max = 0.3)
 {
 
     if ($origin_price * (1 - $min) >= $price) {
@@ -149,7 +149,7 @@ function predict($marketplace)
 
 function afterProcessing($predicted_res)
 {
-    $min_offset = -300;
+    $min_offset = -500;
     $max_offset = 100;
 
     
