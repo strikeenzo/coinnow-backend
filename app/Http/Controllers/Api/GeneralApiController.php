@@ -121,7 +121,7 @@ function getTendency($origin_price, $price, $min = 0.2, $max = 0.3)
 
 function getTendencyValue($price, $origin_price)
 {
-    $off_change = 0.4;
+    $off_change = 0.2;
     $tendency = -tanh(($price - $origin_price) / 10 / ($origin_price * $off_change) * 180 / 6.28);
 
     if ($tendency < -0.8) {
