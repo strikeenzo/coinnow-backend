@@ -7,6 +7,7 @@ Route::group(['prefix' => 'product'], function () {
         Route::get('/add', ['as' => 'product.add', 'uses' => 'add']);
         Route::post('/store', ['as' => 'product.store', 'uses' => 'store']);
         Route::get('/{id}/edit', ['as' => 'product.edit', 'uses' => 'edit']);
+        Route::get('/{id}/priceChangeHistory', ['as' => 'product.priceChangeHistory', 'uses' => 'priceChangeHistory']);
         Route::get('/{id}/delete]', ['as' => 'product.delete', 'uses' => 'delete']);
         Route::post('/{id}/update', ['as' => 'product.update', 'uses' => 'update']);
         Route::post('/{id}/updatePrice', ['as' => 'product.updatePrice', 'uses' => 'updatePrice']);

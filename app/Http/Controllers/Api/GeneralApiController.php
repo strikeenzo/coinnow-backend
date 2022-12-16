@@ -238,13 +238,10 @@ function afterProcessing($predicted_res)
     }
 
     $min_offset = -500;
-    $max_offset = 100;
+    $max_offset = 500;
 
-    
-    $plus_random = rand(-10, 3);
-    if ($plus_random > 0) {
-        $min_offset = 0;
-    }
+    $min_offset = -500;
+    $max_offset = 500;
 
     $result = $predicted_res[1];
     $quantity_sum = $predicted_res[2];
@@ -271,6 +268,16 @@ function afterProcessing($predicted_res)
     //     $result[$i]["next_total_amount"] -= $next_change_amount * $result[$i]["quantity"];
     // }
 
+    $offset = getOffset($result);
+
+    if ($offset > $min_offset && $offset < $max_offset) {
+        return $offset;
+    }
+
+    $plus_random = rand(-5, 5);
+    // if ($plus_random > 0) {
+    //     $min_offset = 0;
+    // }
     $offset_index = 0;
     $sorted_index = 0;
     $first = 0;
@@ -287,14 +294,10 @@ function afterProcessing($predicted_res)
             if (rand(0, 100) < rand(30, 80)) {
                 continue;
             }
-            if ($result[$offset_index]['next_price'] > $result[$offset_index]['price']) {
-                if ($result[$offset_index]["origin_price"] > $result[$offset_index]["price"] * 1.2) {
+            if ($result[$offset_index]["origin_price"] > $result[$offset_index]["price"] * rand(25, 28) / 20) {
+                $third += 1;
+                if (rand(0, $third) < 7) {
                     continue;
-                    $third += 1;
-                    if (rand(0, $third) < 7) {
-                        continue;
-                    }
-
                 }
                 $result[$offset_index]['next_price'] = $result[$offset_index]['price'] - $result[$offset_index]['change_amount'];
                 $result[$offset_index]['next_total_amount'] = $result[$offset_index]['total'] - $result[$offset_index]["total_change_amount"];

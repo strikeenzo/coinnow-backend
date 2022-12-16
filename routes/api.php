@@ -118,6 +118,7 @@ Route::middleware(['checkKey'])->group(function () {
                 Route::post('/image/toogleVoteImage', 'toogleVoteImage');
                 Route::post('/image/postCommentImage', 'postCommentImage');
                 Route::get('/image/getCommentsByImageId/{id}', 'getCommentsByImageId');
+                Route::get('/getPriceChangeHistory/{id}', 'getPriceChangeHistory');
             });
 
             //cart functionality

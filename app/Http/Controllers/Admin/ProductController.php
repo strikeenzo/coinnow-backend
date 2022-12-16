@@ -585,4 +585,20 @@ class ProductController extends Controller
         //     return redirect(route('product'))->with('success', 'Price Updated Successfully');
         // }
     }
+
+    public function priceChangeHistory($id)
+    {
+        $total_count = ProductPrice::where('product_id', $id)->count();
+        $records = ProductPrice::where('product_id', $id)->skip($total_count - 336)->take(336)->get();
+        $prices = [];
+        $product = Product::where('id', $id)->first();
+        $dates = [];
+        $origins = [];
+        for ($i = 0; $i < count($records); $i++) {
+            array_push($prices, (int) ($records[$i]->price));
+            array_push($dates, $i + 1);
+            array_push($origins, (int) ($product->origin_price));
+        }
+        return view('admin.product.price_change_history', ['prices' => $prices, 'dates' => $dates, 'origins' => $origins]);
+    }
 }
