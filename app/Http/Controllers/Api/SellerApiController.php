@@ -11,6 +11,8 @@ use App\Models\DigitalShowImageSellerRelation;
 use App\Models\EnvironmentalVariable;
 use App\Models\Notification;
 use App\Models\PaymentHistory;
+use App\Models\Product;
+use App\Models\ProductPrice;
 use App\Models\ProductSellerRelation;
 use App\Models\Seller;
 use App\Models\Special;
@@ -746,5 +748,25 @@ class SellerApiController extends Controller
             }
         }
         return implode(' ', $new_validation_messages[0]);
+    }
+
+    public function getPriceChangeHistory($id)
+    {
+        $count = ProductPrice::where('product_id', $id)->count();
+        $origin = Product::where('id', $id)->first()->origin_price;
+        $records = ProductPrice::where('product_id', $id)->skip($count - 336)->limit(336)->get();
+        $prices = [];
+        $origins = [];
+        $labels = [];
+        for ($i = 0; $i < count($records); $i += 3) {
+            array_push($prices, $records[$i]->price);
+            array_push($origins, $origin);
+            array_push($labels, $i + 1);
+        }
+        return [
+            "prices" => $prices,
+            "origins" => $origins,
+            "labels" => $labels,
+        ];
     }
 }

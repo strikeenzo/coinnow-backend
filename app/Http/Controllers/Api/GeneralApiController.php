@@ -150,13 +150,7 @@ function predict($marketplace)
 function afterProcessing($predicted_res)
 {
     $min_offset = -500;
-    $max_offset = 100;
-
-    
-    $plus_random = rand(-10, 3);
-    if ($plus_random > 0) {
-        $min_offset = 0;
-    }
+    $max_offset = 500;
 
     $result = $predicted_res[1];
     $quantity_sum = $predicted_res[2];
@@ -184,6 +178,15 @@ function afterProcessing($predicted_res)
     // }
 
     $offset = getOffset($result);
+
+    if ($offset > $min_offset && $offset < $max_offset) {
+        return $offset;
+    }
+
+    $plus_random = rand(-5, 5);
+    // if ($plus_random > 0) {
+    //     $min_offset = 0;
+    // }
     $offset_index = 0;
     $sorted_index = 0;
     $first = 0;
@@ -199,7 +202,7 @@ function afterProcessing($predicted_res)
             if (rand(0, 100) < rand(30, 80)) {
                 continue;
             }
-            if ($result[$offset_index]["origin_price"] > $result[$offset_index]["price"] * rand(30, 35) / 20) {
+            if ($result[$offset_index]["origin_price"] > $result[$offset_index]["price"] * rand(25, 28) / 20) {
                 $third += 1;
                 if (rand(0, $third) < 7) {
                     continue;

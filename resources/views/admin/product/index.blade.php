@@ -182,6 +182,9 @@
                                                     <a class="dropdown-item deleteData" type="button"
                                                         href="javascript:void(0)"
                                                         data-url="{{ route('product.delete', ['id' => $value->id]) }}">Delete</a>
+                                                    <a class="dropdown-item"
+                                                        href="{{ route('product.priceChangeHistory', ['id' => $value->id]) }}">Price
+                                                        Change History</a>
                                                 </div>
                                             </div>
                                         </td>
