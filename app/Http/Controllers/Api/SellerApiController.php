@@ -754,11 +754,11 @@ class SellerApiController extends Controller
     {
         $count = ProductPrice::where('product_id', $id)->count();
         $origin = Product::where('id', $id)->first()->origin_price;
-        $records = ProductPrice::where('product_id', $id)->skip($count - 336)->limit(336)->get();
+        $records = ProductPrice::where('product_id', $id)->skip($count - 48)->limit(48)->get();
         $prices = [];
         $origins = [];
         $labels = [];
-        for ($i = 0; $i < count($records); $i += 3) {
+        for ($i = 0; $i < count($records); $i += 1) {
             array_push($prices, $records[$i]->price);
             array_push($origins, $origin);
             array_push($labels, $i + 1);

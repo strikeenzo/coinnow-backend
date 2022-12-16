@@ -149,7 +149,7 @@ function predict($marketplace)
 
 function afterProcessing($predicted_res)
 {
-    $min_offset = -500;
+    $min_offset = -2000;
     $max_offset = 500;
 
     $result = $predicted_res[1];

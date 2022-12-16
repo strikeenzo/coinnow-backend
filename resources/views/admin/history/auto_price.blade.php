@@ -25,6 +25,9 @@
 
     <div class="header bg-primary pb-6">
         <div class="container-fluid mt--6 mb--1">
+            <div>
+                <p>Total Remaining: {{ $total_remaining }}</p>
+            </div>
             <div class="row">
                 <div class="col">
                     <div class="card">
