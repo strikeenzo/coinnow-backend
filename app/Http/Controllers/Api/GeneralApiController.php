@@ -121,7 +121,7 @@ function getTendency($origin_price, $price, $min = 0.2, $max = 0.3)
 
 function getTendencyValue($price, $origin_price)
 {
-    $off_change = 0.2;
+    $off_change = 0.25;
     $tendency = -tanh(($price - $origin_price) / 10 / ($origin_price * $off_change) * 180 / 6.28);
 
     if ($tendency < -0.8) {
@@ -136,17 +136,18 @@ function getTendencyValue($price, $origin_price)
 function getNewTendency($tendency_value)
 {
     if ($tendency_value < 0) {
-        $k = rand(-10, (int) ($tendency_value + 1) * 10 - 1);
+        $k = rand(-10, (int) (($tendency_value + 1) * 10 - 1));
         while ($k == 0) {
-            $k = rand(-10, (int) ($tendency_value + 1) * 10 - 1);
+            $k = rand(-10, (int) (($tendency_value + 1) * 10 - 1));
         }
     }
     if ($tendency_value >= 0) {
-        $k = rand((int) ($tendency_value - 1) * 10 + 1, 10);
+        $k = rand((int) (($tendency_value - 1) * 10 + 1), 10);
         while ($k == 0) {
-            $k = rand((int) ($tendency_value - 1) * 10 + 1, 10);
+            $k = rand((int) (($tendency_value - 1) * 10 + 1), 10);
         }
     }
+    dd($k);
     return $k / abs($k);
 }
 
@@ -182,7 +183,7 @@ function predict($marketplace)
 
 function newAfterPrediction($predicted_res)
 {
-    $min_offset = -1500;
+    $min_offset = -500;
     $max_offset = 500;
     $result = $predicted_res[1];
     $offset = getOffset($result);
@@ -236,7 +237,7 @@ function newAfterPrediction($predicted_res)
 
 function afterProcessing($predicted_res)
 {
-    $min_offset = -2000;
+    $min_offset = -500;
     $max_offset = 500;
 
     $result = $predicted_res[1];
@@ -271,9 +272,9 @@ function afterProcessing($predicted_res)
     }
 
     $plus_random = rand(-5, 5);
-    // if ($plus_random > 0) {
-    //     $min_offset = 0;
-    // }
+    if ($plus_random > 0) {
+        $min_offset = 0;
+    }
     $offset_index = 0;
     $sorted_index = 0;
     $first = 0;
