@@ -492,7 +492,26 @@ class GeneralApiController extends Controller
 
         //algorithm
 
-        $predicted_res = predict($records);
+        $min_offset = -500;
+        $max_offset = 500;
+        $cur_offset = 10000;
+        $index = 0;
+        $max_index = 100;
+        $temp = 10000;
+        $temp_prediction = [0, [], 0];
+
+        while (($cur_offset < $min_offset || $cur_offset > $max_offset) && ($index < $max_index)) {
+            $predicted_res = predict($records);
+            $cur_offset = $predicted_res[0];
+
+            if (abs($temp) > abs($cur_offset)) {
+                $temp = $cur_offset;
+                $temp_prediction[0] = $predicted_res[0];
+                $temp_prediction[2] = $predicted_res[2];
+            }
+            $index += 1;
+        }
+        
         $final_res = newAfterPrediction($predicted_res);
         // return [getOffset($final_res), $final_res];
 
