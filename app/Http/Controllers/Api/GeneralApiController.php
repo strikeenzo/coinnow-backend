@@ -147,7 +147,6 @@ function getNewTendency($tendency_value)
             $k = rand((int) (($tendency_value - 1) * 10 + 1), 10);
         }
     }
-    dd($k);
     return $k / abs($k);
 }
 
