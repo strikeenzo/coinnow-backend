@@ -136,17 +136,18 @@ function getTendencyValue($price, $origin_price)
 function getNewTendency($tendency_value)
 {
     if ($tendency_value < 0) {
-        $k = rand(-10, (int) ($tendency_value + 1) * 10 - 1);
+        $k = rand(-10, (int) (($tendency_value + 1) * 10 - 1));
         while ($k == 0) {
-            $k = rand(-10, (int) ($tendency_value + 1) * 10 - 1);
+            $k = rand(-10, (int) (($tendency_value + 1) * 10 - 1));
         }
     }
     if ($tendency_value >= 0) {
-        $k = rand((int) ($tendency_value - 1) * 10 + 1, 10);
+        $k = rand((int) (($tendency_value - 1) * 10 + 1), 10);
         while ($k == 0) {
-            $k = rand((int) ($tendency_value - 1) * 10 + 1, 10);
+            $k = rand((int) (($tendency_value - 1) * 10 + 1), 10);
         }
     }
+    dd($k);
     return $k / abs($k);
 }
 
@@ -271,9 +272,9 @@ function afterProcessing($predicted_res)
     }
 
     $plus_random = rand(-5, 5);
-    // if ($plus_random > 0) {
-    //     $min_offset = 0;
-    // }
+    if ($plus_random > 0) {
+        $min_offset = 0;
+    }
     $offset_index = 0;
     $sorted_index = 0;
     $first = 0;
