@@ -219,9 +219,7 @@ function newAfterPrediction($predicted_res)
                 $result[$offset_index]['next_total_amount'] = $result[$offset_index]['total'] - $result[$offset_index]["total_change_amount"];
                 $offset += $result[$offset_index]["total_change_amount"] * 2;
             }
-        }
-
-        if ($offset > $max_offset) {
+        } else if ($offset > $max_offset) {
             if ($result[$offset_index]['next_price'] < $result[$offset_index]['price']) {
                 $break_point = 0;
                 $result[$offset_index]['next_price'] = $result[$offset_index]['price'] + $result[$offset_index]['change_amount'];
