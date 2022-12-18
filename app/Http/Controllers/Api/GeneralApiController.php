@@ -221,7 +221,7 @@ function newAfterPrediction($predicted_res)
             }
         }
 
-        if ($offset > $max_offset) {
+        else if ($offset > $max_offset) {
             if ($result[$offset_index]['next_price'] < $result[$offset_index]['price']) {
                 $break_point = 0;
                 $result[$offset_index]['next_price'] = $result[$offset_index]['price'] + $result[$offset_index]['change_amount'];
