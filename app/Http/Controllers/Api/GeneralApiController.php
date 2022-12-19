@@ -143,7 +143,7 @@ function getNewTendency($tendency_value)
 
     if ($tendency_value < 0) {
         $p = (int) (($new_value + 1) * 10 - 1);
-        $start = 10;
+        $start = -10;
         if ($tendency_value > -0.5) {
             $start = 10 * $tendency_value;
         }
@@ -613,7 +613,7 @@ class GeneralApiController extends Controller
         broadcast(
             new MessageSent('price update', ['id' => 'all'])
         )->toOthers();
-        return [getOriginSum($final_res), getNextSum($final_res), getOffset($final_res), $predicted_res[2], count($products_all), count($total_res), count($final_res), $total_res, $final_res];
+        return [getOriginSum($final_res), getNextSum($final_res), getOffset($final_res), $predicted_res[0], count($products_all), count($total_res), count($final_res), $total_res, $final_res];
     }
 
     public function autoPriceChange()
