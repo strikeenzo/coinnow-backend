@@ -121,7 +121,7 @@ function getTendency($origin_price, $price, $min = 0.2, $max = 0.3)
 
 function getTendencyValue($price, $origin_price)
 {
-    $off_change = 0.25;
+    $off_change = 0.7;
     $tendency = -tanh(($price - $origin_price) / 10 / ($origin_price * $off_change) * 180 / 6.28);
 
     if ($tendency < -0.8) {
@@ -202,10 +202,8 @@ function predict($marketplace)
     return [$total_res, $marketplace, $quantity_sum];
 }
 
-function newAfterPrediction($predicted_res)
+function newAfterPrediction($predicted_res, $min_offset, $max_offset)
 {
-    $min_offset = -100;
-    $max_offset = 500;
     $result = $predicted_res[1];
     $offset = getOffset($result);
     $offset_index = -1;
@@ -512,10 +510,28 @@ class GeneralApiController extends Controller
         }
         // return $records;
 
+        //preprocessing
+
+        $total_collected = AutoPriceChangeHistory::sum('collected');
+        $total_distributed = AutoPriceChangeHistory::sum('distributed');
+
+        $total_remaining = $total_collected - $total_distributed;
+
+        if ($total_remaining < -1000) {
+            $min_offset = -100;
+            $max_offset = 500;
+        } else if ($total_remaining < 1000) {
+            $min_offset = -400;
+            $max_offset = 500;
+        } else {
+            $max_offset = -600;
+            $max_offset = 200;
+        }
+
+
+
         //algorithm
 
-        $min_offset = -100;
-        $max_offset = 500;
         $cur_offset = 10000;
         $index = 0;
         $max_index = 100;
@@ -528,7 +544,7 @@ class GeneralApiController extends Controller
 
         // dd($predicted_res[0]);
         
-        $final_res = newAfterPrediction($predicted_res);
+        $final_res = newAfterPrediction($predicted_res, $min_offset, $max_offset);
         // return [getOffset($final_res), $final_res];
 
         //calcualted unrelated products price
