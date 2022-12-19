@@ -182,8 +182,8 @@ function predict($marketplace)
 
 function newAfterPrediction($predicted_res)
 {
-    $min_offset = -500;
-    $max_offset = 500;
+    $min_offset = -100;
+    $max_offset = 400;
     $result = $predicted_res[1];
     $offset = getOffset($result);
     $offset_index = -1;
@@ -234,8 +234,8 @@ function newAfterPrediction($predicted_res)
 
 function afterProcessing($predicted_res)
 {
-    $min_offset = -500;
-    $max_offset = 500;
+    $min_offset = -100;
+    $max_offset = 400;
 
     $result = $predicted_res[1];
     $quantity_sum = $predicted_res[2];
@@ -490,7 +490,26 @@ class GeneralApiController extends Controller
 
         //algorithm
 
-        $predicted_res = predict($records);
+        $min_offset = -100;
+        $max_offset = 400;
+        $cur_offset = 10000;
+        $index = 0;
+        $max_index = 100;
+        $temp = 10000;
+        $temp_prediction = [0, [], 0];
+
+        while (($cur_offset < $min_offset || $cur_offset > $max_offset) && ($index < $max_index)) {
+            $predicted_res = predict($records);
+            $cur_offset = $predicted_res[0];
+
+            if (abs($temp) > abs($cur_offset)) {
+                $temp = $cur_offset;
+                $temp_prediction[0] = $predicted_res[0];
+                $temp_prediction[2] = $predicted_res[2];
+            }
+            $index += 1;
+        }
+
         $final_res = newAfterPrediction($predicted_res);
         // return [getOffset($final_res), $final_res];
 
@@ -574,7 +593,7 @@ class GeneralApiController extends Controller
         )->toOthers();
 
         broadcast(
-            new MessageSent('price update', ['id' => 'all'])
+            new MessageSent('price update all', ['records' => $records])
         )->toOthers();
         return [getOriginSum($final_res), getNextSum($final_res), getOffset($final_res), $predicted_res[2], count($products_all), count($total_res), count($final_res), $total_res, $final_res];
     }
@@ -944,11 +963,7 @@ class GeneralApiController extends Controller
                         ->orWhereNull('seller_id');
                 })
                 ->take(20)
-                ->get()
-                ->map(function ($query) {
-                    $query->setRelation('productPrice', $query->productPrice()->take(6));
-                    return $query;
-                });
+                ->get();
             return ['status' => 1, 'data' => $data];
         } catch (\Exception$e) {
             return ['status' => 0, 'message' => 'Error'];
