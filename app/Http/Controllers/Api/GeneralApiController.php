@@ -135,16 +135,32 @@ function getTendencyValue($price, $origin_price)
 
 function getNewTendency($tendency_value)
 {
+    if (abs($tendency_value) < 0.8 ) {
+        $new_value = $tendency_value + rand(-5, 5) / 10;
+    } else {
+        $new_value = $tendency_value;
+    }
+
     if ($tendency_value < 0) {
-        $k = rand(-10, (int) (($tendency_value + 1) * 10 - 1));
+        $p = (int) (($new_value + 1) * 10 - 1);
+        $start = 10;
+        if ($tendency_value > -0.5) {
+            $start = 10 * $tendency_value;
+        }
+        $k = rand($start, $p);
         while ($k == 0) {
-            $k = rand(-10, (int) (($tendency_value + 1) * 10 - 1));
+            $k = rand($start, $p);
         }
     }
     if ($tendency_value >= 0) {
-        $k = rand((int) (($tendency_value - 1) * 10 + 1), 10);
+        $p = (int) (($new_value - 1) * 10 + 1);
+        $end = 10;
+        if ($tendency_value < 0.5) {
+            $end = 10 * $tendency_value;
+        }
+        $k = rand($p, $end);
         while ($k == 0) {
-            $k = rand((int) (($tendency_value - 1) * 10 + 1), 10);
+            $k = rand($p, $end);
         }
     }
     return $k / abs($k);
@@ -159,7 +175,13 @@ function predict($marketplace)
         // $next_total_amount = generateRandomAmount($marketplace[$i]["total"], $marketplace[$i]["total_change_amount"], $total_res);
         // $next_change_amount = getTendency($marketplace[$i]["origin_price"], $marketplace[$i]["price"]) * $marketplace[$i]["total_change_amount"];
 
-        $next_change_amount = getNewTendency($marketplace[$i]["tendency"]) * $marketplace[$i]["total_change_amount"];
+        $kkk = getNewTendency($marketplace[$i]["tendency"]);
+
+        if (abs($marketplace[$i]["tendency"]) != 1 && rand(0, 100) > 80) {
+            $kkk = -$kkk;
+        }
+
+        $next_change_amount = $kkk * $marketplace[$i]["total_change_amount"];
 
         // if ($marketplace[$i]["origin_price"] > $marketplace[$i]["price"] * rand(30, 35) / 20) {
         //     $next_change_amount = $marketplace[$i]["total_change_amount"];
@@ -497,20 +519,14 @@ class GeneralApiController extends Controller
         $cur_offset = 10000;
         $index = 0;
         $max_index = 100;
-        $temp = 10000;
-        $temp_prediction = [0, [], 0];
 
         while (($cur_offset < $min_offset || $cur_offset > $max_offset) && ($index < $max_index)) {
             $predicted_res = predict($records);
             $cur_offset = $predicted_res[0];
-
-            if (abs($temp) > abs($cur_offset)) {
-                $temp = $cur_offset;
-                $temp_prediction[0] = $predicted_res[0];
-                $temp_prediction[2] = $predicted_res[2];
-            }
             $index += 1;
         }
+
+        // dd($predicted_res[0]);
         
         $final_res = newAfterPrediction($predicted_res);
         // return [getOffset($final_res), $final_res];
