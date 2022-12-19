@@ -204,7 +204,7 @@ function predict($marketplace)
 
 function newAfterPrediction($predicted_res)
 {
-    $min_offset = -500;
+    $min_offset = -100;
     $max_offset = 500;
     $result = $predicted_res[1];
     $offset = getOffset($result);
@@ -258,7 +258,7 @@ function newAfterPrediction($predicted_res)
 
 function afterProcessing($predicted_res)
 {
-    $min_offset = -500;
+    $min_offset = -100;
     $max_offset = 500;
 
     $result = $predicted_res[1];
@@ -514,7 +514,7 @@ class GeneralApiController extends Controller
 
         //algorithm
 
-        $min_offset = -500;
+        $min_offset = -100;
         $max_offset = 500;
         $cur_offset = 10000;
         $index = 0;
