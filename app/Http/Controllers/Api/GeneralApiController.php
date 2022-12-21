@@ -421,6 +421,7 @@ class GeneralApiController extends Controller
 
     public function autoPriceChangeNew()
     {
+
         $start = CronJobTimer::first();
         if (!$start) {
             CronJobTimer::create([
@@ -517,14 +518,14 @@ class GeneralApiController extends Controller
         $min_offset = -500;
         $max_offset = 500;
 
-        if ($total_remaining < -1000) {
+        if ($total_remaining < -2000) {
             $min_offset = 0;
-            $max_offset = 500;
-        } else if ($total_remaining < 1000) {
-            $min_offset = -400;
-            $max_offset = 500;
+            $max_offset = 1000;
+        } else if ($total_remaining < 2000) {
+            $min_offset = -500;
+            $max_offset = 800;
         } else {
-            $min_offset = -600;
+            $min_offset = -1000;
             $max_offset = 0;
         }
 
