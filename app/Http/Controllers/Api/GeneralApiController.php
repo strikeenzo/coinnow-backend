@@ -121,12 +121,12 @@ function getTendency($origin_price, $price, $min = 0.2, $max = 0.3)
 
 function getTendencyValue($price, $origin_price)
 {
-    $off_change = 0.7;
+    $off_change = 0.9;
     $tendency = -tanh(($price - $origin_price) / 10 / ($origin_price * $off_change) * 180 / 6.28);
 
-    if ($tendency < -0.8) {
+    if ($tendency < -0.95) {
         return -1;
-    } else if ($tendency > 0.8) {
+    } else if ($tendency > 0.95) {
         return 1;
     }
 
@@ -135,7 +135,7 @@ function getTendencyValue($price, $origin_price)
 
 function getNewTendency($tendency_value)
 {
-    if (abs($tendency_value) < 0.8 ) {
+    if (abs($tendency_value) < 0.8) {
         $new_value = $tendency_value + rand(-5, 5) / 10;
     } else {
         $new_value = $tendency_value;
@@ -228,7 +228,7 @@ function newAfterPrediction($predicted_res, $min_offset, $max_offset)
             $break_point = 0;
         }
 
-        if (abs($result[$offset_index]["tendency"]) == 1 || abs($result[$offset_index]["ahead"]) > 7) {
+        if (abs($result[$offset_index]["tendency"]) == 1) {
             continue;
         }
 
@@ -239,9 +239,7 @@ function newAfterPrediction($predicted_res, $min_offset, $max_offset)
                 $result[$offset_index]['next_total_amount'] = $result[$offset_index]['total'] - $result[$offset_index]["total_change_amount"];
                 $offset += $result[$offset_index]["total_change_amount"] * 2;
             }
-        }
-
-        else if ($offset > $max_offset) {
+        } else if ($offset > $max_offset) {
             if ($result[$offset_index]['next_price'] < $result[$offset_index]['price']) {
                 $break_point = 0;
                 $result[$offset_index]['next_price'] = $result[$offset_index]['price'] + $result[$offset_index]['change_amount'];
@@ -423,6 +421,7 @@ class GeneralApiController extends Controller
 
     public function autoPriceChangeNew()
     {
+
         $start = CronJobTimer::first();
         if (!$start) {
             CronJobTimer::create([
@@ -435,15 +434,14 @@ class GeneralApiController extends Controller
         //auto_stock
         $records = Product::where('image_profit', null)->where(function ($query) {
             $query->where('points', '<', 1)->orWhere('points', null);
-        })->select('change_amount', 'id', 'price', 'min_price', 'max_price', 'range_quantity', 'quantity', 'auto_stock_amount', 'image_profit')->get();
+        })->select('change_amount', 'id', 'price', 'min_price', 'max_price', 'range_quantity', 'quantity', 'auto_stock_amount', 'image_profit', 'origin_price')->get();
         for ($i = 0; $i < count($records); $i++) {
             if ($records[$i]['points'] > 0) {
                 $sum = Special::where('product_id', $records[$i]->id)->sum('quantity');
             } else {
                 $sum = ProductSellerRelation::where([['product_id', $records[$i]->id]])->sum('quantity');
             }
-
-            if ($records[$i]['quantity'] == 0 && $sum < ($records[$i]['auto_stock_amount'] ? $records[$i]['auto_stock_amount'] : 0)) {
+            if ($records[$i]['quantity'] == 0 && $records[$i]['price'] / $records[$i]['origin_price'] >= 0.9 && $sum < ($records[$i]['auto_stock_amount'] ? $records[$i]['auto_stock_amount'] : 0)) {
                 $records[$i]['quantity'] = ($records[$i]['auto_stock_amount'] ? $records[$i]['auto_stock_amount'] : 0) - $sum;
                 $records[$i]->save();
             }
@@ -516,19 +514,19 @@ class GeneralApiController extends Controller
         $total_distributed = AutoPriceChangeHistory::sum('distributed');
 
         $total_remaining = $total_collected - $total_distributed;
+        $min_offset = -500;
+        $max_offset = 500;
 
-        if ($total_remaining < -1000) {
-            $min_offset = -100;
-            $max_offset = 500;
-        } else if ($total_remaining < 1000) {
-            $min_offset = -400;
-            $max_offset = 500;
+        if ($total_remaining < -2000) {
+            $min_offset = 0;
+            $max_offset = 2000;
+        } else if ($total_remaining < 2000) {
+            $min_offset = -500;
+            $max_offset = 800;
         } else {
-            $max_offset = -600;
-            $max_offset = 200;
+            $min_offset = -2000;
+            $max_offset = 0;
         }
-
-
 
         //algorithm
 
@@ -543,7 +541,7 @@ class GeneralApiController extends Controller
         }
 
         // dd($predicted_res[0]);
-        
+
         $final_res = newAfterPrediction($predicted_res, $min_offset, $max_offset);
         // return [getOffset($final_res), $final_res];
 
@@ -627,7 +625,7 @@ class GeneralApiController extends Controller
         )->toOthers();
 
         broadcast(
-            new MessageSent('price update', ['id' => 'all'])
+            new MessageSent('price update all', ['records' => $records])
         )->toOthers();
         return [getOriginSum($final_res), getNextSum($final_res), getOffset($final_res), $predicted_res[0], count($products_all), count($total_res), count($final_res), $total_res, $final_res];
     }
@@ -997,11 +995,7 @@ class GeneralApiController extends Controller
                         ->orWhereNull('seller_id');
                 })
                 ->take(20)
-                ->get()
-                ->map(function ($query) {
-                    $query->setRelation('productPrice', $query->productPrice()->take(6));
-                    return $query;
-                });
+                ->get();
             return ['status' => 1, 'data' => $data];
         } catch (\Exception$e) {
             return ['status' => 0, 'message' => 'Error'];

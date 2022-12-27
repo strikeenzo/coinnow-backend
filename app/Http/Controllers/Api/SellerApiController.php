@@ -758,15 +758,18 @@ class SellerApiController extends Controller
         $prices = [];
         $origins = [];
         $labels = [];
+        $created_at = [];
         for ($i = 0; $i < count($records); $i += 1) {
             array_push($prices, $records[$i]->price);
             array_push($origins, $origin);
+            array_push($created_at, $records[$i]->created_at);
             array_push($labels, $i + 1);
         }
         return [
             "prices" => $prices,
             "origins" => $origins,
             "labels" => $labels,
+            "created_at" => $created_at,
         ];
     }
 }
