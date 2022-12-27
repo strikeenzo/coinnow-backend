@@ -121,12 +121,12 @@ function getTendency($origin_price, $price, $min = 0.2, $max = 0.3)
 
 function getTendencyValue($price, $origin_price)
 {
-    $off_change = 0.7;
+    $off_change = 0.9;
     $tendency = -tanh(($price - $origin_price) / 10 / ($origin_price * $off_change) * 180 / 6.28);
 
-    if ($tendency < -0.8) {
+    if ($tendency < -0.95) {
         return -1;
-    } else if ($tendency > 0.8) {
+    } else if ($tendency > 0.95) {
         return 1;
     }
 
@@ -228,7 +228,7 @@ function newAfterPrediction($predicted_res, $min_offset, $max_offset)
             $break_point = 0;
         }
 
-        if (abs($result[$offset_index]["tendency"]) == 1 || abs($result[$offset_index]["ahead"]) > 7) {
+        if (abs($result[$offset_index]["tendency"]) == 1) {
             continue;
         }
 
@@ -434,15 +434,14 @@ class GeneralApiController extends Controller
         //auto_stock
         $records = Product::where('image_profit', null)->where(function ($query) {
             $query->where('points', '<', 1)->orWhere('points', null);
-        })->select('change_amount', 'id', 'price', 'min_price', 'max_price', 'range_quantity', 'quantity', 'auto_stock_amount', 'image_profit')->get();
+        })->select('change_amount', 'id', 'price', 'min_price', 'max_price', 'range_quantity', 'quantity', 'auto_stock_amount', 'image_profit', 'origin_price')->get();
         for ($i = 0; $i < count($records); $i++) {
             if ($records[$i]['points'] > 0) {
                 $sum = Special::where('product_id', $records[$i]->id)->sum('quantity');
             } else {
                 $sum = ProductSellerRelation::where([['product_id', $records[$i]->id]])->sum('quantity');
             }
-
-            if ($records[$i]['quantity'] == 0 && $sum < ($records[$i]['auto_stock_amount'] ? $records[$i]['auto_stock_amount'] : 0)) {
+            if ($records[$i]['quantity'] == 0 && $records[$i]['price'] / $records[$i]['origin_price'] >= 0.9 && $sum < ($records[$i]['auto_stock_amount'] ? $records[$i]['auto_stock_amount'] : 0)) {
                 $records[$i]['quantity'] = ($records[$i]['auto_stock_amount'] ? $records[$i]['auto_stock_amount'] : 0) - $sum;
                 $records[$i]->save();
             }
@@ -520,12 +519,12 @@ class GeneralApiController extends Controller
 
         if ($total_remaining < -2000) {
             $min_offset = 0;
-            $max_offset = 1000;
+            $max_offset = 2000;
         } else if ($total_remaining < 2000) {
             $min_offset = -500;
             $max_offset = 800;
         } else {
-            $min_offset = -1000;
+            $min_offset = -2000;
             $max_offset = 0;
         }
 
