@@ -142,7 +142,7 @@ function getTendencyfromAhead($ahead) {
 
 function getTendencyfromQuantity($quantity, $store_quantity, $auto_stock_amount) {
     if ($quantity < $store_quantity) {
-        return 0.6;
+        return 0.8;
     }
     if ($store_quantity == 0 && $quantity < $auto_stock_amount / 2) {
         return 1;
