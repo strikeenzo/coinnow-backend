@@ -40,32 +40,32 @@ use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
 
-function generateOffset($change_amount_min, $change_amount_max, $total_res)
-{
-    if ($total_res > 0) {
-        $change_amount_min += $total_res;
-        if ($change_amount_min > 0) {
-            $change_amount_min = -100;
-        }
-    } else if ($total_res < 0) {
-        $change_amount_max += $total_res;
-        if ($change_amount_max < 0) {
-            $change_amount_max = 100;
-        }
-    }
+// function generateOffset($change_amount_min, $change_amount_max, $total_res)
+// {
+//     if ($total_res > 0) {
+//         $change_amount_min += $total_res;
+//         if ($change_amount_min > 0) {
+//             $change_amount_min = -100;
+//         }
+//     } else if ($total_res < 0) {
+//         $change_amount_max += $total_res;
+//         if ($change_amount_max < 0) {
+//             $change_amount_max = 100;
+//         }
+//     }
 
-    return [$change_amount_min, $change_amount_max];
-}
+//     return [$change_amount_min, $change_amount_max];
+// }
 
-function generateRandomAmount($total, $change_amount, $total_res)
-{
-    $generated_change_amount = generateOffset(-$change_amount, $change_amount, $total_res);
-    $k = rand($generated_change_amount[0], $generated_change_amount[1]);
-    while ($k == 0) {
-        $k = rand($generated_change_amount[0], $generated_change_amount[1]);
-    }
-    return $total + $k;
-}
+// function generateRandomAmount($total, $change_amount, $total_res)
+// {
+//     $generated_change_amount = generateOffset(-$change_amount, $change_amount, $total_res);
+//     $k = rand($generated_change_amount[0], $generated_change_amount[1]);
+//     while ($k == 0) {
+//         $k = rand($generated_change_amount[0], $generated_change_amount[1]);
+//     }
+//     return $total + $k;
+// }
 
 function getOffset($result)
 {
@@ -119,9 +119,9 @@ function getTendency($origin_price, $price, $min = 0.2, $max = 0.3)
     }
 }
 
-function getTendencyValue($price, $origin_price)
+function getTendencyFromPrice($price, $origin_price)
 {
-    $off_change = 0.9;
+    $off_change = 1.3;
     $tendency = -tanh(($price - $origin_price) / 10 / ($origin_price * $off_change) * 180 / 6.28);
 
     if ($tendency < -0.95) {
@@ -133,38 +133,74 @@ function getTendencyValue($price, $origin_price)
     return $tendency;
 }
 
-function getNewTendency($tendency_value)
-{
-    if (abs($tendency_value) < 0.8) {
-        $new_value = $tendency_value + rand(-5, 5) / 10;
-    } else {
-        $new_value = $tendency_value;
+function getTendencyfromAhead($ahead) {
+    if (abs($ahead) < 10  && rand(0, 10) > 3) {
+        return 1;
     }
-
-    if ($tendency_value < 0) {
-        $p = (int) (($new_value + 1) * 10 - 1);
-        $start = -10;
-        if ($tendency_value > -0.5) {
-            $start = 10 * $tendency_value;
-        }
-        $k = rand($start, $p);
-        while ($k == 0) {
-            $k = rand($start, $p);
-        }
-    }
-    if ($tendency_value >= 0) {
-        $p = (int) (($new_value - 1) * 10 + 1);
-        $end = 10;
-        if ($tendency_value < 0.5) {
-            $end = 10 * $tendency_value;
-        }
-        $k = rand($p, $end);
-        while ($k == 0) {
-            $k = rand($p, $end);
-        }
-    }
-    return $k / abs($k);
+    return 0.3;
 }
+
+function getTendencyfromQuantity($quantity, $store_quantity, $auto_stock_amount) {
+    if ($quantity < $store_quantity) {
+        return 1;
+    }
+    if ($store_quantity == 0 && $quantity < $auto_stock_amount / 2) {
+        return 1;
+    }
+    if ($quantity < 3) {
+        return 0.3;
+    }
+    if ($quantity > 5 and $quantity > $auto_stock_amount * 3 / 4) {
+        if (rand(0, 10) > 7) {
+            return 2;
+        }
+        return -2;
+    }
+    return 0;
+}
+
+// function getNewTendency($tendency_value)
+// {
+//     if (abs($tendency_value) < 0.8) {
+//         $new_value = $tendency_value + rand(-5, 5) / 10;
+//     } else {
+//         $new_value = $tendency_value;
+//     }
+
+//     if ($tendency_value < 0) {
+//         $p = (int) (($new_value + 1) * 10 - 1);
+//         $start = -10;
+//         if ($tendency_value > -0.5) {
+//             $start = 10 * $tendency_value;
+//         }
+//         $k = rand($start, $p);
+//         while ($k == 0) {
+//             $k = rand($start, $p);
+//         }
+//     }
+//     if ($tendency_value >= 0) {
+//         $p = (int) (($new_value - 1) * 10 + 1);
+//         $end = 10;
+//         if ($tendency_value < 0.5) {
+//             $end = 10 * $tendency_value;
+//         }
+//         $k = rand($p, $end);
+//         while ($k == 0) {
+//             $k = rand($p, $end);
+//         }
+//     }
+//     return $k / abs($k);
+// }
+
+// function getNewTendencywithQuantity($store_quantity, $auto_stock_amount, $origin_price, $price, $current_quantity) {
+//     if ($store_quantity > $auto_stock_amount / 2) {
+//         return 1;
+//     } else if ($store_quantity == 0 && $current_quantity < $auto_stock_amount / 2) {
+//         return 1;
+//     } else if ($current_quantity > $auto_stock_amount / 2) {
+//         return -1;
+//     }
+// }
 
 function predict($marketplace)
 {
@@ -175,10 +211,18 @@ function predict($marketplace)
         // $next_total_amount = generateRandomAmount($marketplace[$i]["total"], $marketplace[$i]["total_change_amount"], $total_res);
         // $next_change_amount = getTendency($marketplace[$i]["origin_price"], $marketplace[$i]["price"]) * $marketplace[$i]["total_change_amount"];
 
-        $kkk = getNewTendency($marketplace[$i]["tendency"]);
+        // $kkk = getNewTendency($marketplace[$i]["tendency"]);
 
-        if (abs($marketplace[$i]["tendency"]) != 1 && rand(0, 100) > 80) {
-            $kkk = -$kkk;
+        // $total_tendency = $marketplace[$i]["price_tendency"] + $marketplace[$i]["quantity_tendency"] + $marketplace[$i]["ahead_tendency"];
+
+        // if (abs($marketplace[$i]["tendency"]) != 1 && rand(0, 100) > 80) {
+        //     $kkk = -$kkk;
+        // }
+
+        if ($marketplace[$i]["total_tendency"] > 0.5) {
+            $kkk = 1;
+        } else {
+            $kkk = -1;
         }
 
         $next_change_amount = $kkk * $marketplace[$i]["total_change_amount"];
@@ -202,7 +246,7 @@ function predict($marketplace)
     return [$total_res, $marketplace, $quantity_sum];
 }
 
-function newAfterPrediction($predicted_res, $min_offset, $max_offset)
+function newAfterPrediction($predicted_res, $min_offset, $max_offset, $avg_total_tendency)
 {
     $result = $predicted_res[1];
     $offset = getOffset($result);
@@ -228,7 +272,9 @@ function newAfterPrediction($predicted_res, $min_offset, $max_offset)
             $break_point = 0;
         }
 
-        if (abs($result[$offset_index]["tendency"]) == 1) {
+        // dd($avg_total_tendency * 3 / 4);
+        // if (abs($result[$offset_index]["tendency"]) == 1) {
+        if (abs($result[$offset_index]["total_tendency"]) > $avg_total_tendency * 4 / 3) {
             continue;
         }
 
@@ -465,6 +511,7 @@ class GeneralApiController extends Controller
 
         $records = [];
         $product_ids_arr = [];
+        $avg_total_tendency = 0;
 
         for ($i = 0; $i < count($product_ids); $i++) {
             array_push($product_ids_arr, $product_ids[$i]->product_id);
@@ -476,7 +523,8 @@ class GeneralApiController extends Controller
                 ->where("product_id", $product_ids[$i]->product_id)
                 ->with("product")
                 ->get();
-            $sum = 0;
+
+                $sum = 0;
             $quantity = 0;
             for ($j = 0; $j < count($products); $j++) {
                 if ($products[0]->product) {
@@ -485,9 +533,8 @@ class GeneralApiController extends Controller
                 $sum += $products[$j]->origin_price * $products[$j]->quantity;
                 $quantity += $products[$j]->quantity;
             }
-
             if ($products[0]->product) {
-                array_push($records, [
+                $temp = [
                     "product_id" => $product_ids[$i],
                     "origin_total" => $sum,
                     "quantity" => $quantity,
@@ -499,13 +546,24 @@ class GeneralApiController extends Controller
                     "min_price" => $products[0]->product->min_price,
                     "max_price" => $products[0]->product->max_price,
                     "ahead" => (int) (($products[0]->product->price - $products[0]->product->origin_price) / $products[0]->product->change_amount),
-                    "tendency" => getTendencyValue($products[0]->product->price, $products[0]->product->origin_price),
+                    "store_quantity" => $products[0]->product->quantity,
+                    "auto_stock_amount" => $products[0]->product->auto_stock_amount,
+                    "price_tendency" => getTendencyFromPrice($products[0]->product->price, $products[0]->product->origin_price),
+                    "quantity_tendency" => getTendencyfromQuantity($quantity, $products[0]->product->quantity, $products[0]->product->auto_stock_amount),
+                    "ahead_tendency" => getTendencyfromAhead(($products[0]->product->price - $products[0]->product->origin_price) / $products[0]->product->change_amount),
                     "next_price" => 0,
                     "next_total_amount" => 0,
-                ]);
+                    "total_tendency" => 0,
+                ];
+                $temp["total_tendency"] = $temp["price_tendency"] + $temp["quantity_tendency"] + $temp["ahead_tendency"];
+                $avg_total_tendency += $temp["total_tendency"];
+                array_push($records, $temp);
             }
 
         }
+
+        $avg_total_tendency /= count($records);
+        // return [$avg_total_tendency, $records];
         // return $records;
 
         //preprocessing
@@ -516,6 +574,10 @@ class GeneralApiController extends Controller
         $total_remaining = $total_collected - $total_distributed;
         $min_offset = -500;
         $max_offset = 500;
+
+        // if ($total_remaining < -3000) {
+        //     return;
+        // }
 
         if ($total_remaining < -2000) {
             $min_offset = 0;
@@ -532,18 +594,26 @@ class GeneralApiController extends Controller
 
         $cur_offset = 10000;
         $index = 0;
-        $max_index = 100;
-
-        while (($cur_offset < $min_offset || $cur_offset > $max_offset) && ($index < $max_index)) {
+        $final_total = 10000;
+        // $max_index = 100;
+        while (($final_total < $min_offset || $final_total > $max_offset) && $index < 10) {
+            $index ++;
+        // while (($cur_offset < $min_offset || $cur_offset > $max_offset) && ($index < $max_index)) {
             $predicted_res = predict($records);
-            $cur_offset = $predicted_res[0];
-            $index += 1;
+            // $cur_offset = $predicted_res[0];
+            // $index += 1;
+            // }
+            
+            // dd($predicted_res[0]);
+            
+            $final_res = newAfterPrediction($predicted_res, $min_offset, $max_offset, $avg_total_tendency);
+            // return [getOffset($final_res), $final_res];
+            $final_total = getOffset($final_res);
         }
 
-        // dd($predicted_res[0]);
-
-        $final_res = newAfterPrediction($predicted_res, $min_offset, $max_offset);
-        // return [getOffset($final_res), $final_res];
+        if ($index == 10) {
+            return;
+        }
 
         //calcualted unrelated products price
         $total_res = [];
