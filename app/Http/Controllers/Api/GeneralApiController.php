@@ -225,6 +225,14 @@ function predict($marketplace)
             $kkk = -1;
         }
 
+        if ($marketplace[$i]["price_tendency"] == -1 ) {
+            $kkk = 1;
+        }
+
+        if ($marketplace[$i]["price_tendency"] == 1 ) {
+            $kkk = -1;
+        }
+
         $next_change_amount = $kkk * $marketplace[$i]["total_change_amount"];
 
         // if ($marketplace[$i]["origin_price"] > $marketplace[$i]["price"] * rand(30, 35) / 20) {
@@ -275,6 +283,10 @@ function newAfterPrediction($predicted_res, $min_offset, $max_offset, $avg_total
         // dd($avg_total_tendency * 3 / 4);
         // if (abs($result[$offset_index]["tendency"]) == 1) {
         if (abs($result[$offset_index]["total_tendency"]) > $avg_total_tendency * 4 / 3) {
+            continue;
+        }
+
+        if (abs($result[$offset_index]["price_tendency"]) == 1) {
             continue;
         }
 
