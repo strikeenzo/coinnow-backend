@@ -154,8 +154,8 @@ function getTendencyfromQuantity($quantity, $store_quantity, $auto_stock_amount)
         return 0.3;
     }
     if ($quantity > 5 and $quantity > $auto_stock_amount * 3 / 4) {
-        if (rand(0, 10) > 7) {
-            return 2;
+        if (rand(0, 10) > 5) {
+            return 1;
         }
         return -2;
     }
