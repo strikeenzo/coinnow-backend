@@ -121,6 +121,9 @@ function getTendency($origin_price, $price, $min = 0.2, $max = 0.3)
 
 function getTendencyFromPrice($price, $origin_price)
 {
+    if ($price < 0) {
+        return 1;
+    }
     $off_change = 1.3;
     $tendency = -tanh(($price - $origin_price) / 10 / ($origin_price * $off_change) * 180 / 6.28);
 
@@ -225,11 +228,11 @@ function predict($marketplace)
             $kkk = -1;
         }
 
-        if ($marketplace[$i]["price_tendency"] == -1 ) {
+        if ($marketplace[$i]["price_tendency"] == 1 ) {
             $kkk = 1;
         }
 
-        if ($marketplace[$i]["price_tendency"] == 1 ) {
+        if ($marketplace[$i]["price_tendency"] == -1 ) {
             $kkk = -1;
         }
 
